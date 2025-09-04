@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.googleServicesPlugin)
 }
 
 kotlin {
@@ -40,6 +41,13 @@ kotlin {
             //implementation(libs.poiji)
             // O mejor aún, crear Excel manualmente con formato CSV
             implementation(libs.androidx.core.ktx.v1120)
+
+
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.auth)
+            implementation(libs.firebase.firestore)
+            implementation(libs.firebase.storage)
+            implementation(libs.firebase.analytics)
         }
         commonMain.dependencies {
             implementation(compose.runtime)

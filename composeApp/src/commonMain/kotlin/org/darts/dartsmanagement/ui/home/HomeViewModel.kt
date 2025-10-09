@@ -22,31 +22,12 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 import org.darts.dartsmanagement.ui.home.collections.CollectionsState
 
 class HomeViewModel(
-    val getBars: GetBars
     //val saveCollection: SaveCollection
 ) : ViewModel() {
 
     private val _collection = MutableStateFlow<CollectionsState>(CollectionsState())
     val collection: StateFlow<CollectionsState> = _collection
 
-    private val _isLoading = MutableStateFlow<Boolean>(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-
-    init {
-        getAllBars()
-    }
-
-
-    fun getAllBars() {
-        viewModelScope.launch {
-            val result: List<BarModel> = withContext(Dispatchers.IO) {
-                getBars()
-            }
-
-            _isLoading.value = false
-        }
-    }
 
     init {
         /*viewModelScope.launch {

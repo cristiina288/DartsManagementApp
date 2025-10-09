@@ -18,15 +18,12 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
@@ -157,7 +154,7 @@ private fun HomeScreenContent() {
     val navigator = LocalNavigator.currentOrThrow
     val homeViewModel = koinViewModel<HomeViewModel>()
 
-    val isLoading by homeViewModel.isLoading.collectAsState()
+    val collections by homeViewModel.collection.collectAsState()
 
     val excelExporter = ExcelExporterFactory.create()
 
@@ -169,87 +166,65 @@ private fun HomeScreenContent() {
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-            // .background(Color(0xFFFDF6F3)) // Color suave de fondo
+               // .background(Color(0xFFFDF6F3)) // Color suave de fondo
         ) {
+            // Tarjeta grande: Recaudaciones
+            CardItem(
+                title = "Recaudaciones",
+                icon = Icons.Default.Star,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .height(180.dp),
+                colors = listOf(Color(0xFFB2FEFA), Color(0xFF0ED2F7))
+            ) { navigator.push(CollectionScreen) }
 
-            if (isLoading) {
-                Text("Cargando", color = Color.White)
-                Button(
-                    onClick = { homeViewModel.getAllBars() },
-                    modifier = Modifier
-                        .padding(top = 12.dp, bottom = 20.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF4A5568)
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Volver a cargar",
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                }
-            } else {
-
-
-                // Tarjeta grande: Recaudaciones
+            // Fila: Bares y Máquinas
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 CardItem(
-                    title = "Recaudaciones",
-                    icon = Icons.Default.Star,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                        .height(180.dp),
-                    colors = listOf(Color(0xFFB2FEFA), Color(0xFF0ED2F7))
-                ) { navigator.push(CollectionScreen) }
+                    title = "Bares",
+                    icon = Icons.Default.Call,
+                    modifier = Modifier.weight(1f),
+                    colors = listOf(Color(0xFFFFE29F), Color(0xFFFFA99F)),
+                    onClick = { navigator.push(BarsListingScreen) }
+                )
+                CardItem(
+                    title = "Máquinas",
+                    icon = Icons.Default.ShoppingCart,
+                    modifier = Modifier.weight(1f),
+                    colors = listOf(Color(0xFF81FBB8), Color(0xFF28C76F)),
+                    onClick = { navigator.push(MachinesListingScreen) }
+                )
+            }
 
-                // Fila: Bares y Máquinas
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CardItem(
-                        title = "Bares",
-                        icon = Icons.Default.Call,
-                        modifier = Modifier.weight(1f),
-                        colors = listOf(Color(0xFFFFE29F), Color(0xFFFFA99F)),
-                        onClick = { navigator.push(BarsListingScreen) }
-                    )
-                    CardItem(
-                        title = "Máquinas",
-                        icon = Icons.Default.ShoppingCart,
-                        modifier = Modifier.weight(1f),
-                        colors = listOf(Color(0xFF81FBB8), Color(0xFF28C76F)),
-                        onClick = { navigator.push(MachinesListingScreen) }
-                    )
-                }
-
-                // Fila: Localizaciones y Historial
-                Row(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CardItem(
-                        title = "Localizaciones",
-                        icon = Icons.Default.LocationOn,
-                        modifier = Modifier.weight(1f),
-                        colors = listOf(Color(0xFFFFD3A5), Color(0xFFFD6585)),
-                        onClick = { navigator.push(LocationsListingScreen) }
-                    )
-                    CardItem(
-                        title = "Historial de recaudaciones", //ahora descargará los datos
-                        icon = Icons.Default.Menu,
-                        modifier = Modifier.weight(1f),
-                        colors = listOf(Color(0xFFA18CD1), Color(0xFFFBC2EB)),
-                        onClick = {
-                            homeViewModel.exportData(excelExporter)
-                        }
-                    )
-                }
+            // Fila: Localizaciones y Historial
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CardItem(
+                    title = "Localizaciones",
+                    icon = Icons.Default.LocationOn,
+                    modifier = Modifier.weight(1f),
+                    colors = listOf(Color(0xFFFFD3A5), Color(0xFFFD6585)),
+                    onClick = { navigator.push(LocationsListingScreen) }
+                )
+                CardItem(
+                    title = "Historial de recaudaciones", //ahora descargará los datos
+                    icon = Icons.Default.Menu,
+                    modifier = Modifier.weight(1f),
+                    colors = listOf(Color(0xFFA18CD1), Color(0xFFFBC2EB)),
+                    onClick = {
+                        homeViewModel.exportData(excelExporter)
+                    }
+                )
             }
         }
     }
@@ -300,6 +275,7 @@ private fun CardItem(
         }
     }
 }
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)

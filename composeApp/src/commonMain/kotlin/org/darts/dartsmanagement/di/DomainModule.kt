@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.di
 
+import org.darts.dartsmanagement.domain.auth.GetCurrentUser
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.SaveBar
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
@@ -17,6 +18,7 @@ val domainModule = module {
     //single<GetBar> { GetBar(get()) } si queremos que sea singleton = unica instancia
 
     //factoryOf(::GetBar) //LO MISMO QUE EL OTRO FACTORY PERO NO HACE FALTA PASARLE TODOS LOS GETS
+    factoryOf(::GetCurrentUser)
 
     factoryOf(::GetRandomCharacter)
     factoryOf(::GetBars)

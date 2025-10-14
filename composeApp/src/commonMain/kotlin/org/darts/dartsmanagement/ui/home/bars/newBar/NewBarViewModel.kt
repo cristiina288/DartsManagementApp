@@ -67,11 +67,13 @@ class NewBarViewModel(
                 saveBar(
                     saveBarRequest = SaveBarRequest(
                         name = bar.value.name ?: "",
+                        address = bar.value.address ?: "",
+                        latitude = bar.value.latitude ?: 0.0,
+                        longitude = bar.value.longitude ?: 0.0,
                         description = bar.value.description,
                         machineId = bar.value.machineId,
                         locationId = bar.value.locationId,
-                        locationBarUrl = bar.value.locationBarUrl,
-
+                        locationBarUrl = bar.value.locationBarUrl
                     )
                 )
             }
@@ -84,6 +86,36 @@ class NewBarViewModel(
             _bar.update { bar ->
                 bar.copy(
                     name = name,
+                )
+            }
+        }
+    }
+
+    fun saveAddress(address: String) {
+        viewModelScope.launch {
+            _bar.update { bar ->
+                bar.copy(
+                    address = address,
+                )
+            }
+        }
+    }
+
+    fun saveLatitude(latitude: Double) {
+        viewModelScope.launch {
+            _bar.update { bar ->
+                bar.copy(
+                    latitude = latitude,
+                )
+            }
+        }
+    }
+
+    fun saveLongitude(longitude: Double) {
+        viewModelScope.launch {
+            _bar.update { bar ->
+                bar.copy(
+                    longitude = longitude,
                 )
             }
         }

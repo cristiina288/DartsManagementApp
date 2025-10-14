@@ -1,0 +1,47 @@
+<resources>
+    <string name="app_name">Darts Management</string>
+    <string name="auth_slogan">Gestiona tus recaudaciones</string>
+    <string name="auth_login_button">Iniciar Sesión</string>
+    <string name="auth_login_title">Iniciar Sesión</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Contraseña</string>
+    <string name="auth_hide_password">Ocultar contraseña</string>
+    <string name="auth_show_password">Mostrar contraseña</string>
+
+    <!-- Error messages (from AuthViewModel) -->
+    <string name="error_connection">Error de conexión. Inténtalo de nuevo</string>
+    <string name="error_invalid_credentials">Email o contraseña incorrectos</string>
+    <string name="error_user_not_found">No existe una cuenta con este email</string>
+    <string name="error_email_required">El email es obligatorio</string>
+    <string name="error_invalid_email">Email no válido</string>
+    <string name="error_password_required">La contraseña es obligatoria</string>
+
+    <!-- Bars Listing Screen -->
+    <string name="bars_listing_add_bar">Agregar bar</string>
+    <string name="bars_listing_search_placeholder">Búsqueda</string>
+    <string name="bars_listing_title">Bares</string>
+    <string name="bars_listing_back_button">Volver</string>
+    <string name="bars_listing_view_more">Ver más</string>
+
+    <!-- Bar Detail Screen -->
+    <string name="bar_detail_title">Bar</string>
+    <string name="bar_detail_edit_button">Editar</string>
+    <string name="bar_detail_view_on_map">Ver en Google Maps</string>
+    <string name="bar_detail_assigned_machines">Máquinas asignadas</string>
+    <string name="bar_detail_no_machines">Sin máquinas</string>
+    <string name="bar_detail_notes_header">Notas</string>
+    <string name="bar_detail_no_notes">Sin notas</string>
+    <string name="error_bar_not_found">Bar no encontrado</string>
+
+    <!-- New Bar Screen -->
+    <string name="new_bar_back_button">Back</string>
+    <string name="new_bar_title">Crear bar</string>
+    <string name="new_bar_name_label">Nombre</string>
+    <string name="new_bar_select_location_label">Selecciona la localización</string>
+    <string name="new_bar_google_maps_link_label">Link de Google Maps</string>
+    <string name="new_bar_select_machine_label">Selecciona la máquina del bar</string>
+    <string name="new_bar_dropdown_content_description">Dropdown</string>
+    <string name="new_bar_add_machine_button">Añadir máquina</string>
+    <string name="new_bar_description_label">Descripción</string>
+    <string name="new_bar_create_button">Crear bar</string>
+</resources>

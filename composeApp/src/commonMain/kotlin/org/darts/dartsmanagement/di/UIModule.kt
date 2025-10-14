@@ -1,6 +1,7 @@
 package org.darts.dartsmanagement.di
 
 import org.darts.dartsmanagement.ui.home.HomeViewModel
+import org.darts.dartsmanagement.ui.home.auth.AuthViewModel
 import org.darts.dartsmanagement.ui.home.bars.detail.BarViewModel
 import org.darts.dartsmanagement.ui.home.bars.newBar.NewBarViewModel
 import org.darts.dartsmanagement.ui.home.bars.listing.BarsListingViewModel
@@ -14,13 +15,14 @@ import org.koin.dsl.module
 
 
 val uiModule = module {
+    single { AuthViewModel() }
+    viewModelOf(::HomeViewModel)
     viewModelOf(::CollectionsViewModel)
     viewModelOf(::BarsListingViewModel)
     viewModelOf(::LocationsListingViewModel)
     viewModelOf(::MachinesListingViewModel)
     viewModelOf(::BarViewModel)
     viewModelOf(::NewBarViewModel)
-    viewModelOf(::HomeViewModel)
     viewModelOf(::MachineViewModel)
     viewModelOf(::NewMachineViewModel)
     //    viewModelOf(::CollectionsHistoryListingViewModel)

@@ -1,46 +1,67 @@
 package org.darts.dartsmanagement.ui.home
 
 import ExcelExporter
+import ExportResult
 import MiObjeto
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
+import dev.gitlive.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import org.darts.dartsmanagement.domain.auth.GetCurrentUser
 import org.darts.dartsmanagement.domain.bars.GetBars
-import org.darts.dartsmanagement.domain.bars.models.BarModel
-import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
-import org.darts.dartsmanagement.domain.collections.SaveCollection
-import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 import org.darts.dartsmanagement.ui.home.collections.CollectionsState
 
+import org.darts.dartsmanagement.ui.home.auth.AuthViewModel
+
+sealed interface HomeEvent {
+    data object Logout : HomeEvent
+}
+
 class HomeViewModel(
-    //val saveCollection: SaveCollection
+    val getCurrentUser: GetCurrentUser,
+    private val authViewModel: AuthViewModel
 ) : ViewModel() {
 
     private val _collection = MutableStateFlow<CollectionsState>(CollectionsState())
     val collection: StateFlow<CollectionsState> = _collection
 
+    private val _currentUser = MutableStateFlow<FirebaseUser?>(null)
+    val currentUser: StateFlow<FirebaseUser?> = _currentUser
+
+    private val _isCheckingAuth = MutableStateFlow(true)
+    val isCheckingAuth: StateFlow<Boolean> = _isCheckingAuth
+
 
     init {
-        /*viewModelScope.launch {
-            val result: CharacterModel = withContext(Dispatchers.IO) {
-                getRandomCharacter()
-            }
+        checkCurrentUser()
+    }
 
-            _state.update { states ->
-                states.copy(characterOfTheDay = result)
+    fun onEvent(event: HomeEvent) {
+        when (event) {
+            is HomeEvent.Logout -> {
+                logout()
             }
-        }*/
+        }
+    }
 
-        //exportData()
+    private fun checkCurrentUser() {
+        viewModelScope.launch {
+            _isCheckingAuth.value = true
+            _currentUser.value = getCurrentUser()
+            _isCheckingAuth.value = false
+        }
+    }
+
+
+
+    private fun logout() {
+        authViewModel.signOut()
+        _currentUser.value = null
     }
 
 

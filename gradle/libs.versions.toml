@@ -13,6 +13,7 @@ androidx-test-junit = "1.2.1"
 coilCompose = "2.4.0"
 compose-multiplatform = "1.7.0"
 coreKtx = "1.12.0"
+firebaseAuthIos = "1.13.0"
 junit = "4.13.2"
 kotlin = "2.1.0"
 kotlinxDatetime = "0.6.0"
@@ -40,6 +41,10 @@ voyagerNavigator = "1.0.0"
 [libraries]
 androidx-core-ktx-v1120 = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
+firebase-app = { module = "dev.gitlive:firebase-app", version.ref = "firebaseAuthIos" }
+gitlive-firebase-auth = { module = "dev.gitlive:firebase-auth", version.ref = "firebaseAuthIos" }
+gitlive-firebase-firestore = { module = "dev.gitlive:firebase-firestore", version.ref = "firebaseAuthIos" }
+gitlive-firebase-storage = { module = "dev.gitlive:firebase-storage", version.ref = "firebaseAuthIos" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -81,6 +86,7 @@ material3-android = { group = "androidx.compose.material3", name = "material3-an
 voyager-bottom-sheet-navigator = { module = "cafe.adriel.voyager:voyager-bottom-sheet-navigator", version.ref = "voyagerNavigator" }
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyagerNavigator" }
 voyager-tab-navigator = { module = "cafe.adriel.voyager:voyager-tab-navigator", version.ref = "voyagerNavigator" }
+
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

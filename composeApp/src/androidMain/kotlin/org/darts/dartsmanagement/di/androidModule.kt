@@ -1,20 +1,14 @@
 package org.darts.dartsmanagement.di
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import org.darts.dartsmanagement.data.auth.ExpectedFirebaseAuth
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
-import org.koin.core.module.Module
 import org.koin.dsl.module
 
-/*actual fun platformModule(): Module {
-    return module {
-        
-    }
-}*/
-
-
 actual val platformModule = module {
-    /*single { FirebaseAuth.getInstance() }
+    single { FirebaseAuth.getInstance() }
     single { ExpectedFirebaseAuth(get()) }
     single { FirebaseFirestore.getInstance() }
-    single { ExpectedFirestore(get()) }*/
+    single { ExpectedFirestore(get()) }
 }

@@ -7,13 +7,14 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
+    id("com.google.gms.google-services")
 }
 
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
     
@@ -40,6 +41,8 @@ kotlin {
             //implementation(libs.poiji)
             // O mejor aún, crear Excel manualmente con formato CSV
             implementation(libs.androidx.core.ktx.v1120)
+
+
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -75,10 +78,16 @@ kotlin {
             //PARA DESCARGAR EXCEL:
             implementation(libs.kotlinx.datetime)
 
+
+            implementation(libs.gitlive.firebase.auth)
+            implementation(libs.gitlive.firebase.firestore)
+            implementation(libs.gitlive.firebase.storage)
+            implementation(libs.firebase.app)
         }
 
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+
         }
     }
 }
@@ -105,8 +114,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 }
 

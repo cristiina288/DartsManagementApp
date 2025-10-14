@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.ui.home
 
+import ExcelExporterFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -22,12 +24,14 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import org.darts.dartsmanagement.ui.home.auth.AuthScreen
 import org.darts.dartsmanagement.ui.home.bars.listing.BarsListingScreen
 import org.darts.dartsmanagement.ui.home.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.home.locations.listing.LocationsListingScreen
@@ -155,12 +160,19 @@ private fun HomeScreenContent() {
     val homeViewModel = koinViewModel<HomeViewModel>()
 
     val collections by homeViewModel.collection.collectAsState()
+    val currentUser by homeViewModel.currentUser.collectAsState()
 
     val excelExporter = ExcelExporterFactory.create()
 
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            navigator.replaceAll(AuthScreen)
+        }
+    }
+
     Scaffold(
         containerColor = Color(0xFF1E2832),
-        topBar = { TopBar2() },
+        topBar = { TopBar2(onLogout = { homeViewModel.onEvent(HomeEvent.Logout) }) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -280,7 +292,7 @@ private fun CardItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar2() {
+private fun TopBar2(onLogout: () -> Unit) {
     TopAppBar(
         modifier = Modifier
             .fillMaxWidth()
@@ -292,6 +304,15 @@ private fun TopBar2() {
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+        },
+        actions = {
+            IconButton(onClick = onLogout) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Logout",
+                    tint = Color.White
+                )
+            }
         },
         colors = TopAppBarColors(
             containerColor = Color(0xFF1E2832),

@@ -4,7 +4,10 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 
 class SaveCollection (val collectionsRepository: CollectionsRepository) {//machineName: MachineName) {
 
-    suspend operator fun invoke(collectionAmounts: CollectionAmountsModel, newCounterMachine: Int) {
-        return collectionsRepository.saveCollection(collectionAmounts, newCounterMachine)
+    suspend operator fun invoke(collectionAmounts: CollectionAmountsModel,
+                                newCounterMachine: Int,
+                                machineId: Int) {
+        return collectionsRepository.saveCollection(collectionAmounts,
+            newCounterMachine, machineId)
     }
 }

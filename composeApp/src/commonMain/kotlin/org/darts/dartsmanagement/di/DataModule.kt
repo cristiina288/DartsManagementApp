@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.di
 
+import CollectionsApiService
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import io.ktor.client.HttpClient
@@ -14,7 +15,6 @@ import org.darts.dartsmanagement.data.bars.BarsApiService
 import org.darts.dartsmanagement.data.bars.BarsRepositoryImpl
 import org.darts.dartsmanagement.data.characters.ApiService
 import org.darts.dartsmanagement.data.characters.RepositoryImpl
-import org.darts.dartsmanagement.data.collections.CollectionsApiService
 import org.darts.dartsmanagement.data.collections.CollectionsRepositoryImpl
 import org.darts.dartsmanagement.data.locations.LocationsApiService
 import org.darts.dartsmanagement.data.locations.LocationsRepositoryImpl
@@ -30,7 +30,7 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
 val dataModule = module {
-    single { dev.gitlive.firebase.Firebase.auth }
+    single { Firebase.auth }
     factory<AuthRepository> { FirebaseAuthRepository(get()) }
 
     single {
@@ -53,7 +53,9 @@ val dataModule = module {
     factory<Repository> { RepositoryImpl(get()) }
 
 
-    factory { BarsApiService(get(), get()) }
+
+
+    factory { BarsApiService(get()) }
     factory<BarsRepository> { BarsRepositoryImpl(get()) }
 
 
@@ -61,9 +63,9 @@ val dataModule = module {
     factory<CollectionsRepository> { CollectionsRepositoryImpl(get()) }
 
 
-    factoryOf(::LocationsApiService)
+    factory { LocationsApiService(get()) }
     factory<LocationsRepository> { LocationsRepositoryImpl(get()) }
 
-    factoryOf(::MachinesApiService)
+    factory { MachinesApiService(get()) }
     factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
 }

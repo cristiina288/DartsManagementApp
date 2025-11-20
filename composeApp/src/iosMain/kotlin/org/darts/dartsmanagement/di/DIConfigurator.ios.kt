@@ -13,8 +13,5 @@ import org.koin.dsl.module
 
 
 actual val platformModule = module {
-    /*single { FirebaseAuth.getInstance() }
-    single { ExpectedFirebaseAuth(get()) }
-    single { FirebaseFirestore.getInstance() }
-    single { ExpectedFirestore(get()) }*/
+    single { ExpectedFirestore().apply { /* No actual FirebaseFirestore for iOS stub */ } }
 }

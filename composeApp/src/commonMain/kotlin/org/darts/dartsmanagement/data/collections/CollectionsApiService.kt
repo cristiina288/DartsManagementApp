@@ -1,62 +1,48 @@
-package org.darts.dartsmanagement.data.collections
-
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import org.darts.dartsmanagement.data.collections.requests.CollectionAmountsRequest
-import org.darts.dartsmanagement.data.collections.requests.CollectionRequest
-import org.darts.dartsmanagement.data.collections.requests.SaveCollectionRequest
-import org.darts.dartsmanagement.data.collections.response.CollectionResponse
-import org.darts.dartsmanagement.data.collections.response.GetCollectionsByMachineIdResponse
+import dev.gitlive.firebase.firestore.Timestamp
+import org.darts.dartsmanagement.data.collections.response.CollectionFirestoreResponse
+import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 
-class CollectionsApiService(private val httpClient: HttpClient) {
+class CollectionsApiService(
+    private val firestore: ExpectedFirestore
+) {
 
     suspend fun saveCollection(
         collectionAmountsModel: CollectionAmountsModel,
-        newCounterMachine: Int
-    ) {
-
-        try {
-            val request = SaveCollectionRequest(
-                collection = CollectionRequest(
-                    id = 0,
-                    machineId = 2,
-                    comments = "",
-                    collectionAmounts = CollectionAmountsRequest(
-                        totalCollection = collectionAmountsModel.totalCollection,
-                        barAmount = collectionAmountsModel.barAmount,
-                        barPayment = collectionAmountsModel.barPayment,
-                        businessAmount = collectionAmountsModel.businessAmount,
-                        extraAmount = collectionAmountsModel.extraAmount
-                    ),
-                    status = null
-                ),
-                counterMachine = newCounterMachine
+        newCounterMachine: Int,
+        machineId: Int
+    ): Boolean {
+        return try {
+            val collection = mapOf(
+                "machineId" to machineId,
+                "comments" to "",
+                "totalCollection" to collectionAmountsModel.totalCollection,
+                "barAmount" to collectionAmountsModel.barAmount,
+                "barPayment" to collectionAmountsModel.barPayment,
+                "businessAmount" to collectionAmountsModel.businessAmount,
+                "extraAmount" to collectionAmountsModel.extraAmount,
+                "createdAt" to Timestamp.now(),
+                "status" to null
             )
-
-            httpClient.post("/v1/collections") {
-                contentType(ContentType.Application.Json)
-                setBody(request)
-            }
+            firestore.addDocument("collections", collection)
+            firestore.updateDocument("machines", machineId.toString(), mapOf("counter" to newCounterMachine))
+            true
         } catch (e: Exception) {
-            println("/collections: $e")
+            println("Error saving collection: $e")
+            false
         }
     }
 
-
-    suspend fun getCollectionsById(
+    suspend fun getCollectionsByMachineId(
         machineId: Int
-    ) : List<CollectionResponse> {
+    ): List<CollectionFirestoreResponse> {
         try {
-            val b: GetCollectionsByMachineIdResponse = httpClient.get("/v1/collections/by-machine/$machineId").body()
-            return b.collections
+            val snapshot = firestore.getDocuments("collections", "machineId", machineId)
+            return snapshot.map {
+                it.data()
+            }
         } catch (e: Exception) {
-            println("/collections/by-machine: $e")
+            println("Error getting collections by machine id: $e")
             return emptyList()
         }
     }

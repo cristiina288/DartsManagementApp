@@ -17,6 +17,54 @@ You are an expert Kotlin Multiplatform developer tasked with creating and mainta
 - **Navigation**: Voyager
 - **Networking**: Ktor (with Firebase for BaaS)
 - **Backend Services**: Firebase (Authentication, Firestore, Storage, Analytics)
+
+##### Firebase Firestore Integration Strategy
+This section outlines the strategy and current state of integrating Firebase Firestore as the backend for data persistence.
+
+**1. Firestore Data Model:**
+
+*   **`licenses` Collection:**
+    *   Document ID: `license_123`
+    *   Fields: `company_name` (String), `expires_at` (Timestamp), `status` (String)
+
+*   **`users` Collection:**
+    *   Document ID: Firebase Authentication UID
+    *   Fields: `email` (String), `name` (String), `license_id` (String, links to `licenses` collection)
+
+*   **`machines` Collection:**
+    *   Document ID: Machine ID (e.g., `101`)
+    *   Fields: `name` (String), `type` (String), `last_collection` (Timestamp), `counter` (Number), `barId` (String, links to `bars`), `status` (Map with `id` (Number))
+
+*   **`locations` Collection:**
+    *   Document ID: Location ID (e.g., `loc_001`)
+    *   Fields: `address` (String), `city` (String), `latitude` (Double), `longitude` (Double), `name` (String), `postalCode` (String), `locationBarUrl` (String)
+
+*   **`bars` Collection:**
+    *   Document ID: Bar ID (e.g., `bar_abc`)
+    *   Fields: `license_id` (String, links to `licenses`), `id` (Number), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`), `location_id` (String, links to `locations`), `status_id` (Number)
+
+**2. `getBars` Implementation Approach:**
+
+*   The `getBars` function in `BarsApiService` now fetches data from Firestore.
+*   It performs a multi-step query:
+    1.  Get current user's UID.
+    2.  Fetch user's `license_id` from the `users` collection.
+    3.  Query `bars` collection for documents matching the `license_id`.
+    4.  For each bar, fetch its associated `locations` and `machines` documents using their respective IDs.
+    5.  Map the aggregated Firestore data to the existing `BarResponse` DTOs.
+
+**3. `saveBar` Implementation Approach (Basic):**
+
+*   The `saveBar` function in `BarsApiService` currently implements a basic save operation.
+*   It takes a `SaveBarRequest` and directly adds a document to the `bars` collection.
+*   Location details (`address`, `latitude`, `longitude`) from `SaveBarRequest` are embedded directly into the `bars` document, rather than creating a separate `locations` document and linking to it. This is a temporary, simplified approach.
+
+**4. Known Issues and Next Steps:**
+
+*   **iOS `ExpectedFirestore` Implementation:** The `actual` implementation for `ExpectedFirestore` (specifically for `getDocument`, `getDocuments`, `getCurrentUserUID`) is currently only provided for Android. The iOS platform will require its own `actual` implementation to compile and function correctly.
+*   **Data Mapping Discrepancies:** There are mismatches between the fields available in the Firestore data models (e.g., `LocationFirestore`, `MachineFirestore`) and the fields expected by the existing `...Response` DTOs (e.g., `LocationResponse`, `MachineResponse`). This may lead to incomplete data in the UI or require further reconciliation.
+*   **Inefficient Machine Fetching (N+1 Problem):** In `getBars`, machines are currently fetched one by one for each bar. This results in an N+1 query problem, which can be inefficient for bars with many machines. Optimizing this to fetch all machines in a single query (e.g., using a `whereIn` clause if supported by the `ExpectedFirestore` abstraction) is a recommended next step.
+
 - **Minimum Android SDK**: API 24 (Android 7.0)
 - **Target Android SDK**: Latest stable (35)
 

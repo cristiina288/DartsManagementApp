@@ -5,6 +5,6 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 data class CollectionsState (
     //val characterOfTheDay: CharacterModel? = null
     val collectionAmounts: CollectionAmountsModel? = null,
-    val counter: Int? = null
-
+    val counter: Int? = null,
+    val machineId: Int? = null
 )

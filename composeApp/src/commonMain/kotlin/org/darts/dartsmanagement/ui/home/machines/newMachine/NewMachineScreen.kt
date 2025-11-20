@@ -214,7 +214,7 @@ fun NewMachineScreenContent() {
                             onClick = {
                                 selectedBar = bar.name
                                 isDropdownExpanded = false
-                                newMachineViewModel.saveBarId(bar.id)
+                                //newMachineViewModel.saveBarId(bar.id) //TODO COMMENT FOR ID OF FIREBASE
                             }
                         )
                     }

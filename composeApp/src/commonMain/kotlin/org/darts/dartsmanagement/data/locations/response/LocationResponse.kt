@@ -13,7 +13,7 @@ data class LocationResponse (
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(
-            id = id,
+            id = id.toString(), //todo pending delete this
             name = name,
             postalCode = postalCode,
             locationBarUrl = locationBarUrl

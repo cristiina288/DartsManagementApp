@@ -1,3 +1,4 @@
+/*
 package org.darts.dartsmanagement.data.collections.response
 
 import kotlinx.serialization.Serializable
@@ -22,4 +23,4 @@ data class CollectionResponse (
             status = status.toDomain()
         )
     }
-}
+}*/

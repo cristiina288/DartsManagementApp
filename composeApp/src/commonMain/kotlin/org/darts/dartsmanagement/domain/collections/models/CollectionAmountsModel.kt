@@ -4,9 +4,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class CollectionAmountsModel (
-    val totalCollection: Int,
-    val barAmount: Int,
-    val barPayment: Int,
-    val businessAmount: Int,
-    val extraAmount: Int,
+    val totalCollection: Double,
+    val barAmount: Double,
+    val barPayment: Double,
+    val businessAmount: Double,
+    val extraAmount: Double,
 )

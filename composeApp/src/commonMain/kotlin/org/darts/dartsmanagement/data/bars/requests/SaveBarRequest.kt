@@ -4,12 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class SaveBarRequest(
+    val id: Long = 0,
     val name: String,
+    val description: String,
     val address: String,
+    val city: String,
     val latitude: Double,
     val longitude: Double,
-    val description: String?,
-    val machineId: Int?,
-    val locationId: Int?,
-    val locationBarUrl: String?
+    val statusId: Long,
+    val machineIds: List<Long>
 )

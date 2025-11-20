@@ -1,45 +1,94 @@
+
 package org.darts.dartsmanagement.data.bars
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
 import org.darts.dartsmanagement.data.bars.requests.SaveBarRequest
 import org.darts.dartsmanagement.data.bars.response.BarResponse
-import org.darts.dartsmanagement.data.bars.response.GetBarResponse
+import org.darts.dartsmanagement.data.common.firestore.BarFirestoreResponse
+import org.darts.dartsmanagement.data.common.firestore.LocationFirestoreResponse
+import org.darts.dartsmanagement.data.common.firestore.MachineFirestoreResponse
+import org.darts.dartsmanagement.data.common.firestore.UserFirestore
+import org.darts.dartsmanagement.data.common.response.StatusResponse
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 
-class BarsApiService(private val httpClient: HttpClient, private val firestore: ExpectedFirestore) {
+class BarsApiService(private val firestore: ExpectedFirestore) {
 
     suspend fun getBars(): List<BarResponse> {
+        // 1. Get the current user's UID
+        val userUID = firestore.getCurrentUserUID() ?: return emptyList()
 
-        try {
-            val b: GetBarResponse = httpClient.get("/v1/bars").body()
-            return b.bars
-        } catch (e: Exception) {
-            println("/bar: $e")
+        // 2. Get the user's license_id from the 'users' collection
+        val userDoc = firestore.getDocument("users", userUID)
+        val user = userDoc?.data<UserFirestore>() ?: return emptyList()
+        val licenseId = user.license_id
 
-            try {
-                val b: GetBarResponse = httpClient.get("/v1/bars").body()
-                return b.bars
-            } catch (e: Exception) {
-                println("/bar: $e")
-                return emptyList()
+        // 3. Get all bars associated with that license_id
+        val barDocs = firestore.getDocuments("bars", "license_id", licenseId)
+        val barsFirestore = barDocs.map { it.data<BarFirestoreResponse>().copy(id = it.id) }
+
+        // 4. Fetch all locations and machines in separate queries to avoid N+1 problem
+        val allLocationsDocs = firestore.getDocuments("locations") // Assuming a method to get all documents in a collection
+        val allLocations = allLocationsDocs.mapNotNull { doc ->
+            doc.data<LocationFirestoreResponse>().copy(id = doc.id)
+        }
+
+        val allMachinesDocs = firestore.getDocuments("machines") // Assuming a method to get all documents in a collection
+        val allMachines = allMachinesDocs.mapNotNull { doc ->
+            doc.data<MachineFirestoreResponse>().copy(id = doc.id)
+        }
+
+        return barsFirestore.mapNotNull { barFirestore ->
+            val locationFirestoreResponse = allLocations.firstOrNull { it.id == barFirestore.location_id } // Assuming LocationFirestoreResponse has an 'id' field
+            val machinesFirestoreResponses = allMachines.filter { machine -> barFirestore.machine_ids.any { it.toString() == machine.id } }
+
+            if (locationFirestoreResponse == null) {
+                null
+            } else {
+                BarResponse(
+                    id = barFirestore.id,
+                    name = barFirestore.name,
+                    description = barFirestore.description,
+                    location = locationFirestoreResponse.toLocationResponse(),
+                    machines = machinesFirestoreResponses.map { it.toMachineResponse() },
+                    status = StatusResponse(id = barFirestore.status_id.toInt())
+                )
             }
         }
-    }
 
+        suspend fun saveBar(saveBarRequest: SaveBarRequest) {
+            try {
+                // 1. Create LocationFirestoreResponse from SaveBarRequest
+                val locationData = mapOf(
+                    "address" to saveBarRequest.address,
+                    "city" to saveBarRequest.city,
+                    "latitude" to saveBarRequest.latitude,
+                    "longitude" to saveBarRequest.longitude
+                )
+                val locationId = firestore.addDocument("locations", locationData)
 
-    suspend fun saveBar(saveBarRequest: SaveBarRequest) {
-        try {
-            val barMap = mapOf(
-                "name" to saveBarRequest.name,
-                "address" to saveBarRequest.address,
-                "latitude" to saveBarRequest.latitude,
-                "longitude" to saveBarRequest.longitude
-            )
-            firestore.addDocument("bars", barMap)
-        } catch (e: Exception) {
-            println("/bar: $e")
+                // 2. Get the current user's UID
+                val userUID = firestore.getCurrentUserUID() ?: throw IllegalStateException("User not logged in")
+
+                // 3. Get the user's license_id from the 'users' collection
+                val userDoc = firestore.getDocument("users", userUID)
+                val user = userDoc?.data<UserFirestore>() ?: throw IllegalStateException("User data not found")
+                val licenseId = user.license_id
+
+                // 4. Create BarFirestoreResponse from SaveBarRequest and new locationId
+                val barData = mapOf(
+                    "id" to saveBarRequest.id,
+                    "name" to saveBarRequest.name,
+                    "description" to saveBarRequest.description,
+                    "license_id" to licenseId,
+                    "location_id" to locationId,
+                    "status_id" to saveBarRequest.statusId,
+                    "machine_ids" to saveBarRequest.machineIds
+                )
+                firestore.addDocument("bars", barData)
+            } catch (e: Exception) {
+                println("Error saving bar: $e")
+                throw e
+            }
         }
+
     }
 }

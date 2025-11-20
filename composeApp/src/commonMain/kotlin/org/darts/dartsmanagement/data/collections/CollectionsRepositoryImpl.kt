@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.data.collections
 
+import CollectionsApiService
 import org.darts.dartsmanagement.domain.collections.CollectionsRepository
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
@@ -8,15 +9,16 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
 
     override suspend fun saveCollection(
         collectionAmountsModel: CollectionAmountsModel,
-        newCounterMachine: Int
+        newCounterMachine: Int,
+        machineId: Int
     ) {
-        api.saveCollection(collectionAmountsModel, newCounterMachine)
+        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId)
     }
 
 
     override suspend fun getCollectionsById(
         machineId: Int
     ) : List<CollectionModel> {
-        return api.getCollectionsById(machineId).map { m -> m.toDomain() }
+        return api.getCollectionsByMachineId(machineId).map { m -> m.toDomain() }
     }
 }

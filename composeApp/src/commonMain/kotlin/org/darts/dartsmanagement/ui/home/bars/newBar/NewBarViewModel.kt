@@ -71,9 +71,13 @@ class NewBarViewModel(
                         latitude = bar.value.latitude ?: 0.0,
                         longitude = bar.value.longitude ?: 0.0,
                         description = bar.value.description,
-                        machineId = bar.value.machineId,
-                        locationId = bar.value.locationId,
-                        locationBarUrl = bar.value.locationBarUrl
+                        id = 0,
+                        statusId = 0,
+                        machineIds = emptyList(),
+                        city = ""
+                        //machineId = bar.value.machineId,
+                        //locationId = bar.value.locationId,
+                        // locationBarUrl = bar.value.locationBarUrl
                     )
                 )
             }
@@ -122,7 +126,7 @@ class NewBarViewModel(
     }
 
 
-    fun saveLocationId(locationId: Int) {
+    fun saveLocationId(locationId: String) {
         viewModelScope.launch {
             _bar.update { bar ->
                 bar.copy(

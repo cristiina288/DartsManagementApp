@@ -1,24 +1,26 @@
 package org.darts.dartsmanagement.data.firestore
 
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.auth.auth
 import dev.gitlive.firebase.firestore.DocumentSnapshot
-import kotlinx.coroutines.tasks.await
+import dev.gitlive.firebase.firestore.FirebaseFirestore
+import dev.gitlive.firebase.firestore.firestore
 
 actual class ExpectedFirestore {
-    lateinit var firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore = Firebase.firestore
+
     actual suspend fun addDocument(collectionPath: String, data: Map<String, Any?>): String {
-        val documentRef = firestore.collection(collectionPath).add(data).await()
+        val documentRef = firestore.collection(collectionPath).add(data)
         return documentRef.id
     }
 
     actual suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any>): String {
-        firestore.collection(collectionPath).document(documentId).set(data).await()
+        firestore.collection(collectionPath).document(documentId).set(data)
         return documentId
     }
 
     actual suspend fun getDocument(collectionPath: String, documentId: String): DocumentSnapshot? {
-        return firestore.collection(collectionPath).document(documentId).get().await()?.let { DocumentSnapshot(it) }
+        return firestore.collection(collectionPath).document(documentId).get()
     }
 
     actual suspend fun getDocuments(
@@ -26,14 +28,14 @@ actual class ExpectedFirestore {
         whereField: String,
         whereValue: Any
     ): List<DocumentSnapshot> {
-        return firestore.collection(collectionPath).whereEqualTo(whereField, whereValue).get().await().documents.map { DocumentSnapshot(it) }
+        return firestore.collection(collectionPath).where(whereField, "==", whereValue).get().documents
     }
 
     actual suspend fun getDocuments(collectionPath: String): List<DocumentSnapshot> {
-        return firestore.collection(collectionPath).get().await().documents.map { DocumentSnapshot(it) }
+        return firestore.collection(collectionPath).get().documents
     }
 
     actual fun getCurrentUserUID(): String? {
-        return FirebaseAuth.getInstance().currentUser?.uid
+        return Firebase.auth.currentUser?.uid
     }
 }

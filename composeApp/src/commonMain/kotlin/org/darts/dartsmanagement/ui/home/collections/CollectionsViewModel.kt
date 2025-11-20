@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.darts.dartsmanagement.data.collections.requests.CollectionAmountsRequest
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
@@ -63,13 +62,14 @@ class CollectionsViewModel(
             withContext(Dispatchers.IO) {
                 saveCollection(
                     collectionAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel(
-                        totalCollection = 0,
-                        barAmount = 0,
-                        barPayment = 0,
-                        businessAmount = 0,
-                        extraAmount = 0
+                        totalCollection = 0.0,
+                        barAmount = 0.0,
+                        barPayment = 0.0,
+                        businessAmount = 0.0,
+                        extraAmount = 0.0
                     ),
-                    newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection ?: 0)
+                    newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection?.toInt() ?: 0),
+                    machineId = collection.value.machineId ?: 0
                 )
             }
         }
@@ -87,11 +87,12 @@ class CollectionsViewModel(
     }
 
 
-    fun saveCounterCollection(counterCollection: Int?) {
+    fun saveCounterAndMachineIdCollection(counterCollection: Int?, machineId: Int?) {
         viewModelScope.launch {
             _collection.update { collections ->
                 collections.copy(
-                    counter = (counterCollection ?: 0)
+                    counter = (counterCollection ?: 0),
+                    machineId = (machineId ?: 0)
                 )
             }
         }

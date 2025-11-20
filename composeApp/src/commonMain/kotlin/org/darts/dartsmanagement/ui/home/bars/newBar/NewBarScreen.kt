@@ -194,7 +194,7 @@ fun NewBarScreenContent(
                                 onClick = {
                                     selectedLocation = location.name ?: ""
                                     isDropdownExpandedLocation = false
-                                    newBarViewModel.saveLocationId(location.id ?: 0)
+                                    newBarViewModel.saveLocationId(location.id ?: "")
                                 }
                             )
                         }

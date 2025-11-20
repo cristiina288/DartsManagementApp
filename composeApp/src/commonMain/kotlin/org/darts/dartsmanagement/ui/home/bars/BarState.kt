@@ -7,6 +7,6 @@ data class BarState (
     val longitude: Double? = null,
     val description: String = "",
     val machineId: Int? = null,
-    val locationId: Int? = null,
+    val locationId: String? = null,
     val locationBarUrl: String? = null
 )

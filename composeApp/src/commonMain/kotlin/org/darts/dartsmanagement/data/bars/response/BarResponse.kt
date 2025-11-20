@@ -9,7 +9,7 @@ import org.darts.dartsmanagement.domain.bars.models.BarModel
 
 @Serializable
 data class BarResponse (
-    val id: Int,
+    val id: String?,
     val name: String,
     val description: String,
     val machines: List<MachineResponse>,

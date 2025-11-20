@@ -6,7 +6,7 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 
 data class BarModel (
-    val id: Int,
+    val id: String?,
     val name: String,
     val description: String,
     val machines: List<MachineModel>,

@@ -1,6 +1,5 @@
 package org.darts.dartsmanagement.ui.home.collections
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,9 +24,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
@@ -75,7 +70,7 @@ private fun CollectionScreenContent() {
     val bars by collectionsViewModel.bars.collectAsState()
     val collection by collectionsViewModel.collection.collectAsState()
     val oldCounter = collection.counter ?: 0
-    val newCounter = oldCounter + (collection.collectionAmounts?.totalCollection ?: 0)
+    val newCounter = oldCounter + (collection.collectionAmounts?.totalCollection ?: 0.0)
 
     Scaffold(
         topBar = { TopBar() },
@@ -376,12 +371,12 @@ private fun InputCollection(modifier: Modifier, viewModel: CollectionsViewModel)
         value = valueInput,
         onValueChange = { it ->
             valueInput = it
-            var value = 0
+            var value = 0.0
 
             value = if (it.isEmpty()) {
-                0
+                0.0
             } else {
-                it.toInt()
+                it.toDouble()
             }
 
             viewModel.saveCollectionAmounts(
@@ -403,16 +398,16 @@ private fun InputCollection(modifier: Modifier, viewModel: CollectionsViewModel)
 }
 
 
-private fun buildCollectionAmounts(totalCollection: Int, viewModel: CollectionsViewModel): CollectionAmountsModel {
-    val valueBarAmount = (totalCollection*0.4).toInt()
-    val valueBusinessAmount = (totalCollection*0.6).toInt()
+private fun buildCollectionAmounts(totalCollection: Double, viewModel: CollectionsViewModel): CollectionAmountsModel {
+    val valueBarAmount = (totalCollection*0.4).toDouble()
+    val valueBusinessAmount = (totalCollection*0.6).toDouble()
 
     return CollectionAmountsModel(
         totalCollection = totalCollection,
         barAmount = valueBarAmount,
-        barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0,
+        barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0,
         businessAmount = valueBusinessAmount,
-        extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0
+        extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0.0
     )
 }
 
@@ -420,9 +415,9 @@ private fun buildCollectionAmounts(totalCollection: Int, viewModel: CollectionsV
 
 @Composable
 private fun InputCollectionPayment(modifier: Modifier, viewModel: CollectionsViewModel) {
-    var valueInput by remember { mutableStateOf((viewModel.collection.value.collectionAmounts?.barPayment ?: 0).toString()) }
+    var valueInput by remember { mutableStateOf((viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0).toString()) }
     var isError by remember { mutableStateOf(false) }
-    val maxValue = viewModel.collection.value.collectionAmounts?.barAmount ?: 0
+    val maxValue = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0
 
     OutlinedTextField(
         value = valueInput,
@@ -430,25 +425,25 @@ private fun InputCollectionPayment(modifier: Modifier, viewModel: CollectionsVie
             valueInput = it
 
             var value = if (it.isEmpty()) {
-                0
+                0.0
             } else {
-                it.toInt()
+                it.toDouble()
             }
 
             if (value > maxValue) {
                 isError = true
-                value = 0
+                value = 0.0
             } else {
                 isError = false
             }
 
             viewModel.saveCollectionAmounts(
                 CollectionAmountsModel(
-                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0,
-                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0,
+                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0.0,
+                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0,
                     barPayment = value,
-                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0,
-                    extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0
+                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0.0,
+                    extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0.0
                 )
             )
         },
@@ -482,20 +477,20 @@ private fun InputCollectionExtra(modifier: Modifier, viewModel: CollectionsViewM
         onValueChange = { it ->
             valueInput = it
 
-            var value = 0
+            var value = 0.0
 
             value = if (it.isEmpty()) {
-                0
+                0.0
             } else {
-                it.toInt()
+                it.toDouble()
             }
 
             viewModel.saveCollectionAmounts(
                 CollectionAmountsModel(
-                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0,
-                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0,
-                    barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0,
-                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0,
+                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0.0,
+                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0,
+                    barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0,
+                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0.0,
                     extraAmount = value
                 )
             )
@@ -651,7 +646,7 @@ private fun SetDropdownMachines(machines: List<MachineModel>, modifier: Modifier
                     onClick = {
                         selectedText = option.name ?: ""
                         expanded = false
-                        viewModel.saveCounterCollection(option.counter)
+                        viewModel.saveCounterAndMachineIdCollection(option.counter, option.id)
                     },
                     colors = MenuDefaults.itemColors(
                         textColor = Color.White

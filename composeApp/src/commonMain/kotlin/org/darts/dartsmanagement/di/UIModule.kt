@@ -1,7 +1,7 @@
 package org.darts.dartsmanagement.di
 
 import org.darts.dartsmanagement.ui.home.HomeViewModel
-import org.darts.dartsmanagement.ui.home.auth.AuthViewModel
+import org.darts.dartsmanagement.ui.auth.AuthViewModel
 import org.darts.dartsmanagement.ui.home.bars.detail.BarViewModel
 import org.darts.dartsmanagement.ui.home.bars.newBar.NewBarViewModel
 import org.darts.dartsmanagement.ui.home.bars.listing.BarsListingViewModel

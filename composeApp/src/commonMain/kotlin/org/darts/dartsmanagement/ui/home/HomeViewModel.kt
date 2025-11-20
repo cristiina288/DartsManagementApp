@@ -13,10 +13,9 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
-import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.ui.home.collections.CollectionsState
 
-import org.darts.dartsmanagement.ui.home.auth.AuthViewModel
+import org.darts.dartsmanagement.ui.auth.AuthViewModel
 
 sealed interface HomeEvent {
     data object Logout : HomeEvent

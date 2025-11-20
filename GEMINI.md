@@ -182,3 +182,24 @@ class DartsManagementApp : Application() {
 8.  **Use Case Invocation**: Use Kotlin's `operator fun invoke()` pattern for use cases to make them more idiomatic (e.g., `loginUseCase(email, password)` instead of `loginUseCase.execute(email, password)`).
 9.  **Previews**: Create multiple `@Preview` functions for each stateless Composable to visualize different states (e.g., loading, error, populated data).
 
+# UI/UX Design Prompt – Dark-Mode-Only Multiplatform App
+
+## Global Design Principles
+*   The app is always in Dark Mode.
+*   Visual identity: modern, clean, professional, suitable for an internal company tool.
+*   Color direction: deep greys with teal/cyan accents.
+*   Typography: Inter or Roboto, with clear hierarchy.
+*   Rounded corners: 8–12dp.
+*   Components must be visually rich without images.
+*   UI must feel consistent across Android and iOS.
+
+## Color Palette (Suggested)
+*   Background: #0B0F13
+*   Surface: #111417
+*   Elevated Surface: #15181B
+*   Primary Accent: #00BFA6
+*   Secondary Accent: #8BE9FD
+*   Warm Accent: #FFB86B
+*   Text Primary: #E6EEF3
+*   Text Secondary: #9AA6AD
+*   Error: #FF6B6B

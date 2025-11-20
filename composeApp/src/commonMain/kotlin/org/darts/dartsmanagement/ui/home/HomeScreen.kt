@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import org.darts.dartsmanagement.ui.home.auth.AuthScreen
+import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.home.bars.listing.BarsListingScreen
 import org.darts.dartsmanagement.ui.home.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.home.locations.listing.LocationsListingScreen

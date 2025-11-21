@@ -1,28 +1,32 @@
 package org.darts.dartsmanagement.ui.bars.detail
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,14 +37,29 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dartsmanagement.composeapp.generated.resources.Res
+import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.jetbrains.compose.resources.painterResource
 
-//import coil.compose.AsyncImage
+// --- Color Palette (from MachinesListingScreen.kt) ---
+private val BackgroundDark = Color(0xFF121212)
+private val SurfaceDark = Color(0xFF1E1E1E)
+private val Primary = Color(0xFF00BDA4)
+private val TextPrimaryDark = Color(0xFFE0E0E0)
+private val TextSecondaryDark = Color(0xFFB0B0B0)
+private val BorderDark = Color.White.copy(alpha = 0.1f)
+
+// Specific tones for status tags (from GEMINI.md)
+private val InactiveStatusColor = Color(0xFF8BE9FD) // Secondary Accent
+private val PendingRepairStatusColor = Color(0xFFFFB86B) // Warm Accent
 
 class BarScreen (val bar: BarModel) : Screen {
     @Composable
@@ -49,211 +68,244 @@ class BarScreen (val bar: BarModel) : Screen {
     }
 }
 
-
 @Composable
 private fun BarScreenContent(bar: BarModel) {
-    val backgroundColor = Color(0xFF141B1F)
-    val textPrimary = Color.White
-    val textSecondary = Color(0xFF9DB1BE)
     val navigator = LocalNavigator.currentOrThrow
     val uriHandler = LocalUriHandler.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(backgroundColor)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 5.dp)
-    ) {
-        // Top Bar
-        Row(
+    Scaffold(
+        containerColor = BackgroundDark, // Using BackgroundDark from MachinesListingScreen.kt
+        topBar = {
+            TopBar(
+                title = "Detalles del Bar",
+                onBackClick = { navigator.pop() },
+                onEditClick = { /* TODO: Implement edit logic */ }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .background(backgroundColor)
-                .padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(vertical = 16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Back",
-                tint = textPrimary,
-                modifier = Modifier.size(24.dp)
-                    .clickable {
-                         navigator.pop()
-                    }
-            )
-            Text(
-                text = "Bar",
-                color = textPrimary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = "Editar",
-                color = textSecondary,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-
-        // Banner Image
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(218.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(backgroundColor)
-        ) {
-           /* AsyncImage(
-                model = "https://lh3.googleusercontent.com/aida-public/AB6AXuDDD855I2jw9dS906inAM6AL2Y1gF8vTTJgEd8paVM4nkiCuT9Y6StSnCjZhl8EtX6nWIrCs8Kk4foLcXPIto3wjWdXtJrg5ofgWGO0j5zvI6uPVvUghp8Msf_Y5kGU3E7u-EmXdp4E4E4QQ_KmlGWMuTVsKJdXD3HpoJPtVMP0prYjTSV5MV9HMlqDKMJD3Hi-jyD0bg00mLjeZmgurNlwVeSLwDxhW6MPrmgGBHHQ13Q-RnqlF0MC5C4DLcvt2KU1AwAtpWVcTxI",
-                contentDescription = "Bar Banner",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )*/
-        }
-
-        // Bar Title
-        Text(
-            text = bar.name,
-            color = textPrimary,
-            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-        )
-
-        // Address
-        Text(
-            text = bar.location.name ?: "",
-            color = textPrimary,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-
-        // View on Map
-        if (bar.location.locationBarUrl?.isNotEmpty() == true) {
-            Text(
-                text = "Ver en Google Maps",
-                color = textSecondary,
-                style = MaterialTheme.typography.bodySmall,
-                textDecoration = TextDecoration.Underline,
-                modifier = Modifier
-                    .padding(horizontal = 20.dp, vertical = 4.dp)
-                    .clickable {
-                        uriHandler.openUri(bar.location.locationBarUrl)
-                    }
-            )
-        }
-
-
-        Spacer(modifier = Modifier.padding(6.dp))
-
-        // Assigned Machines Header
-        Text(
-            text = "Máquinas asignadas",
-            color = textPrimary,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-        )
-
-        if (bar.machines.isNotEmpty()) {
-            // Machines
-            bar.machines.forEach { machine ->
-                MachineItem(
-                    imageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuDBwD1_0AqcGIyhlroZqFuK-jpNCCTCAdM_wzxG_0LUZX-H6gkAz5VwLp8ZGScgrLMbG6B1fYCleadXwXoUkTiZYSOFF6SRwT_Q9_m8ycT6l73MItmekcLf-X-pcoM-g8FokH5yTIgt1Y4nV5p7hCIMfWOt9xK7PeppKPfznSWaEz7yAyumRcru3wzrjbFPc-XEW_B7M6wTT0U_rCKLj_56_qMij1SaCuduNDLDwbP7nYEupASBe-ELVTD714CwGQvpPxG0muohFrI",
-                    name = machine.name ?: "",
-                    serial = (machine.counter ?: 0).toString(),
-                    textPrimary = textPrimary,
-                    textSecondary = textSecondary
+            item {
+                // Bar Title
+                Text(
+                    text = bar.name,
+                    color = TextPrimaryDark,
+                    fontSize = 32.sp, // Matching HTML
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 38.sp
                 )
+                // Address
+                Text(
+                    text = bar.location.name ?: "Dirección no disponible",
+                    color = TextSecondaryDark,
+                    fontSize = 16.sp
+                )
+
+                // View on Map
+                if (bar.location.locationBarUrl?.isNotEmpty() == true) {
+                    Text(
+                        text = "Ver en Google Maps",
+                        color = TextSecondaryDark,
+                        fontSize = 14.sp,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier
+                            .padding(top = 4.dp)
+                            .clickable { uriHandler.openUri(bar.location.locationBarUrl) }
+                    )
+                }
             }
-        } else {
-            Text(
-                text = "Sin máquinas",
-                color = textPrimary,
-                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-            )
-        }
 
-        Spacer(modifier = Modifier.padding(6.dp))
+            item {
+                Text(
+                    text = "Máquinas Asignadas",
+                    color = TextPrimaryDark,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
 
-        // Notes Header
-        Text(
-            text = "Notas",
-            color = textPrimary,
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
-        )
+                if (bar.machines.isNotEmpty()) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        bar.machines.forEach { machine ->
+                            MachineAssignedItem(machine = machine)
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "Sin máquinas asignadas",
+                        color = TextSecondaryDark,
+                        fontSize = 14.sp,
+                        fontStyle = FontStyle.Italic,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+            }
 
-        // Notes Text
-        if (bar.description.isEmpty()) {
-            Text(
-                text = "Sin notas",
-                color = textPrimary,
-                style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-            )
-        } else {
-            Text(
-                text = bar.description,
-                color = textPrimary,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
-            )
+            item {
+                Text(
+                    text = "Notas",
+                    color = TextPrimaryDark,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+                NotesSection(bar.description)
+            }
         }
     }
 }
 
 @Composable
-fun MachineItem(
-    imageUrl: String,
-    name: String,
-    serial: String,
-    textPrimary: Color,
-    textSecondary: Color
-) {
+private fun MachineAssignedItem(machine: MachineModel) {
+    val status = when (machine.status.id) {
+        0 -> Status.UNDEFINED
+        1 -> Status.ACTIVE
+        2 -> Status.INACTIVE
+        3 -> Status.PENDING_REPAIR
+        else -> Status.UNDEFINED // Default case
+    }
+
+    val (statusText, backgroundColor, textColor) = when (status) {
+        Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+        Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+        Status.INACTIVE -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
+        Status.PENDING_REPAIR -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Primary.copy(alpha = 0.1f)
+        ),
+        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f)) // No visible border for machine items
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon
+            Icon(
+                painter = painterResource(Res.drawable.ico_dartboard),
+                contentDescription = machine.name,
+                tint = Primary,
+                modifier = Modifier.size(40.dp)
+            )
+
+
+            Spacer(Modifier.width(16.dp))
+
+            // Machine details
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = machine.name ?: "Máquina no disponible",
+                    color = TextPrimaryDark,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1
+                )
+
+                // Counter/Amount
+                Text(
+                    text = "Contador: ${machine.counter ?: 0}",
+                    color = TextPrimaryDark,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.End,
+                )
+            }
+
+            // Status Tag
+            Box(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .background(backgroundColor, CircleShape)
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = statusText,
+                    color = textColor,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun NotesSection(description: String?) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Primary.copy(alpha = 0.1f)
+        ),
+        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f))
+    ) {
+        Box(modifier = Modifier.padding(16.dp)) {
+            if (description.isNullOrEmpty()) {
+                Text(
+                    text = "Sin notas",
+                    color = TextSecondaryDark,
+                    fontSize = 16.sp,
+                    fontStyle = FontStyle.Italic
+                )
+            } else {
+                Text(
+                    text = description,
+                    color = TextSecondaryDark,
+                    fontSize = 16.sp,
+                    lineHeight = 24.sp
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 2.dp)
-            .heightIn(min = 72.dp),
+            .background(BackgroundDark) // Use same BackgroundDark as screen
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-      /*  AsyncImage(
-            model = imageUrl,
-            contentDescription = name,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(56.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
-*/
-
-        Icon(
-            imageVector = Icons.Default.ShoppingCart,
-            contentDescription = name,
-            modifier = Modifier
-                .size(48.dp)
-                .background(Color.Gray, RoundedCornerShape(8.dp)),
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column {
-            Text(
-                text = name,
-                color = textPrimary,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+        IconButton(onClick = onBackClick) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Volver",
+                tint = TextPrimaryDark
             )
-
+        }
+        Text(
+            text = title,
+            color = TextPrimaryDark,
+            fontSize = 22.sp, // Matching other screens
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.Center
+        )
+        TextButton(onClick = onEditClick) {
             Text(
-                text = serial,
-                color = textSecondary,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                text = "Editar",
+                color = Primary, // From HTML
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

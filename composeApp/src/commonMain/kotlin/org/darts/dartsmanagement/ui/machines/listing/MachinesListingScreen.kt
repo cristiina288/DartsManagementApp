@@ -35,6 +35,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
+import org.darts.dartsmanagement.domain.common.models.Status
 // New Color Palette
 val BackgroundDark = Color(0xFF121212)
 val SurfaceDark = Color(0xFF1E1E1E)
@@ -42,6 +43,8 @@ val Primary = Color(0xFF00BDA4)
 val TextPrimaryDark = Color(0xFFE0E0E0)
 val TextSecondaryDark = Color(0xFFB0B0B0)
 val BorderDark = Color.White.copy(alpha = 0.1f)
+val SecondaryAccent = Color(0xFF8BE9FD)
+val WarmAccent = Color(0xFFFFB86B)
 
 object MachinesListingScreen : Screen {
     @Composable
@@ -208,16 +211,31 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
 
             Spacer(Modifier.width(16.dp))
 
+            val status = when (machine.status.id) {
+                0 -> Status.UNDEFINED
+                1 -> Status.ACTIVE
+                2 -> Status.INACTIVE
+                3 -> Status.PENDING_REPAIR
+                else -> Status.UNDEFINED // Default case
+            }
+
+            val (statusText, backgroundColor, textColor) = when (status) {
+                Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+                Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+                Status.INACTIVE -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
+                Status.PENDING_REPAIR -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
+            }
+
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .background(Primary.copy(alpha = 0.2f), CircleShape)
+                    .background(backgroundColor, CircleShape)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = machine.counter.toString(),
-                    color = Primary,
+                    text = statusText,
+                    color = textColor,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
                 )

@@ -13,7 +13,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
-import org.darts.dartsmanagement.ui.home.collections.CollectionsState
+import org.darts.dartsmanagement.ui.collections.CollectionsState
 
 import org.darts.dartsmanagement.ui.auth.AuthViewModel
 

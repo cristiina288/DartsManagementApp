@@ -45,8 +45,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
-import org.darts.dartsmanagement.ui.home.machines.detail.MachineScreen
-import org.darts.dartsmanagement.ui.home.machines.newMachine.NewMachineScreen
+import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
+import org.darts.dartsmanagement.ui.machines.newMachine.NewMachineScreen
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI

@@ -15,7 +15,7 @@ import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
-import org.darts.dartsmanagement.ui.home.bars.BarState
+import org.darts.dartsmanagement.ui.bars.BarState
 
 class NewBarViewModel(
     val getMachines: GetMachines,

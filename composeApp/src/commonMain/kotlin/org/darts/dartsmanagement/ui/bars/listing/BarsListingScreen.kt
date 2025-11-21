@@ -54,8 +54,8 @@ import org.koin.core.annotation.KoinExperimentalAPI
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import org.darts.dartsmanagement.ui.home.bars.newBar.NewBarScreen
-import org.darts.dartsmanagement.ui.home.bars.detail.BarScreen
+import org.darts.dartsmanagement.ui.bars.detail.BarScreen
+import org.darts.dartsmanagement.ui.bars.newBar.NewBarScreen
 
 
 object BarsListingScreen : Screen {

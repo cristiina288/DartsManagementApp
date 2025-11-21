@@ -11,7 +11,7 @@ data class MachineResponse (
     val id: Int?,
     val name: String?,
     val counter: Int?,
-    val barId: Int?,
+    val barId: String?,
     val status: StatusResponse
 ) {
     fun toDomain(): MachineModel {

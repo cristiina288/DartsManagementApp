@@ -42,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -49,11 +50,15 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dartsmanagement.composeapp.generated.resources.Res
+import dartsmanagement.composeapp.generated.resources.ico_beer
+import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingScreen
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingScreen
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -80,8 +85,8 @@ private fun HomeScreenContent() {
     }
 
     val menuItems = listOf(
-        MenuItem("Bares", Icons.Default.ShoppingCart) { navigator.push(BarsListingScreen) },
-        MenuItem("Máquinas", Icons.Default.Star) { navigator.push(MachinesListingScreen) },
+        MenuItem("Bares", icoPainter = painterResource(Res.drawable.ico_beer)) { navigator.push(BarsListingScreen) },
+        MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
         MenuItem("Historial", Icons.Default.AccountBox) { homeViewModel.exportData(excelExporter) }
     )
@@ -184,13 +189,24 @@ private fun MenuCard(item: MenuItem) {
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Bottom
         ) {
-            Icon(
-                imageVector = item.icon,
-                contentDescription = item.title,
-                tint = Color(0xFF00BFA6),
-                modifier = Modifier.size(32.dp)
-            )
+            if (item.icoPainter == null) {
+                Icon(
+                    imageVector = item.icon ?: Icons.Default.Star,
+                    contentDescription = item.title,
+                    tint = Color(0xFF00BFA6),
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                Icon(
+                    painter = item.icoPainter,
+                    contentDescription = item.title,
+                    tint = Color(0xFF00BFA6),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(text = item.title, color = Color(0xFFE6EEF3), fontWeight = FontWeight.Bold)
         }
     }
@@ -223,4 +239,4 @@ private fun AppToolbar(title: String, onLogout: () -> Unit) {
     )
 }
 
-data class MenuItem(val title: String, val icon: ImageVector, val onClick: () -> Unit)
+data class MenuItem(val title: String, val icon: ImageVector? = null, val icoPainter: Painter? = null, val onClick: () -> Unit)

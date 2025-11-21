@@ -21,7 +21,7 @@ data class MachineFirestoreResponse(
             id = null, // Still null as MachineModel expects Int?, but we have String
             name = name,
             counter = counter,
-            barId = barId?.toIntOrNull(), // Convert String barId to Int?
+            barId = barId, // Convert String barId to Int?
             status = status?.toDomain() ?: StatusResponse(id = 0).toDomain()
         )
     }
@@ -31,7 +31,7 @@ data class MachineFirestoreResponse(
             id = id.toIntOrNull(), // MachineResponse expects Int?, we have String id
             name = name,
             counter = counter,
-            barId = barId?.toIntOrNull(), // Convert String barId to Int?
+            barId = barId, // Convert String barId to Int?
             status = status ?: StatusResponse(id = 0) // Default status if null
         )
     }

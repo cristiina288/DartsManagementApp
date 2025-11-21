@@ -7,6 +7,6 @@ data class MachineModel (
     val id: Int?,
     val name: String?,
     val counter: Int?,
-    val barId: Int?,
+    val barId: String?,
     val status: StatusModel
 )

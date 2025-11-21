@@ -1,57 +1,41 @@
 package org.darts.dartsmanagement.ui.collections
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import org.darts.dartsmanagement.domain.bars.models.BarModel
+import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
-import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
+// --- Color Palette ---
+private val BackgroundDark = Color(0xFF0B0F13)
+private val SurfaceDark = Color(0xFF111417)
+private val InputBackground = Color(0xFF273A38)
+private val Primary = Color(0xFF00BDA4)
+private val TextPrimaryDark = Color.White
+private val TextSecondaryDark = Color.White.copy(alpha = 0.8f)
+private val TextPlaceholder = Color.White.copy(alpha = 0.5f)
 
 object CollectionScreen : Screen {
     @Composable
@@ -64,343 +48,144 @@ object CollectionScreen : Screen {
 @Composable
 @Preview
 private fun CollectionScreenContent() {
-    val collectionsViewModel = koinViewModel<CollectionsViewModel>()
+    val viewModel = koinViewModel<CollectionsViewModel>()
+    val collection by viewModel.collection.collectAsState()
 
-    val state by collectionsViewModel.state.collectAsState()
-    val bars by collectionsViewModel.bars.collectAsState()
-    val collection by collectionsViewModel.collection.collectAsState()
-    val oldCounter = collection.counter ?: 0
-    val newCounter = oldCounter + (collection.collectionAmounts?.totalCollection ?: 0.0)
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val navigator = LocalNavigator.currentOrThrow
+
+    LaunchedEffect(collection.snackbarMessage) {
+        collection.snackbarMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.onSnackbarShown()
+                navigator.pop()
+            }
+        }
+    }
 
     Scaffold(
+        containerColor = BackgroundDark,
         topBar = { TopBar() },
-        containerColor = Color(0xFF1E2832)
-    ) {
+        bottomBar = {
+            BottomBar(onSave = { viewModel.saveActualCollection() })
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
         LazyColumn(
-            modifier = Modifier.padding(vertical = 20.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+            contentPadding = PaddingValues(vertical = 24.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.padding(vertical = 32.dp))
-            }
-
-            item {
-                Text(
-                    text = "Datos básicos",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    style =  MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                Text(
-                    text = "Busca el bar que estás recaudando",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    style =  MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-            }
-
-            item {
-                if (!bars.isNullOrEmpty()) {
-                    SetDropdownBarMenu(bars, Modifier, collectionsViewModel)
-                }
-            }
-
-            item {
-                Column (modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth()) {
-                    Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                    Text(
-                        text = "Fecha",
-                        style =  MaterialTheme.typography.titleMedium,
-                        color = Color.White
-                    )
-                    InputFecha(Modifier.fillMaxWidth())
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                        Text(
-                            text = "Recaudación",
-                            style =  MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-
-                        InputCollection(Modifier.fillMaxWidth(), collectionsViewModel)
-
-                        Text(
-                            text = "Contador antiguo: $oldCounter",
-                            modifier = Modifier.padding(top = 4.dp),
-                            style = TextStyle(
-                                fontSize = TextUnit(12F, TextUnitType.Sp)
-                            ),
-                            color = Color.White
-                        )
-
-                        Text(
-                            text = "Contador actual: $newCounter",
-                            modifier = Modifier.padding(top = 4.dp),
-                            style = TextStyle(
-                                fontSize = TextUnit(12F, TextUnitType.Sp)
-                            ),
-                            color = Color.White
-                        )
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.padding(vertical = 12.dp))
-
-                Text(
-                    text = "Distribución",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    style =  MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                        var businessAmount =
-                            (collection.collectionAmounts?.businessAmount ?: 0).toString()
-                        var barAmount = (collection.collectionAmounts?.barAmount ?: 0).toString()
-
-                        Text(
-                            text = "Empresa",
-                            style =  MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-
-                        Row {
-                            Text(
-                                text = "60% = ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
-
-                            Text(
-                                text = "$businessAmount€",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
-
-                        }
-
-                        Spacer(modifier = Modifier.padding(vertical = 12.dp))
-
-                        Text(
-                            text = "Bar",
-                            style =  MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-
-                        Row {
-                            Text(
-                                text = "40% = ",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
-
-                            Text(
-                                text = "$barAmount€",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White
-                            )
-                        }
-                    }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                        Text(
-                            text = "Pago bar",
-                            style =  MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-
-                        Text(
-                            text = "(máx. el importe ganado)",
-                            style = TextStyle(
-                                fontSize = TextUnit(10F, TextUnitType.Sp)
-                            ),
-                            color = Color.White
-                        )
-
-                        Spacer(modifier = Modifier.padding(vertical = 2.dp))
-
-                        InputCollectionPayment(Modifier, collectionsViewModel)
-                    }
-
-                    Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Spacer(modifier = Modifier.padding(vertical = 12.dp))
-                        Text(
-                            text = "Pago extra",
-                            style =  MaterialTheme.typography.titleMedium,
-                            color = Color.White
-                        )
-
-                        Text(
-                            text = "(a parte de lo recaudado)",
-                            style = TextStyle(
-                                fontSize = TextUnit(10F, TextUnitType.Sp)
-                            ),
-                            color = Color.White
-                        )
-
-                        Spacer(modifier = Modifier.padding(vertical = 2.dp))
-
-                        InputCollectionExtra(Modifier, collectionsViewModel)
-                    }
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.padding(vertical = 12.dp))
-
-                Text(
-                    text = "Observaciones",
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    style =  MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = Color.White
-                )
-            }
-
-            item {
-                InputDescription(Modifier.padding(horizontal = 20.dp).fillMaxWidth())
-            }
-
-            item {
-                Spacer(modifier = Modifier.padding(vertical = 12.dp))
-
-                Button(
-                    onClick = { collectionsViewModel.saveActualCollection() },
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0EA5E9)
-                    )
-                ) { Text("GUARDAR") }
-            }
-
+            item { BasicDataSection(viewModel) }
+            item { DistributionSection(collection) }
+            item { ObservationsSection(viewModel) }
+            // item { PaymentSection(viewModel) } // Temporarily commented out
         }
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar() {
-    val navigator = LocalNavigator.currentOrThrow
+private fun BasicDataSection(viewModel: CollectionsViewModel) {
+    val bars by viewModel.bars.collectAsState()
+    val collection by viewModel.collection.collectAsState()
 
-    TopAppBar(
-        title = {
-            Text(
-                text = "Recaudación",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
+    val selectedBar = remember(collection.barId, bars) {
+        bars?.find { it?.id == collection.barId }
+    }
+
+    val selectedMachine = remember(collection.machineId, selectedBar) {
+        selectedBar?.machines?.find { it.id == collection.machineId }
+    }
+
+    Section(title = "Datos Básicos") {
+        // Bar Dropdown
+        AppDropdown(
+            label = "Bar",
+            options = bars?.filterNotNull() ?: emptyList(),
+            selectedOption = selectedBar,
+            onOptionSelected = { bar -> viewModel.onBarSelected(bar.id ?: "") },
+            optionToString = { it.name }
+        )
+
+        // Machine Dropdown
+        if (collection.barId != null) {
+            AppDropdown(
+                label = "Máquina",
+                options = selectedBar?.machines ?: emptyList(),
+                selectedOption = selectedMachine,
+                onOptionSelected = { machine ->
+                    viewModel.saveCounterAndMachineIdCollection(
+                        machine.counter,
+                        machine.id
+                    )
+                },
+                optionToString = { it.name ?: "" },
+                enabled = selectedBar != null
             )
-        },
-        navigationIcon = {
-            IconButton(onClick = { navigator.pop() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = Color.White
+        }
+
+        // Date Field
+        /*AppTextField(
+            label = "Fecha de Recaudación",
+            value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()), // Placeholder
+            onValueChange = {},
+            readOnly = true,
+            trailingIcon = { Icon(Icons.Default.CalendarToday, null, tint = TextPlaceholder) }
+        )*/
+
+        // Total Collection Field
+        AppTextField(
+            label = "Recaudación Total (€)",
+            value = collection.collectionAmounts?.totalCollection?.toString() ?: "",
+            onValueChange = {
+                val value = it.toDoubleOrNull() ?: 0.0
+                //viewModel.onTotalCollectionChanged(value)
+                viewModel.saveCollectionAmounts(
+                    buildCollectionAmounts(value, viewModel)
+                )
+            },
+            placeholder = "0.00",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold),
+            trailingIcon = {
+                Text(
+                    "€",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPlaceholder
                 )
             }
-        },
-        colors = TopAppBarColors(
-            containerColor = Color(0xFF1E2832),
-            scrolledContainerColor = TopAppBarDefaults.topAppBarColors().scrolledContainerColor,
-            navigationIconContentColor = TopAppBarDefaults.topAppBarColors().navigationIconContentColor,
-            titleContentColor = TopAppBarDefaults.topAppBarColors().titleContentColor,
-            actionIconContentColor = TopAppBarDefaults.topAppBarColors().actionIconContentColor,
         )
-    )
-}
 
-
-@Composable
-private fun InputDescription(modifier: Modifier) {
-    var valueInput by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = valueInput,
-        onValueChange = { it ->
-            valueInput = it
-        },
-        modifier = modifier.clip(shape = RoundedCornerShape(12.dp)),
-        enabled = true,
-        readOnly = true,
-        textStyle = TextStyle(color = Color.White),
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray,
-            unfocusedBorderColor = Color.Gray,
-            disabledBorderColor = Color.LightGray,
-            errorBorderColor = Color.Red
-        )
-    )
-}
-
-
-@Composable
-private fun InputCollection(modifier: Modifier, viewModel: CollectionsViewModel) {
-    var valueInput by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = valueInput,
-        onValueChange = { it ->
-            valueInput = it
-            var value = 0.0
-
-            value = if (it.isEmpty()) {
-                0.0
-            } else {
-                it.toDouble()
-            }
-
-            viewModel.saveCollectionAmounts(
-                buildCollectionAmounts(value, viewModel)
+        // Counters
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            ReadOnlyField(
+                label = "Contador Antiguo",
+                value = (collection.counter ?: 0).toString(),
+                modifier = Modifier.weight(1f)
             )
-        },
-        modifier = modifier,
-        enabled = true,
-        readOnly = false,
-            textStyle = TextStyle(color = Color.White),
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray,
-            unfocusedBorderColor = Color.Gray,
-            disabledBorderColor = Color.LightGray,
-            errorBorderColor = Color.Red
-        )
-    )
+            ReadOnlyField(
+                label = "Contador Actual",
+                value = ((collection.counter
+                    ?: 0) + (collection.collectionAmounts?.totalCollection?.toInt()
+                    ?: 0)).toString(),
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
 }
 
-
-private fun buildCollectionAmounts(totalCollection: Double, viewModel: CollectionsViewModel): CollectionAmountsModel {
-    val valueBarAmount = (totalCollection*0.4).toDouble()
-    val valueBusinessAmount = (totalCollection*0.6).toDouble()
+private fun buildCollectionAmounts(
+    totalCollection: Double,
+    viewModel: CollectionsViewModel
+): CollectionAmountsModel {
+    val valueBarAmount = (totalCollection * 0.4).toDouble()
+    val valueBusinessAmount = (totalCollection * 0.6).toDouble()
 
     return CollectionAmountsModel(
         totalCollection = totalCollection,
@@ -412,314 +197,296 @@ private fun buildCollectionAmounts(totalCollection: Double, viewModel: Collectio
 }
 
 
-
 @Composable
-private fun InputCollectionPayment(modifier: Modifier, viewModel: CollectionsViewModel) {
-    var valueInput by remember { mutableStateOf((viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0).toString()) }
-    var isError by remember { mutableStateOf(false) }
-    val maxValue = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0
+private fun DistributionSection(collection: CollectionsState) { // Changed to CollectionModel
+    val businessAmount = collection.collectionAmounts?.businessAmount ?: 0.0
+    val barAmount = collection.collectionAmounts?.barAmount ?: 0.0
+    val total = businessAmount + barAmount
+    val businessPercentage = if (total > 0) (businessAmount / total).toFloat() else 0.6f
 
-    OutlinedTextField(
-        value = valueInput,
-        onValueChange = { it ->
-            valueInput = it
+    fun formatCurrency(amount: Double): String {
+        val rounded = (amount * 100).toLong()
+        val integerPart = rounded / 100
+        val fractionalPart = rounded % 100
+        return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
+    }
 
-            var value = if (it.isEmpty()) {
-                0.0
-            } else {
-                it.toDouble()
-            }
-
-            if (value > maxValue) {
-                isError = true
-                value = 0.0
-            } else {
-                isError = false
-            }
-
-            viewModel.saveCollectionAmounts(
-                CollectionAmountsModel(
-                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0.0,
-                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0,
-                    barPayment = value,
-                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0.0,
-                    extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0.0
-                )
+    Section(title = "Distribución") {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            DistributionBox(
+                label = "Empresa (60%)",
+                amount = formatCurrency(businessAmount),
+                isPrimary = true,
+                modifier = Modifier.weight(1f)
             )
-        },
-        modifier = modifier,
-        enabled = true,
-        readOnly = false,
-        textStyle = TextStyle(color = Color.White),
-        isError = isError,
-        supportingText = {
-            if (isError) {
-                Text("El valor no puede ser mayor que $maxValue. Cuidado que si no es correcto no se guardará este valor.")
-            }
-        },
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray,
-            unfocusedBorderColor = Color.Gray,
-            disabledBorderColor = Color.LightGray,
-            errorBorderColor = Color.Red
-        )
-    )
-}
-
-
-@Composable
-private fun InputCollectionExtra(modifier: Modifier, viewModel: CollectionsViewModel) {
-    var valueInput by remember { mutableStateOf((viewModel.collection.value.collectionAmounts?.extraAmount ?: 0).toString()) }
-
-    OutlinedTextField(
-        value = valueInput,
-        onValueChange = { it ->
-            valueInput = it
-
-            var value = 0.0
-
-            value = if (it.isEmpty()) {
-                0.0
-            } else {
-                it.toDouble()
-            }
-
-            viewModel.saveCollectionAmounts(
-                CollectionAmountsModel(
-                    totalCollection = viewModel.collection.value.collectionAmounts?.totalCollection ?: 0.0,
-                    barAmount = viewModel.collection.value.collectionAmounts?.barAmount ?: 0.0,
-                    barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0,
-                    businessAmount = viewModel.collection.value.collectionAmounts?.businessAmount ?: 0.0,
-                    extraAmount = value
-                )
+            DistributionBox(
+                label = "Bar (40%)",
+                amount = formatCurrency(barAmount),
+                isPrimary = false,
+                modifier = Modifier.weight(1f)
             )
-        },
-        modifier = modifier,
-        enabled = true,
-        readOnly = false,
-        textStyle = TextStyle(color = Color.White),
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray,
-            unfocusedBorderColor = Color.Gray,
-            disabledBorderColor = Color.LightGray,
-            errorBorderColor = Color.Red
-        )
-    )
-}
-
-
-@Composable
-private fun InputFecha(modifier: Modifier) {
-    var valueInput by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = valueInput,
-        onValueChange = { it ->
-            valueInput = it
-        },
-        modifier = modifier,
-        enabled = true,
-        readOnly = false,
-        textStyle = TextStyle(color = Color.White),
-        placeholder = { Text("dd/mm/yyyy") },
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color.DarkGray,
-            unfocusedBorderColor = Color.Gray,
-            disabledBorderColor = Color.LightGray,
-            errorBorderColor = Color.Red
-        )
-    )
-}
-
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SetDropdownBarMenu(bars: List<BarModel?>?, modifier: Modifier, viewModel: CollectionsViewModel) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("") }
-    var barSelected: BarModel? by remember { mutableStateOf(null) }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp).fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = { selectedText = it },
-            readOnly = true,
-            label = { Text("Selecciona una opción") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp), // Esto sí redondea el borde visible
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.DarkGray,
-                unfocusedBorderColor = Color.Gray,
-                disabledBorderColor = Color.LightGray,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White
-            )
-        )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = Color(0xFF1E2832)
-        ) {
-            bars?.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option?.name ?: "") },
-                    onClick = {
-                        selectedText = option?.name ?: ""
-                        expanded = false
-                        barSelected = option
-                    },
-                    colors = MenuDefaults.itemColors(
-                        textColor = Color.White
-                    )
-                )
-            }
         }
-    }
-
-    if (!bars.isNullOrEmpty() && barSelected != null) {
-        Spacer(modifier = modifier.padding(vertical = 12.dp))
-        Text(
-            text = "Selecciona la máquina que estás recaudando",
-            modifier = modifier.padding(horizontal = 20.dp),
-            style =  MaterialTheme.typography.titleMedium,
-            color = Color.White
+        Spacer(Modifier.height(2.dp))
+        LinearProgressIndicator(
+            progress = { businessPercentage },
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+            color = Primary.copy(alpha = 0.7f),
+            trackColor = Primary.copy(alpha = 0.2f)
         )
-
-        SetDropdownMachines(barSelected!!.machines, modifier, viewModel)
     }
-
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SetDropdownMachines(machines: List<MachineModel>, modifier: Modifier, viewModel: CollectionsViewModel) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf("") }
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-        modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp).fillMaxWidth()
-    ) {
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = { selectedText = it },
-            readOnly = true,
-            label = { Text("Selecciona una opción") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp), // Esto sí redondea el borde visible
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.DarkGray,
-                unfocusedBorderColor = Color.Gray,
-                disabledBorderColor = Color.LightGray,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedLabelColor = Color.White
-            )
+private fun ObservationsSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    Section(title = "Comentarios") {
+        AppTextField(
+            value = collection.comments ?: "",
+            onValueChange = { viewModel.onCommentsChange(it) },
+            placeholder = "Añadir notas sobre incidencias, estado de la máquina, etc.",
+            singleLine = false,
+            modifier = Modifier.defaultMinSize(minHeight = 120.dp)
         )
-
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = Color(0xFF1E2832),
-        ) {
-            machines.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.name ?: "") },
-                    onClick = {
-                        selectedText = option.name ?: ""
-                        expanded = false
-                        viewModel.saveCounterAndMachineIdCollection(option.counter, option.id)
-                    },
-                    colors = MenuDefaults.itemColors(
-                        textColor = Color.White
-                    )
-                )
-            }
-        }
     }
 }
-
-
-
 
 /*
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DatePickerScreen(
-    modifier: Modifier = Modifier
-) {
-    val datePickerState = rememberDatePickerState()
+private fun PaymentSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    val barAmount = collection.collectionAmounts?.barAmount ?: 0.0
 
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        DatePicker(state = datePickerState)
-        Text(text = "Selected ${datePickerState.selectedDateMillis}")
+    Section(title = "Pagos") {
+        AppTextField(
+            label = "Pago bar (máx. %.2f)".format(barAmount),
+            value = collection.collectionAmounts?.barPayment?.toString() ?: "",
+            onValueChange = {
+                val value = it.toDoubleOrNull() ?: 0.0
+                viewModel.onBarPaymentChanged(value.coerceAtMost(barAmount))
+             },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        AppTextField(
+            label = "Pago extra",
+            value = collection.collectionAmounts?.extraAmount?.toString() ?: "",
+            onValueChange = { viewModel.onExtraPaymentChanged(it.toDoubleOrNull() ?: 0.0) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
     }
-}*/
-
-
-/*
-private fun obtenerFechaActual(): String {
-    val fechaActual = LocalDate.now()  // Obtiene la fecha del sistema
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")  // Define el formato
-    return fechaActual.format(formatter)  // Devuelve la fecha formateada
 }
 */
 
 
-/*val datePickerState = rememberDatePickerState()
-var openDialog by remember { mutableStateOf(false) }
-var fechaSeleccionada by remember { mutableStateOf(obtenerFechaActual()) }
+// --- Reusable Components ---
 
-if (openDialog) {
-    DatePickerDialog(
-        onDismissRequest = { openDialog = false },
-        confirmButton = {
-            TextButton(onClick = {
-                datePickerState.selectedDateMillis?.let { millis ->
-                    val localDate = LocalDate.ofEpochDay(millis / (24 * 60 * 60 * 1000))
-                    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-                    fechaSeleccionada = localDate.format(formatter)
-                }
-                openDialog = false
-            }) {
-                Text("Aceptar")
-            }
-        }
+@Composable
+private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(SurfaceDark, RoundedCornerShape(16.dp))
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        DatePicker(state = datePickerState)
+        Text(text = title, color = TextPrimaryDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        content()
     }
 }
 
-TextField(
-    value = fechaSeleccionada,
-    onValueChange = {},
-    readOnly = true,
-    label = { Text("Selecciona una fecha") },
-    trailingIcon = {
-        IconButton(onClick = { openDialog = true }) {
-            Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+@Composable
+private fun AppTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    label: String? = null,
+    placeholder: String = "",
+    readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    enabled: Boolean = true,
+    textStyle: androidx.compose.ui.text.TextStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
+    Column {
+        if (label != null) {
+            Text(
+                text = label,
+                color = TextSecondaryDark,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
         }
-    },
-    modifier = Modifier.fillMaxWidth()
-)*/
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = modifier.fillMaxWidth(),
+            placeholder = { Text(placeholder, color = TextPlaceholder) },
+            readOnly = readOnly,
+            singleLine = singleLine,
+            enabled = enabled,
+            textStyle = textStyle.copy(color = TextPrimaryDark),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = InputBackground,
+                focusedContainerColor = InputBackground,
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color.Transparent,
+            ),
+            shape = RoundedCornerShape(12.dp),
+            trailingIcon = trailingIcon,
+            keyboardOptions = keyboardOptions
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> AppDropdown(
+    label: String,
+    options: List<T>,
+    selectedOption: T?,
+    onOptionSelected: (T) -> Unit,
+    optionToString: (T) -> String,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Column {
+        Text(
+            text = label,
+            color = TextSecondaryDark,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { if (enabled) expanded = !expanded },
+        ) {
+            OutlinedTextField(
+                value = selectedOption?.let { optionToString(it) } ?: "Seleccionar",
+                onValueChange = {},
+                readOnly = true,
+                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = InputBackground,
+                    focusedContainerColor = InputBackground,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedTextColor = TextPrimaryDark,
+                    focusedTextColor = TextPrimaryDark
+                ),
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TextPlaceholder) },
+                enabled = enabled
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(SurfaceDark)
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(optionToString(option), color = TextPrimaryDark) },
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReadOnlyField(label: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier) {
+        Text(
+            text = label,
+            color = TextSecondaryDark,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .background(InputBackground.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = value,
+                color = TextPrimaryDark,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun DistributionBox(
+    label: String,
+    amount: String,
+    isPrimary: Boolean,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(
+                color = if (isPrimary) Primary.copy(alpha = 0.7f) else Primary.copy(alpha = 0.2f),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp)
+    ) {
+        Text(text = label, color = TextSecondaryDark, fontSize = 14.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(text = amount, color = TextPrimaryDark, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TopBar() {
+    val navigator = LocalNavigator.currentOrThrow
+    TopAppBar(
+        title = {
+            Text(
+                "Recaudaciones",
+                color = TextPrimaryDark,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        navigationIcon = {
+            IconButton(onClick = { navigator.pop() }) {
+                Icon(Icons.Default.ArrowBack, "Volver", tint = TextPrimaryDark)
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+    )
+}
+
+@Composable
+private fun BottomBar(onSave: () -> Unit) {
+    BottomAppBar(
+        containerColor = BackgroundDark.copy(alpha = 0.8f),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Button(
+            onClick = onSave,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Primary,
+                contentColor = Color.Black
+            )
+        ) {
+            Text(
+                "Guardar",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+    }
+}

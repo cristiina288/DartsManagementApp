@@ -17,6 +17,10 @@ actual class ExpectedFirestore {
         return documentId
     }
 
+    actual suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any>) {
+        firestore.collection(collectionPath).document(documentId).update(data).await()
+    }
+
     actual suspend fun getDocument(collectionPath: String, documentId: String): DocumentSnapshot? {
         return firestore.collection(collectionPath).document(documentId).get().await()?.let { DocumentSnapshot(it) }
     }

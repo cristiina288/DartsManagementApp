@@ -10,7 +10,8 @@ class CollectionsApiService(
     suspend fun saveCollection(
         collectionAmountsModel: CollectionAmountsModel,
         newCounterMachine: Int,
-        machineId: Int
+        machineId: Int,
+        comments: String
     ): Boolean {
         return try {
             val collection = mapOf(
@@ -22,10 +23,11 @@ class CollectionsApiService(
                 "businessAmount" to collectionAmountsModel.businessAmount,
                 "extraAmount" to collectionAmountsModel.extraAmount,
                 "createdAt" to Timestamp.now(),
-                "status" to null
+                "status" to null,//mapOf("id" to 1),
+                "comments" to comments
             )
             firestore.addDocument("collections", collection)
-            firestore.updateDocument("machines", machineId.toString(), mapOf("counter" to newCounterMachine))
+            firestore.updateDocumentFields("machines", machineId.toString(), mapOf("counter" to newCounterMachine))
             true
         } catch (e: Exception) {
             println("Error saving collection: $e")

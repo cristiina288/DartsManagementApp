@@ -56,23 +56,42 @@ class CollectionsViewModel(
         }
     }
 
+    fun onBarSelected(barId: String) {
+        _collection.update { collection ->
+            collection.copy(
+                barId = barId,
+                machineId = null
+            )
+        }
+    }
+
 
     fun saveActualCollection() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                saveCollection(
-                    collectionAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel(
-                        totalCollection = 0.0,
-                        barAmount = 0.0,
-                        barPayment = 0.0,
-                        businessAmount = 0.0,
-                        extraAmount = 0.0
-                    ),
-                    newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection?.toInt() ?: 0),
-                    machineId = collection.value.machineId ?: 0
-                )
+            try {
+                withContext(Dispatchers.IO) {
+                    saveCollection(
+                        collectionAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel(
+                            totalCollection = 0.0,
+                            barAmount = 0.0,
+                            barPayment = 0.0,
+                            businessAmount = 0.0,
+                            extraAmount = 0.0
+                        ),
+                        newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection?.toInt() ?: 0),
+                        machineId = collection.value.machineId ?: 0,
+                        comments = collection.value.comments ?: ""
+                    )
+                }
+                _collection.update { it.copy(snackbarMessage = "Guardado correctamente") }
+            } catch (e: Exception) {
+                _collection.update { it.copy(snackbarMessage = "Error al guardar") }
             }
         }
+    }
+
+    fun onSnackbarShown() {
+        _collection.update { it.copy(snackbarMessage = null) }
     }
 
 
@@ -95,6 +114,14 @@ class CollectionsViewModel(
                     machineId = (machineId ?: 0)
                 )
             }
+        }
+    }
+
+    fun onCommentsChange(comments: String) {
+        _collection.update { collection ->
+            collection.copy(
+                comments = comments
+            )
         }
     }
 

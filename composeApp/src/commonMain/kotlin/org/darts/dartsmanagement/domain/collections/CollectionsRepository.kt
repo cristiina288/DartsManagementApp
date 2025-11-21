@@ -7,7 +7,8 @@ interface CollectionsRepository {
 
     suspend fun saveCollection(collectionAmountsModel: CollectionAmountsModel,
                                newCounterMachine: Int,
-                               machineId: Int)
+                               machineId: Int,
+                               observations: String)
 
     suspend fun getCollectionsById(machineId: Int) : List<CollectionModel>
 

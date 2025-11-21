@@ -10,9 +10,10 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
     override suspend fun saveCollection(
         collectionAmountsModel: CollectionAmountsModel,
         newCounterMachine: Int,
-        machineId: Int
+        machineId: Int,
+        comments: String
     ) {
-        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId)
+        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, comments)
     }
 
 

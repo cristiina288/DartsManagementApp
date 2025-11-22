@@ -53,8 +53,10 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_beer
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
+import dartsmanagement.composeapp.generated.resources.ico_documents
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
+import org.darts.dartsmanagement.ui.bars.listing.BorderDark
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingScreen
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingScreen
@@ -88,7 +90,7 @@ private fun HomeScreenContent() {
         MenuItem("Bares", icoPainter = painterResource(Res.drawable.ico_beer)) { navigator.push(BarsListingScreen) },
         MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
-        MenuItem("Historial", Icons.Default.AccountBox) { homeViewModel.exportData(excelExporter) }
+        MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { homeViewModel.exportData(excelExporter) }
     )
 
     Scaffold(
@@ -134,7 +136,7 @@ private fun ActionCard(title: String, icon: ImageVector, onClick: () -> Unit) {
             .height(128.dp)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF111417))
+        colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))
     ) {
         Row(
             modifier = Modifier
@@ -181,7 +183,7 @@ private fun MenuCard(item: MenuItem) {
             .fillMaxWidth()
             .clickable(onClick = item.onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF111417))
+        colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))
     ) {
         Column(
             modifier = Modifier

@@ -10,18 +10,16 @@ import platform.UIKit.*
 actual class ExcelExporter {
 
     actual suspend fun exportarAExcel(
-        datos: List<MiObjeto>,
+        headers: List<String>,
+        data: List<List<Any>>,
         nombreArchivo: String
     ): ExportResult = withContext(Dispatchers.Default) {
         try {
-            // Crear contenido CSV (más simple para iOS)
-            val csvContent = crearCSV(datos)
+            val csvContent = crearCSV(headers, data)
 
-            // Guardar archivo
             val fileName = "${nombreArchivo}_${timestamp()}.csv"
             val filePath = guardarArchivo(csvContent, fileName)
 
-            // Compartir archivo
             compartirArchivo(filePath)
 
             ExportResult.Success
@@ -31,15 +29,18 @@ actual class ExcelExporter {
         }
     }
 
-    private fun crearCSV(datos: List<MiObjeto>): String {
+    private fun crearCSV(headers: List<String>, data: List<List<Any>>): String {
         val sb = StringBuilder()
 
         // Headers
-        sb.appendLine("ID,Nombre,Fecha,Cantidad,Activo")
+        sb.appendLine(headers.joinToString(separator = ","))
 
-        // Datos
-        datos.forEach { obj ->
-            sb.appendLine("${obj.id},\"${obj.nombre}\",${formatearFecha(obj.fecha)},${obj.cantidad},${if (obj.activo) "Sí" else "No"}")
+        // Data
+        data.forEach { row ->
+            sb.appendLine(row.joinToString(separator = ",") { value ->
+                // Basic CSV escaping for values that might contain commas or quotes
+                "\"${value.toString().replace("\"", "\"\"")}\""
+            })
         }
 
         return sb.toString()

@@ -46,6 +46,7 @@ import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.jetbrains.compose.resources.painterResource
 
@@ -163,13 +164,7 @@ private fun BarScreenContent(bar: BarModel) {
 
 @Composable
 private fun MachineAssignedItem(machine: MachineModel) {
-    val status = when (machine.status.id) {
-        0 -> Status.UNDEFINED
-        1 -> Status.ACTIVE
-        2 -> Status.INACTIVE
-        3 -> Status.PENDING_REPAIR
-        else -> Status.UNDEFINED // Default case
-    }
+    val status = machine.status.toStatus // Use the extension property
 
     val (statusText, backgroundColor, textColor) = when (status) {
         Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)

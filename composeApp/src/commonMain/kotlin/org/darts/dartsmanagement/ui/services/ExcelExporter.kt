@@ -1,15 +1,6 @@
 // commonMain/kotlin/ExcelExporter.kt
 import kotlinx.datetime.LocalDateTime
 
-// Tu clase de datos común
-data class MiObjeto(
-    val id: Int,
-    val nombre: String,
-    val fecha: LocalDateTime,
-    val cantidad: Double,
-    val activo: Boolean
-)
-
 // Resultado de la exportación
 sealed class ExportResult {
     object Success : ExportResult()
@@ -19,7 +10,8 @@ sealed class ExportResult {
 // Interface común
 expect class ExcelExporter {
     suspend fun exportarAExcel(
-        datos: List<MiObjeto>,
+        headers: List<String>,
+        data: List<List<Any>>,
         nombreArchivo: String = "datos_exportados"
     ): ExportResult
 }

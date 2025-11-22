@@ -1,8 +1,10 @@
 package org.darts.dartsmanagement.data.firestore
 
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.Timestamp as KmpTimestamp // Alias the KMP Timestamp
 import kotlinx.coroutines.tasks.await
 
 actual class ExpectedFirestore {
@@ -35,6 +37,21 @@ actual class ExpectedFirestore {
 
     actual suspend fun getDocuments(collectionPath: String): List<DocumentSnapshot> {
         return firestore.collection(collectionPath).get().await().documents.map { DocumentSnapshot(it) }
+    }
+
+    actual suspend fun getDocumentsInDateRange(
+        collectionPath: String,
+        dateField: String,
+        startTimestamp: KmpTimestamp,
+        endTimestamp: KmpTimestamp
+    ): List<DocumentSnapshot> {
+        return firestore.collection(collectionPath)
+            .whereGreaterThanOrEqualTo(dateField, Timestamp(startTimestamp.seconds, startTimestamp.nanoseconds))
+            .whereLessThanOrEqualTo(dateField, Timestamp(endTimestamp.seconds, endTimestamp.nanoseconds))
+            .get()
+            .await()
+            .documents
+            .map { DocumentSnapshot(it) }
     }
 
     actual fun getCurrentUserUID(): String? {

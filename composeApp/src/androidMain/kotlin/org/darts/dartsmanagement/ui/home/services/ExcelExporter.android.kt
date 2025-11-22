@@ -16,20 +16,18 @@ import java.util.*
 actual class ExcelExporter(private val context: Context) {
 
     actual suspend fun exportarAExcel(
-        datos: List<MiObjeto>,
+        headers: List<String>,
+        data: List<List<Any>>,
         nombreArchivo: String
     ): ExportResult = withContext(Dispatchers.IO) {
         try {
-            // Crear contenido CSV que Excel puede abrir
-            val csvContent = crearCSVParaExcel(datos)
+            val csvContent = crearCSVParaExcel(headers, data)
 
-            // Guardar como archivo .csv en directorio interno
             val archivo = crearArchivo(nombreArchivo, "csv")
             FileWriter(archivo).use { writer ->
                 writer.write(csvContent)
             }
 
-            // Compartir archivo
             compartirArchivo(archivo)
 
             ExportResult.Success
@@ -39,18 +37,20 @@ actual class ExcelExporter(private val context: Context) {
         }
     }
 
-    private fun crearCSVParaExcel(datos: List<MiObjeto>): String {
+    private fun crearCSVParaExcel(headers: List<String>, data: List<List<Any>>): String {
         val sb = StringBuilder()
 
-        // BOM para UTF-8 (para que Excel lo reconozca correctamente)
-        sb.append("\uFEFF")
+        sb.append("\uFEFF") // BOM para UTF-8
 
         // Headers
-        sb.appendLine("ID,Nombre,Fecha,Cantidad,Activo")
+        sb.appendLine(headers.joinToString(separator = ","))
 
-        // Datos
-        datos.forEach { obj ->
-            sb.appendLine("${obj.id},\"${obj.nombre}\",${formatearFecha(obj.fecha)},${obj.cantidad},${if (obj.activo) "Sí" else "No"}")
+        // Data
+        data.forEach { row ->
+            sb.appendLine(row.joinToString(separator = ",") { value ->
+                // Basic CSV escaping for values that might contain commas or quotes
+                "\"${value.toString().replace("\"", "\"\"")}\""
+            })
         }
 
         return sb.toString()
@@ -62,13 +62,10 @@ actual class ExcelExporter(private val context: Context) {
                 "${fecha.year}"
     }
 
-    // CAMBIO PRINCIPAL: Usar directorio interno en lugar de externo
     private fun crearArchivo(nombreArchivo: String, extension: String): File {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val fileName = "${nombreArchivo}_$timestamp.$extension"
 
-        // Usar cache directory (interno) en lugar de external storage
-        // Esto no requiere permisos especiales
         return File(context.cacheDir, fileName)
     }
 
@@ -84,11 +81,9 @@ actual class ExcelExporter(private val context: Context) {
                 type = "text/csv"
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                // Opcional: añadir un texto descriptivo
                 putExtra(Intent.EXTRA_TEXT, "Archivo exportado desde Mi App")
             }
 
-            // Añadir FLAG_ACTIVITY_NEW_TASK si el contexto no es una Activity
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
             context.startActivity(Intent.createChooser(intent, "Compartir archivo").apply {
@@ -97,7 +92,6 @@ actual class ExcelExporter(private val context: Context) {
 
         } catch (e: Exception) {
             Log.e("ExcelExporter", "Error al compartir archivo: ${e.message}")
-            // Opcionalmente puedes lanzar una excepción personalizada aquí
         }
     }
 }

@@ -2,7 +2,6 @@ package org.darts.dartsmanagement.ui.home
 
 import ExcelExporter
 import ExportResult
-import MiObjeto
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.gitlive.firebase.auth.FirebaseUser
@@ -10,20 +9,47 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant // Import Instant for conversion
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
 import org.darts.dartsmanagement.ui.collections.CollectionsState
-
+import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
+import org.darts.dartsmanagement.domain.bars.GetBars
+import org.darts.dartsmanagement.domain.machines.GetMachines // Import GetMachines
 import org.darts.dartsmanagement.ui.auth.AuthViewModel
+import org.darts.dartsmanagement.domain.collections.models.CollectionModel
+import org.darts.dartsmanagement.domain.machines.model.MachineModel // Import MachineModel
+import dev.gitlive.firebase.firestore.Timestamp // Import KMP Timestamp
+import kotlinx.datetime.toInstant // Import toInstant for conversion
 
 sealed interface HomeEvent {
     data object Logout : HomeEvent
 }
 
+// Data class for export
+data class ExportableCollection(
+    val barId: String?,
+    val barName: String?,
+    val machineId: Int?,
+    val businessAmount: Double?,
+    val barAmount: Double?,
+    val totalCollections: Double?,
+    //val createdAt: String? // Assuming String format for date
+)
+
+// Extension function to convert dev.gitlive.firebase.firestore.Timestamp to kotlinx.datetime.LocalDateTime
+fun Timestamp.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime {
+    return Instant.fromEpochSeconds(this.seconds, this.nanoseconds).toLocalDateTime(TimeZone.currentSystemDefault())
+}
+
+
 class HomeViewModel(
     val getCurrentUser: GetCurrentUser,
-    private val authViewModel: AuthViewModel
+    private val authViewModel: AuthViewModel,
+    private val getCollectionsForMonth: GetCollectionsForMonth,
+    private val getBars: GetBars,
+    private val getMachines: GetMachines // Inject GetMachines
 ) : ViewModel() {
 
     private val _collection = MutableStateFlow<CollectionsState>(CollectionsState())
@@ -56,81 +82,73 @@ class HomeViewModel(
         }
     }
 
-
-
     private fun logout() {
         authViewModel.signOut()
         _currentUser.value = null
     }
 
-
     fun exportData(excelExporter: ExcelExporter) {
         viewModelScope.launch {
-           /* val result: List<BarModel> = withContext(Dispatchers.IO) {
-                getBars()
-            }
+            val currentMoment = Clock.System.now()
+            val localDateTime = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
+            val currentYear = localDateTime.year
+            val currentMonth = localDateTime.monthNumber
 
-            _bars.value = result*/
-            val misDatos = listOf(
-                MiObjeto(
-                    id = 1,
-                    nombre = "Producto A",
-                    fecha = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-                    cantidad = 100.50,
-                    activo = true
-                ),
-                MiObjeto(
-                    id = 2,
-                    nombre = "Producto B",
-                    fecha = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-                    cantidad = 75.25,
-                    activo = false
-                ),
-                MiObjeto(
-                    id = 3,
-                    nombre = "Producto C",
-                    fecha = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
-                    cantidad = 200.00,
-                    activo = true
-                )
+            val collections = getCollectionsForMonth(currentYear, currentMonth)
+            val allMachines = getMachines() // Get all machines
+            val allBars = getBars() // Get all bars
+
+            val machinesMap = allMachines.associateBy { it.id } // Map machineId to MachineModel
+            val barsMap = allBars.associateBy { it.id } // Map barId to BarModel
+
+            val exportableData = collections
+                .mapNotNull { collection -> // Use mapNotNull to filter out collections without a valid machine
+                    val machine = machinesMap[collection.machineId]
+                    if (machine != null) {
+                        val bar = barsMap[machine.barId] // Get bar from machine's barId
+                        ExportableCollection(
+                            barId = machine.barId, // Use barId from MachineModel
+                            barName = bar?.name, // Get bar name from BarModel
+                            machineId = collection.machineId,
+                            businessAmount = collection.collectionAmounts?.businessAmount,
+                            barAmount = collection.collectionAmounts?.barAmount,
+                            totalCollections = collection.collectionAmounts?.totalCollection,
+                            //createdAt = collection.createdAt?.toKotlinxLocalDateTime()?.toString()
+                        )
+                    } else {
+                        null // Skip collections with no matching machine
+                    }
+                }
+                .sortedBy { it.barId } // Sort by barId after enrichment
+
+            val headers = listOf(
+                "barId", "barName", "machineId", "businessAmount",
+                "barAmount", "totalCollections"//, "createdAt"
             )
 
-            // Exportar
-            when (val result = excelExporter.exportarAExcel(misDatos, "mi_reporte")) {
+            // Convert to List<List<Any>> for the Excel exporter if it expects that format
+            val dataRows = exportableData.map {
+                listOf(
+                    it.barId ?: "",
+                    it.barName ?: "",
+                    it.machineId ?: "",
+                    it.businessAmount ?: 0.0,
+                    it.barAmount ?: 0.0,
+                    it.totalCollections ?: 0.0,
+                    //it.createdAt ?: ""
+                )
+            }
+
+
+            when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${currentMonth}_${currentYear}")) {
                 is ExportResult.Success -> {
-                    // Mostrar mensaje de éxito
                     println("Excel exportado correctamente")
                 }
                 is ExportResult.Error -> {
-                    // Manejar error
                     println("Error al exportar: ${result.message}")
                 }
-
                 else -> {}
             }
-
         }
     }
-/*
-
-
-
-    fun saveActualCollection() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                saveCollection(
-                    collectionAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel(
-                        totalCollection = 0,
-                        barAmount = 0,
-                        barPayment = 0,
-                        businessAmount = 0,
-                        extraAmount = 0
-                    ),
-                    newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection ?: 0)
-                )
-            }
-        }
-    }
-*/
-
 }

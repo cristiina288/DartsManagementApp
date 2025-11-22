@@ -12,4 +12,6 @@ interface CollectionsRepository {
 
     suspend fun getCollectionsById(machineId: Int) : List<CollectionModel>
 
+    suspend fun getCollectionsForMonth(year: Int, month: Int): List<CollectionModel>
+
 }

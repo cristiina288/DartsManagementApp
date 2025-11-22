@@ -36,6 +36,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
 import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.common.models.toStatus
+
 // New Color Palette
 val BackgroundDark = Color(0xFF121212)
 val SurfaceDark = Color(0xFF1E1E1E)
@@ -211,13 +213,7 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
 
             Spacer(Modifier.width(16.dp))
 
-            val status = when (machine.status.id) {
-                0 -> Status.UNDEFINED
-                1 -> Status.ACTIVE
-                2 -> Status.INACTIVE
-                3 -> Status.PENDING_REPAIR
-                else -> Status.UNDEFINED // Default case
-            }
+            val status = machine.status.toStatus // Use the extension property
 
             val (statusText, backgroundColor, textColor) = when (status) {
                 Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)

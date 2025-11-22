@@ -1,6 +1,7 @@
 package org.darts.dartsmanagement.data.firestore
 
 import dev.gitlive.firebase.firestore.DocumentSnapshot
+import dev.gitlive.firebase.firestore.Timestamp
 
 expect class ExpectedFirestore {
     suspend fun addDocument(collectionPath: String, data: Map<String, Any?>): String
@@ -15,6 +16,14 @@ expect class ExpectedFirestore {
     ): List<DocumentSnapshot>
 
     suspend fun getDocuments(collectionPath: String): List<DocumentSnapshot>
+
+    // New function for date range queries
+    suspend fun getDocumentsInDateRange(
+        collectionPath: String,
+        dateField: String,
+        startTimestamp: Timestamp,
+        endTimestamp: Timestamp
+    ): List<DocumentSnapshot>
 
     fun getCurrentUserUID(): String?
     // Add other Firestore operations as needed (get, update, delete, etc.)

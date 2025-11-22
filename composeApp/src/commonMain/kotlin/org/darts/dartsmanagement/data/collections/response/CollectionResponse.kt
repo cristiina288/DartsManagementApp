@@ -1,3 +1,5 @@
+import kotlinx.serialization.Serializable
+
 /*
 package org.darts.dartsmanagement.data.collections.response
 
@@ -24,3 +26,27 @@ data class CollectionResponse (
         )
     }
 }*/
+
+
+
+/*
+
+@Serializable
+data class CollectionFirestoreResponse(
+    val machineId: Int,
+    val comments: String? = null,
+    val totalCollection: Double,
+    val barAmount: Double,
+    val barPayment: Double,
+    val businessAmount: Double,
+    val extraAmount: Double,
+    val createdAt: FirestoreTimestamp? = null,
+    val status: String? = null
+)
+
+
+@Serializable
+data class FirestoreTimestamp(
+    @SerialName("nativeValue\$firebase_firestore_debug")
+    val createdAtFirebase: Long
+)*/

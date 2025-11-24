@@ -17,6 +17,7 @@ fun CollectionFirestoreResponse.toDomain(): CollectionModel {
             extraAmount = extraAmount
         ),
         comments = comments,
-        status = status?.let { StatusModel(id = (it["id"] as Long).toInt()) } // Assuming the map has an 'id' field
+        status = status?.let { StatusModel(id = (it["id"] as Long).toInt()) }, // Assuming the map has an 'id' field
+        createdAt = createdAt?.seconds ?: 0L
     )
 }

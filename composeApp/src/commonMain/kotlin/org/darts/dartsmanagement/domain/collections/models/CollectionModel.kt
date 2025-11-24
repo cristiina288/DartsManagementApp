@@ -9,5 +9,6 @@ class CollectionModel(
     val machineId: Int,
     val collectionAmounts: CollectionAmountsModel,
     val comments: String? = null,
-    val status: StatusModel? = null
+    val status: StatusModel? = null,
+    val createdAt: Long
 )

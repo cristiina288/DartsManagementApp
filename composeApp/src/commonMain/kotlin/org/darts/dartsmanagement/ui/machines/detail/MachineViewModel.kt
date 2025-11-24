@@ -10,28 +10,44 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
+import org.darts.dartsmanagement.domain.bars.GetBars
+import org.darts.dartsmanagement.domain.bars.models.BarModel
 
 class MachineViewModel(
-    val getCollectionsByMachineId: GetCollectionsByMachineId,
-    //val getBarById: GetBarById,
+    private val machineId: Int,
+    private val getCollectionsByMachineId: GetCollectionsByMachineId,
+    private val getBars: GetBars
 ) : ViewModel() {
 
-    private val _collections = MutableStateFlow<List<CollectionModel>?>(null)
-    val collections: StateFlow<List<CollectionModel>?> = _collections
+    private val _collections = MutableStateFlow<List<CollectionModel>>(emptyList())
+    val collections: StateFlow<List<CollectionModel>> = _collections
 
+    private val _bar = MutableStateFlow<BarModel?>(null)
+    val bar: StateFlow<BarModel?> = _bar
 
     init {
-       // getCollectionsByMachine()
+        getCollectionsByMachine()
+        getBarForMachine()
     }
 
-
-    fun getCollectionsByMachine(machineId: Int) {
+    private fun getCollectionsByMachine() {
         viewModelScope.launch {
             val result: List<CollectionModel> = withContext(Dispatchers.IO) {
                 getCollectionsByMachineId(machineId)
             }
-
             _collections.value = result
+        }
+    }
+
+    private fun getBarForMachine() {
+        viewModelScope.launch {
+            val allBars = withContext(Dispatchers.IO) {
+                getBars()
+            }
+            // Find the bar whose machine_ids contains the current machineId
+            _bar.value = allBars.firstOrNull { bar ->
+                bar.machines.any { it.id == machineId }
+            }
         }
     }
 }

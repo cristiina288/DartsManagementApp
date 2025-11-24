@@ -1,6 +1,7 @@
 package org.darts.dartsmanagement.ui.machines.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,9 +42,29 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.text.style.TextDecoration
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import org.darts.dartsmanagement.ui.bars.detail.BarScreen
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.TimeZone
+import dartsmanagement.composeapp.generated.resources.Res
+import dartsmanagement.composeapp.generated.resources.ico_collections
+import org.jetbrains.compose.resources.painterResource
+
+// --- Color Palette from BarScreen.kt ---
+private val BackgroundDark = Color(0xFF121212)
+private val SurfaceDark = Color(0xFF1E1E1E)
+private val Primary = Color(0xFF00BDA4)
+private val TextPrimaryDark = Color(0xFFE0E0E0)
+private val TextSecondaryDark = Color(0xFFB0B0B0)
+private val BorderDark = Color.White.copy(alpha = 0.1f)
+
+private val InactiveStatusColor = Color(0xFF8BE9FD) // Secondary Accent
+private val PendingRepairStatusColor = Color(0xFFFFB86B) // Warm Accent
 
 class MachineScreen (val machine: MachineModel) : Screen {
     @Composable
@@ -57,24 +78,21 @@ class MachineScreen (val machine: MachineModel) : Screen {
 @Composable
 fun MachineScreenContent(
     machine: MachineModel,
-    barName: String = "Bar A",
-    address: String = "123 Main St, Anytown",
-    totalAmount: String = "150 €",
-    collections: List<CollectionModel> = emptyList(),
-    onBackClick: () -> Unit = {},
     onEditClick: () -> Unit = {}
 ) {
     val navigator = LocalNavigator.currentOrThrow
 
-    val machineViewModel = koinViewModel<MachineViewModel>()
-
+    val machineViewModel = koinViewModel<MachineViewModel>(
+        parameters = { parametersOf(machine.id ?: 0) }
+    )
     val collections by machineViewModel.collections.collectAsState()
+    val bar by machineViewModel.bar.collectAsState()
 
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF1E2832))
+            .background(BackgroundDark)
             .padding(16.dp)
     ) {
         // Top Bar
@@ -92,13 +110,13 @@ fun MachineScreenContent(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = TextPrimaryDark
                 )
             }
 
             Text(
                 text = "Machine Details",
-                color = Color.White,
+                color = TextPrimaryDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -108,7 +126,7 @@ fun MachineScreenContent(
             ) {
                 Text(
                     text = "Edit",
-                    color = Color.White,
+                    color = Primary,
                     fontSize = 16.sp
                 )
             }
@@ -119,89 +137,32 @@ fun MachineScreenContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                // Machine Image and Info Section
+                // Machine Info Section
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    // Machine Image (Circular)
-                    Box(
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF4A5D6B)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        // Placeholder for machine image
-                        // You can replace this with AsyncImage or Image composable
-                        Icon(
-                            imageVector = Icons.Default.ShoppingCart, // Replace with actual machine icon
-                            contentDescription = "Machine Image",
-                            tint = Color(0xFF8B9CAD),
-                            modifier = Modifier.size(60.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
                     // Machine Name
                     Text(
-                        text = machine.name ?: "",
-                        color = Color.White,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold
+                        text = machine.name.orEmpty(),
+                        color = TextPrimaryDark,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        lineHeight = 38.sp
                     )
 
-                    // Assigned to Bar
-                    Text(
-                        text = "Situada en $barName",
-                        color = Color(0xFF8B9CAD),
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-
-                    // Address
-                    Text(
-                        text = address,
-                        color = Color(0xFF8B9CAD),
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            item {
-                // Total Collections Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF2D3748)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(20.dp)
-                    ) {
+                    // "Situada en [Bar Name]" link
+                    bar?.let { currentBar ->
                         Text(
-                            text = "Total Collections on $barName",
-                            color = Color.White,
+                            text = "Situada en ${currentBar.name}",
+                            color = TextSecondaryDark,
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = totalAmount,
-                            color = Color.White,
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold
+                            textDecoration = TextDecoration.Underline,
+                            modifier = Modifier
+                                .padding(top = 4.dp)
+                                .clickable {
+                                    navigator.push(BarScreen(currentBar))
+                                }
                         )
                     }
                 }
@@ -212,8 +173,8 @@ fun MachineScreenContent(
 
                 // Collection History Title
                 Text(
-                    text = "Collection History",
-                    color = Color.White,
+                    text = "Historial de Recaudaciones",
+                    color = TextPrimaryDark,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -221,7 +182,7 @@ fun MachineScreenContent(
             }
 
             // Collection History Items
-            itemsIndexed(collections ?: emptyList()) { index, collection ->
+            itemsIndexed(collections) { index, collection ->
                 CollectionHistoryItem(
                     collection = collection,
                     item = index
@@ -236,57 +197,51 @@ fun CollectionHistoryItem(
     collection: CollectionModel,
     item: Int
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clip(RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Primary.copy(alpha = 0.1f)
+        ),
+        //border = BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)) // Optional: Add a subtle border
     ) {
-        // Collection Icon
-        Box(
+        Row(
             modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF4A5568)),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.AccountCircle, // Replace with actual collection icon
-                contentDescription = "Collection",
-                tint = Color(0xFF8B9CAD),
-                modifier = Modifier.size(20.dp)
+                painter = painterResource(Res.drawable.ico_collections),
+                contentDescription = "Collection Icon",
+                tint = Primary,
+                modifier = Modifier.size(32.dp)
             )
+
+            Spacer(Modifier.width(16.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "${collection.collectionAmounts.totalCollection ?: 0.0} €",
+                    color = TextPrimaryDark,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                val localDateTime = Instant.fromEpochSeconds(collection.createdAt).toLocalDateTime(TimeZone.currentSystemDefault())
+                val formattedDate = "${localDateTime.dayOfMonth}/${localDateTime.monthNumber}/${localDateTime.year} ${localDateTime.hour}:${localDateTime.minute}"
+
+                Text(
+                    text = "Fecha: $formattedDate",
+                    color = TextSecondaryDark,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        // Collection Details
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                text = "Recaudación $item",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
-
-            val totalAmount = collection.collectionAmounts.totalCollection
-
-            Text(
-                text = "$totalAmount €",
-                color = Color(0xFF8B9CAD),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
-
-        // Amount (if needed, currently not shown in the design)
-        // Text(
-        //     text = collection.amount,
-        //     color = Color.White,
-        //     fontSize = 16.sp,
-        //     fontWeight = FontWeight.Medium
-        // )
     }
 }

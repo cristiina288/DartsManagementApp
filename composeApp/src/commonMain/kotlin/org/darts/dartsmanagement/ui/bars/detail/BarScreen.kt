@@ -48,6 +48,8 @@ import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.common.models.Status
 import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
+import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
 import org.jetbrains.compose.resources.painterResource
 
 // --- Color Palette (from MachinesListingScreen.kt) ---
@@ -80,7 +82,7 @@ private fun BarScreenContent(bar: BarModel) {
             TopBar(
                 title = "Detalles del Bar",
                 onBackClick = { navigator.pop() },
-                onEditClick = { /* TODO: Implement edit logic */ }
+                onEditClick = { navigator.push(EditBarScreen(bar)) }
             )
         }
     ) { paddingValues ->
@@ -134,7 +136,9 @@ private fun BarScreenContent(bar: BarModel) {
                 if (bar.machines.isNotEmpty()) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         bar.machines.forEach { machine ->
-                            MachineAssignedItem(machine = machine)
+                            MachineAssignedItem(machine = machine, onClick = { clickedMachine ->
+                                navigator.push(MachineScreen(clickedMachine))
+                            })
                         }
                     }
                 } else {
@@ -163,7 +167,7 @@ private fun BarScreenContent(bar: BarModel) {
 }
 
 @Composable
-private fun MachineAssignedItem(machine: MachineModel) {
+private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -> Unit) {
     val status = machine.status.toStatus // Use the extension property
 
     val (statusText, backgroundColor, textColor) = when (status) {
@@ -176,7 +180,8 @@ private fun MachineAssignedItem(machine: MachineModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp)),
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick(machine) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
             containerColor = Primary.copy(alpha = 0.1f)

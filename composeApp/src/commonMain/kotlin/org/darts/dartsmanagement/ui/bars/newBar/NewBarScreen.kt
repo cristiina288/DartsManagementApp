@@ -59,6 +59,8 @@ fun NewBarScreenContent(
 ) {
     var name by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf("") }
+    var longitude by remember { mutableStateOf("") }
     var googleMapsLink by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedMachine by remember { mutableStateOf("Select Machine") }
@@ -202,6 +204,62 @@ fun NewBarScreenContent(
                 }
             }
 
+            // Longitude Field
+            Text(
+                text = "Latitud",
+                color = Color.White,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedTextField(
+                value = latitude,
+                onValueChange = {
+                    latitude = it
+                    newBarViewModel.saveLatitude(it.toDoubleOrNull() ?: 0.0)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF4A5568),
+                    unfocusedBorderColor = Color(0xFF4A5568),
+                    focusedContainerColor = Color(0xFF2D3748),
+                    unfocusedContainerColor = Color(0xFF2D3748),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            )
+
+            // Longitude Field
+            Text(
+                text = "Longitud",
+                color = Color.White,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedTextField(
+                value = longitude,
+                onValueChange = {
+                    longitude = it
+                    newBarViewModel.saveLongitude(it.toDoubleOrNull() ?: 0.0)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF4A5568),
+                    unfocusedBorderColor = Color(0xFF4A5568),
+                    focusedContainerColor = Color(0xFF2D3748),
+                    unfocusedContainerColor = Color(0xFF2D3748),
+                    focusedTextColor = Color.White,
+                    unfocusedTextColor = Color.White
+                ),
+                shape = RoundedCornerShape(8.dp)
+            )
+
             // Google Maps Link Field
             Text(
                 text = "Link de Google Maps",
@@ -214,7 +272,7 @@ fun NewBarScreenContent(
                 value = googleMapsLink,
                 onValueChange = {
                     googleMapsLink = it
-                    newBarViewModel.saveMapLink(googleMapsLink)
+                    newBarViewModel.saveLocationBarUrl(googleMapsLink)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

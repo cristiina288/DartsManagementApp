@@ -7,6 +7,7 @@ import org.darts.dartsmanagement.ui.bars.newBar.NewBarViewModel
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingViewModel
 import org.darts.dartsmanagement.ui.collections.CollectionsViewModel
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingViewModel
+import org.darts.dartsmanagement.ui.locations.detail.LocationViewModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineViewModel
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingViewModel
 import org.darts.dartsmanagement.ui.machines.newMachine.NewMachineViewModel
@@ -20,6 +21,7 @@ val uiModule = module {
     viewModelOf(::CollectionsViewModel)
     viewModelOf(::BarsListingViewModel)
     viewModelOf(::LocationsListingViewModel)
+    viewModelOf(::LocationViewModel)
     viewModelOf(::MachinesListingViewModel)
     viewModelOf(::BarViewModel)
     viewModelOf(::NewBarViewModel)

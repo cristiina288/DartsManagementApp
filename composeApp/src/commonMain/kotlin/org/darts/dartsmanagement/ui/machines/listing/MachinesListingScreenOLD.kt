@@ -55,7 +55,7 @@ private fun MachinesListingScreenContent() {
     val machinesListingViewModel = koinViewModel<MachinesListingViewModel>()
     val navigator = LocalNavigator.currentOrThrow
 
-    val machines by machinesListingViewModel.machines.collectAsState()
+    val machines by machinesListingViewModel.machinesUiModel.collectAsState()
 
 
     Scaffold(
@@ -66,12 +66,12 @@ private fun MachinesListingScreenContent() {
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            itemsIndexed(machines ?: emptyList()) { index, machine ->
+            itemsIndexed(machines ?: emptyList()) { index, uiMachine ->
                 MachineListItem(
-                    name = machine?.name ?: "",
+                    name = uiMachine?.barName ?: "",
                     //postalCode = machine?.postalCode ?: "",
                     onClick = {
-                        navigator.push(MachineScreen(machine!!))
+                        navigator.push(MachineScreen(uiMachine.machine))
                     }
                 )
             }

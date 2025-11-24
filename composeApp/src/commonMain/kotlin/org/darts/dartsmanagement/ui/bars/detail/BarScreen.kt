@@ -103,7 +103,7 @@ private fun BarScreenContent(bar: BarModel) {
                 )
                 // Address
                 Text(
-                    text = bar.location.name ?: "Dirección no disponible",
+                    text = bar.location.address ?: "Dirección no disponible",
                     color = TextSecondaryDark,
                     fontSize = 16.sp
                 )

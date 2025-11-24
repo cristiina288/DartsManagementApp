@@ -10,9 +10,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
+import org.darts.dartsmanagement.domain.bars.GetBars
 
 class LocationsListingViewModel(
     val getLocations: GetLocations,
+    val getBars: GetBars
 ) : ViewModel() {
 
     private val _locations = MutableStateFlow<List<LocationModel?>?>(null)
@@ -26,11 +28,18 @@ class LocationsListingViewModel(
 
     private fun getAllLocations() {
         viewModelScope.launch {
-            val result: List<LocationModel> = withContext(Dispatchers.IO) {
+            val allLocations = withContext(Dispatchers.IO) {
                 getLocations()
             }
+            val allBars = withContext(Dispatchers.IO) {
+                getBars()
+            }
 
-            _locations.value = result
+            val locationsWithBars = allLocations.map { location ->
+                location.copy(bars = allBars.filter { bar -> bar.location.id == location.id })
+            }
+
+            _locations.value = locationsWithBars
         }
     }
 }

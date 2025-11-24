@@ -10,13 +10,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.darts.dartsmanagement.domain.bars.GetBars
+import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.ui.machines.listing.MachinesUiModel
 
 class MachinesListingViewModel(
     val getMachines: GetMachines,
+    val getBars: GetBars
 ) : ViewModel() {
 
-    private val _machines = MutableStateFlow<List<MachineModel?>?>(null)
-    val machines: StateFlow<List<MachineModel?>?> = _machines
+    private val _machinesUiModel = MutableStateFlow<List<MachinesUiModel>>(emptyList())
+    val machinesUiModel: StateFlow<List<MachinesUiModel>> = _machinesUiModel
 
 
     init {
@@ -26,11 +30,20 @@ class MachinesListingViewModel(
 
     private fun getAllMachines() {
         viewModelScope.launch {
-            val result: List<MachineModel> = withContext(Dispatchers.IO) {
+            val allMachines = withContext(Dispatchers.IO) {
                 getMachines()
             }
+            val allBars = withContext(Dispatchers.IO) {
+                getBars()
+            }
 
-            _machines.value = result
+            _machinesUiModel.value = allMachines.map { machine ->
+                val bar = allBars.firstOrNull { it.id == machine.barId }
+                MachinesUiModel(
+                    machine = machine,
+                    barName = bar?.name
+                )
+            }
         }
     }
 }

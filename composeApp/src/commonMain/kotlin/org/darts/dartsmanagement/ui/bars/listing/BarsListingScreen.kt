@@ -95,7 +95,7 @@ private fun BarsListingScreenContent() {
             ) {
                 val filteredBars = bars?.filter {
                     it?.name?.contains(searchQuery, ignoreCase = true) == true ||
-                            it?.location?.name?.contains(searchQuery, ignoreCase = true) == true
+                            it?.location?.address?.contains(searchQuery, ignoreCase = true) == true
                 } ?: emptyList()
 
                 items(filteredBars, key = { it?.id ?: 0 }) { bar ->
@@ -191,7 +191,7 @@ fun BarListItem(bar: BarModel, onClick: () -> Unit) {
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = bar.location?.name ?: "Ubicación no disponible",
+                    text = bar.location?.address ?: "Ubicación no disponible",
                     color = TextSecondaryDark,
                     fontSize = 14.sp,
                     maxLines = 1

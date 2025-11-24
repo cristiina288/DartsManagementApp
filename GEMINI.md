@@ -37,11 +37,18 @@ This section outlines the strategy and current state of integrating Firebase Fir
 
 *   **`locations` Collection:**
     *   Document ID: Location ID (e.g., `loc_001`)
-    *   Fields: `address` (String), `city` (String), `latitude` (Double), `longitude` (Double), `name` (String), `postalCode` (String), `locationBarUrl` (String)
+    *   Fields: `name` (String), `postalCode` (String)
 
 *   **`bars` Collection:**
     *   Document ID: Bar ID (e.g., `bar_abc`)
-    *   Fields: `license_id` (String, links to `licenses`), `id` (Number), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`), `location_id` (String, links to `locations`), `status_id` (Number)
+    *   Fields: `license_id` (String, links to `licenses`), `id` (Number), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`),
+        `location` (Map):
+            *   `id` (String, links to `locations`)
+            *   `address` (String)
+            *   `latitude` (Double)
+            *   `longitude` (Double)
+            *   `locationBarUrl` (String)
+        `status_id` (Number)
 
 **2. `getBars` Implementation Approach:**
 

@@ -8,9 +8,10 @@ class SaveBarRequest(
     val name: String,
     val description: String,
     val address: String,
-    val city: String,
+    val locationId: String, // This will be the ID linking to the locations collection
     val latitude: Double,
     val longitude: Double,
+    val locationBarUrl: String?,
     val statusId: Long,
     val machineIds: List<Long>
 )

@@ -195,7 +195,7 @@ fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
 
             Spacer(Modifier.width(16.dp))
 
-            // Machine count chip
+            // Bar count chip
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -203,9 +203,8 @@ fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
                     .background(Primary.copy(alpha = 0.2f), CircleShape)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
-                // TODO PENDING NUMBER OF BARS OR NUMBER OF MACHINES ???
                 Text(
-                    text = "2",//(location.machineIds?.count() ?: 0).toString(),
+                    text = location.bars.count().toString(),
                     color = Primary,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp

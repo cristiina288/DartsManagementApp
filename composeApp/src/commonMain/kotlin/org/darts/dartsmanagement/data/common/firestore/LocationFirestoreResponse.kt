@@ -9,27 +9,23 @@ data class LocationFirestoreResponse(
     val id: String = "", // Firestore document ID
     val address: String = "",
     val city: String = "",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
     val name: String? = null,
-    val postalCode: String? = null,
-    val locationBarUrl: String? = null
+    val postalCode: String? = null
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(
-            id = id, // Still null as LocationModel expects Int?, but we have String
-            name = name, // Directly use name from Firestore
+            id = id,
+            name = name,
             postalCode = postalCode,
-            locationBarUrl = locationBarUrl
+            bars = emptyList()
         )
     }
 
     fun toLocationResponse(): LocationResponse {
         return LocationResponse(
-            id = null, // LocationResponse expects Int?, we have String id
-            name = name, // Directly use name from Firestore
-            postalCode = postalCode,
-            locationBarUrl = locationBarUrl
+            id = null,
+            name = name,
+            postalCode = postalCode
         )
     }
 }

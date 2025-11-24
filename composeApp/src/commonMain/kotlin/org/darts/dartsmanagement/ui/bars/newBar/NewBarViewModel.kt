@@ -74,10 +74,8 @@ class NewBarViewModel(
                         id = 0,
                         statusId = 0,
                         machineIds = emptyList(),
-                        city = ""
-                        //machineId = bar.value.machineId,
-                        //locationId = bar.value.locationId,
-                        // locationBarUrl = bar.value.locationBarUrl
+                        locationId = bar.value.locationId ?: "",
+                        locationBarUrl = bar.value.locationBarUrl
                     )
                 )
             }
@@ -137,7 +135,7 @@ class NewBarViewModel(
     }
 
 
-    fun saveMapLink(locationBarUrl: String) {
+    fun saveLocationBarUrl(locationBarUrl: String) {
         viewModelScope.launch {
             _bar.update { bar ->
                 bar.copy(

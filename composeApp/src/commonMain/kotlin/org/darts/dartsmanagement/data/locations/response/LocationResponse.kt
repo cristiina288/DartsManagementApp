@@ -8,15 +8,14 @@ import org.darts.dartsmanagement.domain.locations.model.LocationModel
 data class LocationResponse (
     val id: Int?,
     val name: String?,
-    val postalCode: String?,
-    val locationBarUrl: String?
+    val postalCode: String?
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(
             id = id.toString(), //todo pending delete this
             name = name,
             postalCode = postalCode,
-            locationBarUrl = locationBarUrl
+            bars = emptyList()
         )
     }
 }

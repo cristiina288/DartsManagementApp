@@ -37,6 +37,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 
 import org.darts.dartsmanagement.domain.common.models.Status
 import org.darts.dartsmanagement.domain.common.models.toStatus
+import org.darts.dartsmanagement.ui.machines.listing.MachinesUiModel
 
 // New Color Palette
 val BackgroundDark = Color(0xFF121212)
@@ -60,7 +61,7 @@ object MachinesListingScreen : Screen {
 @Preview
 private fun MachinesListingScreenContent() {
     val machinesListingViewModel = koinViewModel<MachinesListingViewModel>()
-    val machines by machinesListingViewModel.machines.collectAsState()
+    val machinesUiModel by machinesListingViewModel.machinesUiModel.collectAsState()
     val navigator = LocalNavigator.currentOrThrow
     var searchQuery by remember { mutableStateOf("") }
 
@@ -99,16 +100,15 @@ private fun MachinesListingScreenContent() {
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                val filteredMachines = machines?.filter {
-                    it?.name?.contains(searchQuery, ignoreCase = true) == true
+                val filteredMachines = machinesUiModel.filter {
+                    it.machine.name?.contains(searchQuery, ignoreCase = true) == true ||
+                            it.barName?.contains(searchQuery, ignoreCase = true) == true
                 } ?: emptyList()
 
-                items(filteredMachines, key = { it?.id ?: 0 }) { machine ->
-                    machine?.let {
-                        MachineListItem(machine = it, onClick = {
-                            navigator.push(MachineScreen(machine))
-                        })
-                    }
+                items(filteredMachines, key = { it.machine.id ?: 0 }) { machinesUiModel ->
+                    MachineListItem(machineDisplayModel = machinesUiModel, onClick = {
+                        navigator.push(MachineScreen(machinesUiModel.machine))
+                    })
                 }
             }
         }
@@ -151,7 +151,7 @@ fun SearchBar(
 }
 
 @Composable
-fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
+fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -171,7 +171,7 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
         ) {
             Icon(
                 painter = painterResource(Res.drawable.ico_dartboard),
-                contentDescription = machine.name,
+                contentDescription = machineDisplayModel.machine.name,
                 tint = Primary,
                 modifier = Modifier
                     .size(48.dp)
@@ -185,14 +185,14 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = machine.name ?: "Nombre no disponible",
+                    text = machineDisplayModel.machine.name ?: "Nombre no disponible",
                     color = TextPrimaryDark,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
                     maxLines = 1
                 )
                 Spacer(Modifier.height(2.dp))
-                if (machine.barId.isNullOrEmpty()) {
+                if (machineDisplayModel.barName.isNullOrEmpty()) {
                     Text(
                         text = "Sin bar asignado",
                         color = TextSecondaryDark,
@@ -202,8 +202,7 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
                     )
                 } else {
                     Text(
-                        //TODO PENDING ADD BAR NAME OR LOCATION NAME
-                        text = machine.barId,
+                        text = machineDisplayModel.barName,
                         color = TextSecondaryDark,
                         fontSize = 14.sp,
                         maxLines = 1
@@ -213,7 +212,7 @@ fun MachineListItem(machine: MachineModel, onClick: () -> Unit) {
 
             Spacer(Modifier.width(16.dp))
 
-            val status = machine.status.toStatus // Use the extension property
+            val status = machineDisplayModel.machine.status.toStatus // Use the extension property
 
             val (statusText, backgroundColor, textColor) = when (status) {
                 Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)

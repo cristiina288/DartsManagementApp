@@ -25,4 +25,8 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
     override suspend fun getCollectionsForMonth(year: Int, month: Int): List<CollectionModel> {
         return api.getCollectionsForMonth(year, month).map { it.toDomain() }
     }
+
+    override suspend fun getCollectionsInDateRange(startDate: kotlinx.datetime.LocalDate, endDate: kotlinx.datetime.LocalDate): List<CollectionModel> {
+        return api.getCollectionsInDateRange(startDate, endDate).map { it.toDomain() }
+    }
 }

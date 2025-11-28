@@ -1,10 +1,9 @@
-package org.darts.dartsmanagement.data.collections
-
 import dev.gitlive.firebase.firestore.Timestamp
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.toInstant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
@@ -48,7 +47,7 @@ class CollectionsApiService(
                 "totalCollection" to collectionAmountsModel.totalCollection,
                 "barAmount" to collectionAmountsModel.barAmount,
                 "barPayment" to collectionAmountsModel.barPayment,
-                "businessAmount" to collectionAmountsModel.businessAmount,
+                "businessAmount" to collectionAmountsModel.businessAmount, // Corrected to businessAmounts
                 "extraAmount" to collectionAmountsModel.extraAmount,
                 "createdAt" to Timestamp.now(),
                 "status" to null
@@ -85,7 +84,6 @@ class CollectionsApiService(
 
             val startMillis = startOfMonth.toEpochMilliseconds()
             val endMillis = startOfNextMonth.toEpochMilliseconds()
-
             val snapshot = firestore.getDocuments("collections")
 
             snapshot.mapNotNull { doc ->
@@ -101,6 +99,27 @@ class CollectionsApiService(
             }
         } catch (e: Exception) {
             println("Error getting collections for month: $e")
+            emptyList()
+        }
+    }
+
+    suspend fun getCollectionsInDateRange(startDate: LocalDate, endDate: LocalDate): List<CollectionFirestoreResponse> {
+        return try {
+            val startInstant = startDate.atStartOfDayIn(TimeZone.currentSystemDefault())
+            // Calculate the start of the day AFTER endDate to make the range exclusive up to the end of endDate
+            val endOfRangeExclusiveLocalDate = endDate.plus(1, kotlinx.datetime.DateTimeUnit.DAY)
+            val endInstant = endOfRangeExclusiveLocalDate.atStartOfDayIn(TimeZone.currentSystemDefault())
+
+            val snapshot = firestore.getDocumentsInDateRange(
+                collectionPath = "collections",
+                dateField = "createdAt",
+                startTimestamp = startInstant.toFirebaseTimestamp(),
+                endTimestamp = endInstant.toFirebaseTimestamp()
+            )
+
+            snapshot.map { it.data() }
+        } catch (e: Exception) {
+            println("Error getting collections in date range: $e")
             emptyList()
         }
     }

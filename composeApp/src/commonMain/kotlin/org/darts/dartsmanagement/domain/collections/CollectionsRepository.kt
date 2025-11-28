@@ -14,4 +14,5 @@ interface CollectionsRepository {
 
     suspend fun getCollectionsForMonth(year: Int, month: Int): List<CollectionModel>
 
+    suspend fun getCollectionsInDateRange(startDate: LocalDate, endDate: LocalDate): List<CollectionModel>
 }

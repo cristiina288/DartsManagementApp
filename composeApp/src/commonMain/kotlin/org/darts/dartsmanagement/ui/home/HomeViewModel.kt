@@ -10,21 +10,23 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant // Import Instant for conversion
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
-import org.darts.dartsmanagement.ui.collections.CollectionsState
-import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
 import org.darts.dartsmanagement.domain.bars.GetBars
-import org.darts.dartsmanagement.domain.machines.GetMachines // Import GetMachines
-import org.darts.dartsmanagement.ui.auth.AuthViewModel
+import org.darts.dartsmanagement.domain.collections.GetCollectionsInDateRange // Import new use case
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
+import org.darts.dartsmanagement.domain.machines.GetMachines // Import GetMachines
 import org.darts.dartsmanagement.domain.machines.model.MachineModel // Import MachineModel
+import org.darts.dartsmanagement.ui.auth.AuthViewModel
+import org.darts.dartsmanagement.ui.collections.CollectionsState
 import dev.gitlive.firebase.firestore.Timestamp // Import KMP Timestamp
 import kotlinx.datetime.toInstant // Import toInstant for conversion
 
 sealed interface HomeEvent {
     data object Logout : HomeEvent
+    data class ExportCollections(val fromDate: LocalDate) : HomeEvent
 }
 
 // Data class for export
@@ -47,7 +49,7 @@ fun Timestamp.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime {
 class HomeViewModel(
     val getCurrentUser: GetCurrentUser,
     private val authViewModel: AuthViewModel,
-    private val getCollectionsForMonth: GetCollectionsForMonth,
+    private val getCollectionsInDateRange: GetCollectionsInDateRange, // New use case
     private val getBars: GetBars,
     private val getMachines: GetMachines // Inject GetMachines
 ) : ViewModel() {
@@ -71,6 +73,9 @@ class HomeViewModel(
             is HomeEvent.Logout -> {
                 logout()
             }
+            is HomeEvent.ExportCollections -> {
+                exportData(event.fromDate)
+            }
         }
     }
 
@@ -87,14 +92,12 @@ class HomeViewModel(
         _currentUser.value = null
     }
 
-    fun exportData(excelExporter: ExcelExporter) {
+    fun exportData(fromDate: LocalDate) {
         viewModelScope.launch {
-            val currentMoment = Clock.System.now()
-            val localDateTime = currentMoment.toLocalDateTime(TimeZone.currentSystemDefault())
-            val currentYear = localDateTime.year
-            val currentMonth = localDateTime.monthNumber
+            val excelExporter = ExcelExporterFactory.create() // Create exporter inside the function
+            val endDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
-            val collections = getCollectionsForMonth(currentYear, currentMonth)
+            val collections = getCollectionsInDateRange(fromDate, endDate)
             val allMachines = getMachines() // Get all machines
             val allBars = getBars() // Get all bars
 
@@ -140,7 +143,7 @@ class HomeViewModel(
             }
 
 
-            when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${currentMonth}_${currentYear}")) {
+            when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
                 is ExportResult.Success -> {
                     println("Excel exportado correctamente")
                 }

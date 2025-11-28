@@ -127,7 +127,7 @@ fun LocationScreenContent(
                 if (bars.isNotEmpty()) { // Use the bars from the ViewModel
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         bars.forEach { bar ->
-                            BarListItem(bar = bar, onClick = { navigator.push(BarScreen(bar)) })
+                            BarListItem(bar = bar, onClick = { navigator.push(BarScreen(bar.id ?:  "")) })
                         }
                     }
                 } else {

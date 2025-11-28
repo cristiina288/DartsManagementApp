@@ -6,49 +6,77 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
-import org.darts.dartsmanagement.domain.bars.GetBars
-import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
+import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 class MachineViewModel(
-    private val machineId: Int,
+    private val initialMachine: MachineModel,
     private val getCollectionsByMachineId: GetCollectionsByMachineId,
-    private val getBars: GetBars
+    private val updateMachineStatusUseCase: UpdateMachineStatusUseCase
 ) : ViewModel() {
 
-    private val _collections = MutableStateFlow<List<CollectionModel>>(emptyList())
-    val collections: StateFlow<List<CollectionModel>> = _collections
-
-    private val _bar = MutableStateFlow<BarModel?>(null)
-    val bar: StateFlow<BarModel?> = _bar
+    private val _uiState = MutableStateFlow(MachineUiState(machine = initialMachine))
+    val uiState: StateFlow<MachineUiState> = _uiState.asStateFlow()
 
     init {
         getCollectionsByMachine()
-        getBarForMachine()
+    }
+
+    fun onEvent(event: MachineEvent) {
+        when (event) {
+            MachineEvent.ToggleRepairStatus -> {
+                viewModelScope.launch {
+                    val currentStatus = _uiState.value.machine?.status?.id ?: return@launch
+                    val newStatus = if (currentStatus == Status.INACTIVE.id) Status.PENDING_REPAIR.id else Status.INACTIVE.id
+                    val machineId = _uiState.value.machine?.id?.toInt() ?: return@launch
+
+                    _uiState.update { it.copy(isLoading = true) }
+
+                    updateMachineStatusUseCase(machineId, newStatus)
+                        .onSuccess {
+                            // On success, update the local state to reflect the change immediately
+                            val updatedMachine = _uiState.value.machine?.copy(
+                                status = _uiState.value.machine!!.status.copy(id = newStatus)
+                            )
+                            _uiState.update { it.copy(isLoading = false, machine = updatedMachine) }
+                        }
+                        .onFailure { error ->
+                            _uiState.update { it.copy(isLoading = false, error = error.message) }
+                        }
+                }
+            }
+        }
     }
 
     private fun getCollectionsByMachine() {
+        val machineId = initialMachine.id?.toInt() ?: return
         viewModelScope.launch {
-            val result: List<CollectionModel> = withContext(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            val result = withContext(Dispatchers.IO) {
                 getCollectionsByMachineId(machineId)
             }
-            _collections.value = result
+            _uiState.update { it.copy(isLoading = false, collections = result) }
         }
     }
+}
 
-    private fun getBarForMachine() {
-        viewModelScope.launch {
-            val allBars = withContext(Dispatchers.IO) {
-                getBars()
-            }
-            // Find the bar whose machine_ids contains the current machineId
-            _bar.value = allBars.firstOrNull { bar ->
-                bar.machines.any { it.id == machineId }
-            }
-        }
-    }
+data class MachineUiState(
+    val isLoading: Boolean = false,
+    val machine: MachineModel? = null,
+    val collections: List<CollectionModel> = emptyList(),
+    val bar: BarModel? = null, // Bar info can be derived from machine if needed, or passed in
+    val error: String? = null
+)
+
+sealed interface MachineEvent {
+    data object ToggleRepairStatus : MachineEvent
 }
 

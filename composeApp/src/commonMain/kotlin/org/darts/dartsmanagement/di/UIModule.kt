@@ -12,6 +12,7 @@ import org.darts.dartsmanagement.ui.locations.listing.LocationsListingViewModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineViewModel
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingViewModel
 import org.darts.dartsmanagement.ui.machines.newMachine.NewMachineViewModel
+import org.koin.compose.viewmodel.dsl.viewModel
 import org.koin.compose.viewmodel.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -24,7 +25,7 @@ val uiModule = module {
     viewModelOf(::LocationsListingViewModel)
     viewModelOf(::LocationViewModel)
     viewModelOf(::MachinesListingViewModel)
-    viewModelOf(::BarViewModel)
+    viewModel { (barId: String) -> BarViewModel(barId, get()) }
     viewModelOf(::NewBarViewModel)
     viewModelOf(::EditBarViewModel)
     viewModelOf(::MachineViewModel)

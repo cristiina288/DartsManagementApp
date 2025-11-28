@@ -40,9 +40,17 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.ui.bars.detail.BarScreen
@@ -53,6 +61,8 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.TimeZone
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_collections
+import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.jetbrains.compose.resources.painterResource
 
 // --- Color Palette from BarScreen.kt ---
@@ -65,8 +75,9 @@ private val BorderDark = Color.White.copy(alpha = 0.1f)
 
 private val InactiveStatusColor = Color(0xFF8BE9FD) // Secondary Accent
 private val PendingRepairStatusColor = Color(0xFFFFB86B) // Warm Accent
+private val DialogCardBackground = Color(0xFF1C1C1E)
 
-class MachineScreen (val machine: MachineModel) : Screen {
+class MachineScreen(val machine: MachineModel) : Screen {
     @Composable
     override fun Content() {
         MachineScreenContent(machine)
@@ -77,17 +88,35 @@ class MachineScreen (val machine: MachineModel) : Screen {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MachineScreenContent(
-    machine: MachineModel,
-    onEditClick: () -> Unit = {}
+    machine: MachineModel
 ) {
     val navigator = LocalNavigator.currentOrThrow
+    var showRepairDialog by remember { mutableStateOf(false) }
 
     val machineViewModel = koinViewModel<MachineViewModel>(
-        parameters = { parametersOf(machine.id ?: 0) }
+        parameters = { parametersOf(machine) }
     )
-    val collections by machineViewModel.collections.collectAsState()
-    val bar by machineViewModel.bar.collectAsState()
+    val uiState by machineViewModel.uiState.collectAsState()
+    val currentMachine = uiState.machine ?: machine
 
+    val text = if (currentMachine.status.id == Status.PENDING_REPAIR.id) {
+        "¿Ya tienes la máquina reparada y la quieres marcar como 'inactiva'?"
+    } else {
+        "¿Enviar máquina a 'reparación'?"
+    }
+
+    if (showRepairDialog) {
+        RepairConfirmationDialog(
+            text = text,
+            onConfirm = {
+                machineViewModel.onEvent(MachineEvent.ToggleRepairStatus)
+                showRepairDialog = false
+            },
+            onDismiss = {
+                showRepairDialog = false
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -121,15 +150,20 @@ fun MachineScreenContent(
                 fontWeight = FontWeight.Medium
             )
 
-            TextButton(
-                onClick = onEditClick
-            ) {
-                Text(
-                    text = "Edit",
-                    color = Primary,
-                    fontSize = 16.sp
-                )
+            if (currentMachine.status.id == Status.INACTIVE.id || currentMachine.status.id == Status.PENDING_REPAIR.id) {
+                TextButton(
+                    onClick = { showRepairDialog = true }
+                ) {
+                    Text(
+                        text = "Edit",
+                        color = Primary,
+                        fontSize = 16.sp
+                    )
+                }
             }
+        }
+        if (uiState.isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
 
         LazyColumn(
@@ -143,16 +177,22 @@ fun MachineScreenContent(
                     horizontalAlignment = Alignment.Start
                 ) {
                     // Machine Name
-                    Text(
-                        text = machine.name.orEmpty(),
-                        color = TextPrimaryDark,
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold,
-                        lineHeight = 38.sp
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = currentMachine.name.orEmpty(),
+                            color = TextPrimaryDark,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 38.sp
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        MachineStatusTag(status =
+                            currentMachine.status.toStatus)
+                    }
+
 
                     // "Situada en [Bar Name]" link
-                    bar?.let { currentBar ->
+                    uiState.bar?.let { currentBar ->
                         Text(
                             text = "Situada en ${currentBar.name}",
                             color = TextSecondaryDark,
@@ -161,7 +201,7 @@ fun MachineScreenContent(
                             modifier = Modifier
                                 .padding(top = 4.dp)
                                 .clickable {
-                                    navigator.push(BarScreen(currentBar))
+                                    navigator.push(BarScreen(currentBar.id ?: ""))
                                 }
                         )
                     }
@@ -182,7 +222,7 @@ fun MachineScreenContent(
             }
 
             // Collection History Items
-            itemsIndexed(collections) { index, collection ->
+            itemsIndexed(uiState.collections) { index, collection ->
                 CollectionHistoryItem(
                     collection = collection,
                     item = index
@@ -191,6 +231,99 @@ fun MachineScreenContent(
         }
     }
 }
+
+@Composable
+fun MachineStatusTag(status: Status) {
+    val (statusText, backgroundColor, textColor) = when (status) {
+        Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+        Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+        Status.INACTIVE -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
+        Status.PENDING_REPAIR -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .background(backgroundColor, CircleShape)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Text(
+            text = statusText,
+            color = textColor,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp
+        )
+    }
+}
+
+@Composable
+fun RepairConfirmationDialog(
+    text: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = DialogCardBackground)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = text,
+                    color = Color(0xFFF2F2F7),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+                )
+
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Primary
+                    )
+                ) {
+                    Text(
+                        text = "Sí",
+                        color = Color(0xFF101817),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Primary
+                    )
+                ) {
+                    Text(
+                        text = "Cancelar",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
 fun CollectionHistoryItem(
@@ -232,8 +365,10 @@ fun CollectionHistoryItem(
                     fontWeight = FontWeight.Bold
                 )
 
-                val localDateTime = Instant.fromEpochSeconds(collection.createdAt).toLocalDateTime(TimeZone.currentSystemDefault())
-                val formattedDate = "${localDateTime.dayOfMonth}/${localDateTime.monthNumber}/${localDateTime.year} ${localDateTime.hour}:${localDateTime.minute}"
+                val localDateTime = Instant.fromEpochSeconds(collection.createdAt)
+                    .toLocalDateTime(TimeZone.currentSystemDefault())
+                val formattedDate =
+                    "${localDateTime.dayOfMonth}/${localDateTime.monthNumber}/${localDateTime.year} ${localDateTime.hour}:${localDateTime.minute}"
 
                 Text(
                     text = "Fecha: $formattedDate",

@@ -2,36 +2,47 @@ package org.darts.dartsmanagement.ui.bars.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.darts.dartsmanagement.domain.machines.GetMachines
-import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.darts.dartsmanagement.domain.bars.GetBar
+import org.darts.dartsmanagement.domain.bars.models.BarModel
 
 class BarViewModel(
-    val getMachines: GetMachines,
+    private val barId: String,
+    private val getBar: GetBar,
 ) : ViewModel() {
 
-    private val _machines = MutableStateFlow<List<MachineModel>?>(null)
-    val machines: StateFlow<List<MachineModel>?> = _machines
-
+    private val _uiState = MutableStateFlow(BarScreenUiState())
+    val uiState: StateFlow<BarScreenUiState> = _uiState.asStateFlow()
 
     init {
-        getAllMachines()
+        loadBarDetails()
     }
 
-
-    private fun getAllMachines() {
+    fun loadBarDetails() {
         viewModelScope.launch {
-            val result: List<MachineModel> = withContext(Dispatchers.IO) {
-                getMachines()
-            }
-
-            _machines.value = result
+            _uiState.update { it.copy(isLoading = true) }
+            getBar(barId)
+                .onSuccess { bar ->
+                    _uiState.update {
+                        it.copy(isLoading = false, bar = bar)
+                    }
+                }
+                .onFailure { error ->
+                    _uiState.update {
+                        it.copy(isLoading = false, error = error.message)
+                    }
+                }
         }
     }
 }
+
+data class BarScreenUiState(
+    val isLoading: Boolean = false,
+    val bar: BarModel? = null,
+    val error: String? = null
+)
 

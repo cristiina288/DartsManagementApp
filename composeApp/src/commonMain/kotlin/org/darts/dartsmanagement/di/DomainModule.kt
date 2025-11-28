@@ -1,14 +1,17 @@
 package org.darts.dartsmanagement.di
 
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
+import org.darts.dartsmanagement.domain.bars.GetBar
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.SaveBar
+import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.SaveMachine
+import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -22,10 +25,13 @@ val domainModule = module {
 
     factoryOf(::GetRandomCharacter)
     factoryOf(::GetBars)
+    factoryOf(::GetBar)
     factoryOf(::SaveCollection)
     factoryOf(::GetLocations)
     factoryOf(::GetMachines)
     factoryOf(::SaveBar)
     factoryOf(::GetCollectionsByMachineId)
     factoryOf(::SaveMachine)
+    factory { UpdateBarMachinesUseCase(get(), get()) }
+    factoryOf(::UpdateMachineStatusUseCase)
 }

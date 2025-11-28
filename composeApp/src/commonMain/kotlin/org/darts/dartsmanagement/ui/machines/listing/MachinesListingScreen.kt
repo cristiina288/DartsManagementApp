@@ -35,6 +35,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import org.darts.dartsmanagement.domain.common.models.Status
 import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.darts.dartsmanagement.ui.machines.listing.MachinesUiModel
@@ -64,6 +65,10 @@ private fun MachinesListingScreenContent() {
     val machinesUiModel by machinesListingViewModel.machinesUiModel.collectAsState()
     val navigator = LocalNavigator.currentOrThrow
     var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(navigator.lastItem) {
+        machinesListingViewModel.loadMachines()
+    }
 
     Scaffold(
         containerColor = BackgroundDark,

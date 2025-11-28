@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +29,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,6 +55,8 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
 import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 // --- Color Palette (from MachinesListingScreen.kt) ---
 private val BackgroundDark = Color(0xFF121212)
@@ -64,103 +70,119 @@ private val BorderDark = Color.White.copy(alpha = 0.1f)
 private val InactiveStatusColor = Color(0xFF8BE9FD) // Secondary Accent
 private val PendingRepairStatusColor = Color(0xFFFFB86B) // Warm Accent
 
-class BarScreen (val bar: BarModel) : Screen {
+class BarScreen (val barId: String) : Screen {
     @Composable
     override fun Content() {
-        BarScreenContent(bar)
+        BarScreenContent(barId)
     }
 }
 
 @Composable
-private fun BarScreenContent(bar: BarModel) {
+private fun BarScreenContent(barId: String) {
     val navigator = LocalNavigator.currentOrThrow
     val uriHandler = LocalUriHandler.current
+    val viewModel = koinViewModel<BarViewModel>(parameters = { parametersOf(barId) })
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(navigator.lastItem) {
+        viewModel.loadBarDetails()
+    }
 
     Scaffold(
-        containerColor = BackgroundDark, // Using BackgroundDark from MachinesListingScreen.kt
+        containerColor = BackgroundDark,
         topBar = {
-            TopBar(
-                title = "Detalles del Bar",
-                onBackClick = { navigator.pop() },
-                onEditClick = { navigator.push(EditBarScreen(bar)) }
-            )
+            uiState.bar?.let { bar ->
+                TopBar(
+                    title = "Detalles del Bar",
+                    onBackClick = { navigator.pop() },
+                    onEditClick = { navigator.push(EditBarScreen(bar)) }
+                )
+            }
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
-        ) {
-            item {
-                // Bar Title
-                Text(
-                    text = bar.name,
-                    color = TextPrimaryDark,
-                    fontSize = 32.sp, // Matching HTML
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 38.sp
-                )
-                // Address
-                Text(
-                    text = bar.location.address ?: "Dirección no disponible",
-                    color = TextSecondaryDark,
-                    fontSize = 16.sp
-                )
-
-                // View on Map
-                if (bar.location.locationBarUrl?.isNotEmpty() == true) {
-                    Text(
-                        text = "Ver en Google Maps",
-                        color = TextSecondaryDark,
-                        fontSize = 14.sp,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier
-                            .padding(top = 4.dp)
-                            .clickable { uriHandler.openUri(bar.location.locationBarUrl) }
-                    )
-                }
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
+        } else {
+            uiState.bar?.let { bar ->
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(vertical = 16.dp)
+                ) {
+                    item {
+                        // Bar Title
+                        Text(
+                            text = bar.name,
+                            color = TextPrimaryDark,
+                            fontSize = 32.sp, // Matching HTML
+                            fontWeight = FontWeight.Bold,
+                            lineHeight = 38.sp
+                        )
+                        // Address
+                        Text(
+                            text = bar.location.address ?: "Dirección no disponible",
+                            color = TextSecondaryDark,
+                            fontSize = 16.sp
+                        )
 
-            item {
-                Text(
-                    text = "Máquinas Asignadas",
-                    color = TextPrimaryDark,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-
-                if (bar.machines.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        bar.machines.forEach { machine ->
-                            MachineAssignedItem(machine = machine, onClick = { clickedMachine ->
-                                navigator.push(MachineScreen(clickedMachine))
-                            })
+                        // View on Map
+                        if (bar.location.locationBarUrl?.isNotEmpty() == true) {
+                            Text(
+                                text = "Ver en Google Maps",
+                                color = TextSecondaryDark,
+                                fontSize = 14.sp,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clickable { uriHandler.openUri(bar.location.locationBarUrl) }
+                            )
                         }
                     }
-                } else {
-                    Text(
-                        text = "Sin máquinas asignadas",
-                        color = TextSecondaryDark,
-                        fontSize = 14.sp,
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
-                }
-            }
 
-            item {
-                Text(
-                    text = "Notas",
-                    color = TextPrimaryDark,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-                NotesSection(bar.description)
+                    item {
+                        Text(
+                            text = "Máquinas Asignadas",
+                            color = TextPrimaryDark,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+
+                        if (bar.machines.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                bar.machines.forEach { machine ->
+                                    MachineAssignedItem(machine = machine, onClick = { clickedMachine ->
+                                        navigator.push(MachineScreen(clickedMachine))
+                                    })
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Sin máquinas asignadas",
+                                color = TextSecondaryDark,
+                                fontSize = 14.sp,
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    item {
+                        Text(
+                            text = "Notas",
+                            color = TextPrimaryDark,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                        NotesSection(bar.description)
+                    }
+                }
             }
         }
     }

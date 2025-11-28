@@ -10,8 +10,19 @@ class BarsRepositoryImpl(private val api: BarsApiService): BarsRepository {
         return api.getBars().map { m -> m.toDomain() }
     }
 
+    override suspend fun getBar(barId: String): Result<BarModel> {
+        return runCatching {
+            api.getBar(barId).toDomain()
+        }
+    }
+
     override suspend fun saveBar(saveBarRequest: SaveBarRequest) {
        // return api.saveBar(saveBarRequest)
+    }
 
+    override suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit> {
+        return runCatching {
+            api.updateBarMachines(barId, machineIds)
+        }
     }
 }

@@ -57,6 +57,10 @@ private fun BarsListingScreenContent() {
     val navigator = LocalNavigator.currentOrThrow
     var searchQuery by remember { mutableStateOf("") }
 
+    LaunchedEffect(navigator.lastItem) {
+        barsListingViewModel.loadBars()
+    }
+
     Scaffold(
         containerColor = BackgroundDark,
         topBar = { TopBar() },
@@ -101,7 +105,7 @@ private fun BarsListingScreenContent() {
                 items(filteredBars, key = { it?.id ?: 0 }) { bar ->
                     bar?.let {
                         BarListItem(bar = it, onClick = {
-                            navigator.push(BarScreen(bar))
+                            navigator.push(BarScreen(bar.id!!))
                         })
                     }
                 }

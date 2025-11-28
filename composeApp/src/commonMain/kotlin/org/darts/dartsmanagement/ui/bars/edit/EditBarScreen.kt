@@ -28,10 +28,15 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,27 +79,42 @@ private val CardBackground = Color(0xFF1a2e2c)
 private val AddButtonBackground = Color(0xFF2b4d49)
 private val DeleteIconColor = Color(0xFFf87171)
 
-class EditBarScreen(val bar: BarModel) : Screen {
+class EditBarScreen(val initialBar: BarModel) : Screen {
     @Composable
     override fun Content() {
-        EditBarScreenContent(bar)
+        EditBarScreenContent(initialBar)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, KoinExperimentalAPI::class)
 @Composable
-private fun EditBarScreenContent(bar: BarModel) {
+private fun EditBarScreenContent(initialBar: BarModel) {
     val editBarViewModel = koinViewModel<EditBarViewModel>(
-        parameters = { parametersOf(bar) }
+        parameters = { parametersOf(initialBar) }
     )
-    val allMachines by editBarViewModel.allMachines.collectAsState()
+    val uiState by editBarViewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val navigator = LocalNavigator.currentOrThrow
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    var machinesInBar by remember { mutableStateOf(bar.machines) }
+    val filteredMachines = uiState.allMachines.filter {
+        it.barId == uiState.bar?.id.toString() || it.barId.isNullOrEmpty()
+    }
+
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            navigator.pop()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundDark,
@@ -104,32 +124,40 @@ private fun EditBarScreenContent(bar: BarModel) {
                 onBackClick = { navigator.pop() },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            // Sticky Bottom Button
-            BottomAppBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Transparent),
-                containerColor = Color.Transparent,
-                contentPadding = PaddingValues(16.dp, 8.dp)
-            ) {
-                Button(
-                    onClick = { /* TODO: Implement save logic */ },
+            Column {
+                if (uiState.isSaving) {
+                    LinearProgressIndicator(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                BottomAppBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Primary
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-
+                        .background(Color.Transparent),
+                    containerColor = Color.Transparent,
+                    contentPadding = PaddingValues(16.dp, 8.dp)
+                ) {
+                    Button(
+                        onClick = { editBarViewModel.onEvent(EditBarEvent.OnSaveTapped) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Primary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        enabled = !uiState.isSaving
                     ) {
-                    Text(
-                        text = "Guardar",
-                        color = BackgroundDark,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                        Text(
+                            text = if (uiState.isSaving) "Guardando..." else "Guardar",
+                            color = BackgroundDark,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -144,10 +172,12 @@ private fun EditBarScreenContent(bar: BarModel) {
             if (showBottomSheet) {
                 SelectMachinesBottomSheet(
                     sheetState = sheetState,
-                    barModel = bar,
-                    allMachines = allMachines,
-                    selectedMachineIds = machinesInBar.mapNotNull { it.id },
-                    onConfirmButton = {
+                    barModel = uiState.bar ?: initialBar,
+                    allMachines = filteredMachines,
+                    selectedMachineIds = uiState.selectedMachineIds.toList(),
+                    onConfirmButton = { selectedIds ->
+                        // The ViewModel's uiState.selectedMachineIds is already updated by ToggleMachineSelection
+                        // No need to pass selectedIds back here to ViewModel for updateBarMachines
                         scope.launch { sheetState.hide() }.invokeOnCompletion {
                             if (!sheetState.isVisible) {
                                 showBottomSheet = false
@@ -158,16 +188,7 @@ private fun EditBarScreenContent(bar: BarModel) {
                         showBottomSheet = false
                     },
                     onToggleMachineSelection = { machineId ->
-                        val selectedMachine = allMachines.find { it.id == machineId }
-                        if (selectedMachine != null) {
-                            val currentMachines = machinesInBar.toMutableList()
-                            if (currentMachines.any { it.id == machineId }) {
-                                currentMachines.removeAll { it.id == machineId }
-                            } else {
-                                currentMachines.add(selectedMachine)
-                            }
-                            machinesInBar = currentMachines
-                        }
+                        editBarViewModel.onEvent(EditBarEvent.ToggleMachineSelection(machineId))
                     }
                 )
             }
@@ -178,9 +199,9 @@ private fun EditBarScreenContent(bar: BarModel) {
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(machinesInBar, key = { it.id ?: 0 }) { machine ->
+                items(uiState.bar?.machines ?: emptyList(), key = { it.id ?: 0 }) { machine ->
                     MachineEditItem(machine = machine, onDeleteClick = { machineToDelete ->
-                        machinesInBar = machinesInBar.filter { it.id != machineToDelete.id }
+                        editBarViewModel.onEvent(EditBarEvent.RemoveMachineFromBar(machineToDelete.id ?: 0))
                     })
                 }
 

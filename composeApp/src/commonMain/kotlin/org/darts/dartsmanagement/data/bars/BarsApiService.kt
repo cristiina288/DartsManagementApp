@@ -84,4 +84,41 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
             throw e
         }
     }
+
+    suspend fun getBar(barId: String): BarResponse {
+        val barDoc = firestore.getDocument("bars", barId) ?: throw NoSuchElementException("Bar with ID $barId not found.")
+        val barFirestore = barDoc.data<BarFirestoreResponse>().copy(id = barDoc.id)
+
+        val allMachinesDocs = firestore.getDocuments("machines")
+        val allMachines = allMachinesDocs.mapNotNull { doc ->
+            doc.data<MachineFirestoreResponse>().copy(id = doc.id)
+        }
+
+        val machinesFirestoreResponses = allMachines.filter { machine -> barFirestore.machine_ids.any { it.toString() == machine.id } }
+
+        return BarResponse(
+            id = barFirestore.id,
+            name = barFirestore.name,
+            description = barFirestore.description,
+            location = BarLocationResponse(
+                id = barFirestore.location.id,
+                address = barFirestore.location.address,
+                latitude = barFirestore.location.latitude,
+                longitude = barFirestore.location.longitude,
+                locationBarUrl = barFirestore.location.locationBarUrl
+            ),
+            machines = machinesFirestoreResponses.map { it.toMachineResponse() },
+            status = StatusResponse(id = barFirestore.status_id.toInt())
+        )
+    }
+
+    suspend fun updateBarMachines(barId: String, machineIds: List<Int>) {
+        try {
+            val dataToUpdate = mapOf("machine_ids" to machineIds)
+            firestore.updateDocumentFields("bars", barId, dataToUpdate)
+        } catch (e: Exception) {
+            println("Error updating bar machines: $e")
+            throw e
+        }
+    }
 }

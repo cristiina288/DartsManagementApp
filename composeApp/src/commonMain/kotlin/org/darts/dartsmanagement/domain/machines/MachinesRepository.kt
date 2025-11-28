@@ -9,4 +9,6 @@ interface MachinesRepository {
 
     suspend fun saveMachine(saveMachineRequest: SaveMachineRequest)
 
+    suspend fun updateMachineStatus(machineId: Int, statusId: Int): Result<Unit>
+
 }

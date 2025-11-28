@@ -24,11 +24,11 @@ class MachinesListingViewModel(
 
 
     init {
-        getAllMachines()
+        loadMachines()
     }
 
 
-    private fun getAllMachines() {
+    fun loadMachines() {
         viewModelScope.launch {
             val allMachines = withContext(Dispatchers.IO) {
                 getMachines()

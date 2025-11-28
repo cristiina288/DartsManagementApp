@@ -20,11 +20,10 @@ class BarsListingViewModel(
 
 
     init {
-        getAllBars()
+        loadBars()
     }
 
-
-    private fun getAllBars() {
+    fun loadBars() {
         viewModelScope.launch {
             val result: List<BarModel> = withContext(Dispatchers.IO) {
                 getBars()

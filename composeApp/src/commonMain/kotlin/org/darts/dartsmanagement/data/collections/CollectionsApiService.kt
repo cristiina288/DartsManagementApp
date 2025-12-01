@@ -3,6 +3,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -105,19 +106,23 @@ class CollectionsApiService(
 
     suspend fun getCollectionsInDateRange(startDate: LocalDate, endDate: LocalDate): List<CollectionFirestoreResponse> {
         return try {
-            val startInstant = startDate.atStartOfDayIn(TimeZone.currentSystemDefault())
-            // Calculate the start of the day AFTER endDate to make the range exclusive up to the end of endDate
+            val startMillis = startDate.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
             val endOfRangeExclusiveLocalDate = endDate.plus(1, kotlinx.datetime.DateTimeUnit.DAY)
-            val endInstant = endOfRangeExclusiveLocalDate.atStartOfDayIn(TimeZone.currentSystemDefault())
+            val endMillis = endOfRangeExclusiveLocalDate.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
 
-            val snapshot = firestore.getDocumentsInDateRange(
-                collectionPath = "collections",
-                dateField = "createdAt",
-                startTimestamp = startInstant.toFirebaseTimestamp(),
-                endTimestamp = endInstant.toFirebaseTimestamp()
-            )
+            val snapshot = firestore.getDocuments("collections")
 
-            snapshot.map { it.data() }
+            snapshot.mapNotNull { doc ->
+                val collection = doc.data<CollectionFirestoreResponse>()
+                
+                val createdAtMillis = collection.createdAt?.seconds?.times(1000L)
+
+                if (createdAtMillis != null && createdAtMillis in startMillis until endMillis) {
+                    collection
+                } else {
+                    null
+                }
+            }
         } catch (e: Exception) {
             println("Error getting collections in date range: $e")
             emptyList()

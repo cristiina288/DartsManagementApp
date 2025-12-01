@@ -31,13 +31,14 @@ sealed interface HomeEvent {
 
 // Data class for export
 data class ExportableCollection(
+
     val barId: String?,
     val barName: String?,
     val machineId: Int?,
     val businessAmount: Double?,
     val barAmount: Double?,
     val totalCollections: Double?,
-    //val createdAt: String? // Assuming String format for date
+    val createdAt: String? // Assuming String format for date
 )
 
 // Extension function to convert dev.gitlive.firebase.firestore.Timestamp to kotlinx.datetime.LocalDateTime
@@ -116,7 +117,7 @@ class HomeViewModel(
                             businessAmount = collection.collectionAmounts?.businessAmount,
                             barAmount = collection.collectionAmounts?.barAmount,
                             totalCollections = collection.collectionAmounts?.totalCollection,
-                            //createdAt = collection.createdAt?.toKotlinxLocalDateTime()?.toString()
+                            createdAt = collection.createdAt?.toString()
                         )
                     } else {
                         null // Skip collections with no matching machine
@@ -126,7 +127,7 @@ class HomeViewModel(
 
             val headers = listOf(
                 "barId", "barName", "machineId", "businessAmount",
-                "barAmount", "totalCollections"//, "createdAt"
+                "barAmount", "totalCollections", "createdAt"
             )
 
             // Convert to List<List<Any>> for the Excel exporter if it expects that format
@@ -138,7 +139,7 @@ class HomeViewModel(
                     it.businessAmount ?: 0.0,
                     it.barAmount ?: 0.0,
                     it.totalCollections ?: 0.0,
-                    //it.createdAt ?: ""
+                    it.createdAt ?: ""
                 )
             }
 

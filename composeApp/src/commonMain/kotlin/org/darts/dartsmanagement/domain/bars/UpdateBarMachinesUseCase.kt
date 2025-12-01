@@ -38,7 +38,7 @@ class UpdateBarMachinesUseCase(
                     }
                     machinesToAddBarId.forEach { machineId ->
                         launch {
-                            val data = mapOf("barId" to barId)
+                            val data = mapOf("barId" to barId, "status.id" to Status.ACTIVE.id)
                             firestore.updateDocumentFields("machines", machineId.toString(), data)
                         }
                     }

@@ -65,6 +65,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_beer
+import dartsmanagement.composeapp.generated.resources.ico_calendar
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import dartsmanagement.composeapp.generated.resources.ico_documents
 import kotlinx.datetime.Instant
@@ -96,7 +97,7 @@ private fun HomeScreenContent() {
     val navigator = LocalNavigator.currentOrThrow
     val homeViewModel = koinViewModel<HomeViewModel>()
     val currentUser by homeViewModel.currentUser.collectAsState()
-    val excelExporter = ExcelExporterFactory.create()
+
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
 
@@ -118,8 +119,7 @@ private fun HomeScreenContent() {
             sheetState = sheetState,
             onDismiss = { showBottomSheet = false },
             onExport = { selectedDate ->
-                // TODO: Modify exportData to accept a date
-                homeViewModel.exportData(excelExporter)
+                homeViewModel.onEvent(HomeEvent.ExportCollections(selectedDate))
                 showBottomSheet = false
             }
         )
@@ -212,7 +212,12 @@ fun ExportCollectionsBottomSheet(
                 onValueChange = {},
                 readOnly = true,
                 placeholder = { Text("Seleccionar fecha", color = Color.Gray) },
-                trailingIcon = { Icon(painterResource(Res.drawable.ico_calendar), contentDescription = "Select date", tint = Color.Gray) },
+                trailingIcon = {
+                    Icon(
+                    modifier = Modifier.size(32.dp),
+                    painter = painterResource(Res.drawable.ico_calendar),
+                    contentDescription = "Select date", tint = Color.Gray
+                ) },
                 modifier = Modifier.fillMaxWidth(),
                 interactionSource = interactionSource
             )

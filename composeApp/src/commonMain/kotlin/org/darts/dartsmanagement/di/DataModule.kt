@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.di
 
+import CollectionsApiService
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
 import io.ktor.client.HttpClient
@@ -14,7 +15,6 @@ import org.darts.dartsmanagement.data.bars.BarsApiService
 import org.darts.dartsmanagement.data.bars.BarsRepositoryImpl
 import org.darts.dartsmanagement.data.characters.ApiService
 import org.darts.dartsmanagement.data.characters.RepositoryImpl
-import org.darts.dartsmanagement.data.collections.CollectionsApiService
 import org.darts.dartsmanagement.data.collections.CollectionsRepositoryImpl
 import org.darts.dartsmanagement.data.locations.LocationsApiService
 import org.darts.dartsmanagement.data.locations.LocationsRepositoryImpl
@@ -63,7 +63,7 @@ val dataModule = module {
     factoryOf(::GetBars) // Add the GetBars use case here
 
 
-    factoryOf(::CollectionsApiService)
+    factory { CollectionsApiService(get()) }
     factory<CollectionsRepository> { CollectionsRepositoryImpl(get()) }
     factoryOf(::GetCollectionsForMonth) // Add the new use case here
 

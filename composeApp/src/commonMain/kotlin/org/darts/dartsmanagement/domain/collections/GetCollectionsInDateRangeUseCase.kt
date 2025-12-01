@@ -3,7 +3,7 @@ package org.darts.dartsmanagement.domain.collections
 import kotlinx.datetime.LocalDate
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 
-class GetCollectionsInDateRange(
+class GetCollectionsInDateRangeUseCase(
     private val collectionsRepository: CollectionsRepository
 ) {
     suspend operator fun invoke(startDate: LocalDate, endDate: LocalDate): List<CollectionModel> {

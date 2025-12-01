@@ -81,7 +81,7 @@ actual class ExcelExporter(private val context: Context) {
                 type = "text/csv"
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                putExtra(Intent.EXTRA_TEXT, "Archivo exportado desde Mi App")
+                putExtra(Intent.EXTRA_TEXT, "Archivo exportado desde Darts Management")
             }
 
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

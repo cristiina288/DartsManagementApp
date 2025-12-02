@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -62,6 +63,7 @@ private fun BarsListingScreenContent() {
     }
 
     Scaffold(
+        //modifier = Modifier.windowInsetsPadding(WindowInsets.safeDrawing),
         containerColor = BackgroundDark,
         topBar = { TopBar() },
         floatingActionButton = {
@@ -229,27 +231,31 @@ fun BarListItem(bar: BarModel, onClick: () -> Unit) {
 private fun TopBar() {
     val navigator = LocalNavigator.currentOrThrow
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        IconButton(onClick = { navigator.pop() }) {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "Volver",
-                tint = TextPrimaryDark
+    TopAppBar(
+        title = {
+            Text(
+                text = "Bares",
+                color = TextPrimaryDark,
+                fontSize = 22.sp, // Matching LocationsListingScreen.kt
+                fontWeight = FontWeight.Bold
             )
+        },
+        navigationIcon = {
+            IconButton(onClick = { navigator.pop() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = TextPrimaryDark
+                )
+            }
+        },
+       /* colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+        ),*/
+        actions = {
+            Spacer(modifier = Modifier.width(48.dp)) // To balance the title
         }
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = "Bares",
-            color = TextPrimaryDark,
-            fontSize = 22.sp, // Matching LocationsListingScreen.kt
-            fontWeight = FontWeight.Bold
-        )
-    }
+    )
 }
 
 

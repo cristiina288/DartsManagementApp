@@ -54,9 +54,8 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import dartsmanagement.composeapp.generated.resources.Res
-import dartsmanagement.composeapp.generated.resources.ico_dartboard
-import dartsmanagement.composeapp.generated.resources.ico_delete
+import org.darts.dartsmanagement.ui.bars.components.AssignedMachinesSection
+import org.darts.dartsmanagement.ui.bars.components.MachineItem
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
@@ -172,7 +171,6 @@ private fun EditBarScreenContent(initialBar: BarModel) {
             if (showBottomSheet) {
                 SelectMachinesBottomSheet(
                     sheetState = sheetState,
-                    barModel = uiState.bar ?: initialBar,
                     allMachines = filteredMachines,
                     selectedMachineIds = uiState.selectedMachineIds.toList(),
                     onConfirmButton = { selectedIds ->
@@ -193,119 +191,18 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                 )
             }
             // Assigned Machines List
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(uiState.bar?.machines ?: emptyList(), key = { it.id ?: 0 }) { machine ->
-                    MachineEditItem(machine = machine, onDeleteClick = { machineToDelete ->
-                        editBarViewModel.onEvent(EditBarEvent.RemoveMachineFromBar(machineToDelete.id ?: 0))
-                    })
+            AssignedMachinesSection(
+                machines = uiState.bar?.machines ?: emptyList(),
+                onAddMachineClick = { showBottomSheet = true },
+                onDeleteMachineClick = { machineToDelete ->
+                    editBarViewModel.onEvent(EditBarEvent.RemoveMachineFromBar(machineToDelete.id ?: 0))
                 }
-
-                item {
-                    // Add Machine Button
-                    Button(
-                        onClick = {
-                            showBottomSheet = true
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(44.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AddButtonBackground
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Machine",
-                            tint = Primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "Añadir máquina",
-                            color = Primary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
+            )
         }
     }
 }
 
-@Composable
-fun MachineEditItem(machine: MachineModel, onDeleteClick: (MachineModel) -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = CardBackground
-        ),
 
-        ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Icon
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(BackgroundDark),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ico_dartboard),
-                    contentDescription = "Machine Icon",
-                    tint = Primary,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-
-            // Machine details
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = machine.name ?: "Nombre no disponible",
-                    color = TextPrimaryDark,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "ID: ${machine.id}",
-                    color = TextSecondaryDark,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal
-                )
-            }
-
-            // Delete Button
-            IconButton(
-                onClick = { onDeleteClick(machine) },
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ico_delete),
-                    contentDescription = "Delete Machine",
-                    tint = DeleteIconColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -64,7 +64,7 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
 
             // 3. Create BarFirestoreResponse from SaveBarRequest
             val barData = mapOf(
-                "id" to saveBarRequest.id,
+                //"id" to saveBarRequest.id,
                 "name" to saveBarRequest.name,
                 "description" to saveBarRequest.description,
                 "license_id" to licenseId,

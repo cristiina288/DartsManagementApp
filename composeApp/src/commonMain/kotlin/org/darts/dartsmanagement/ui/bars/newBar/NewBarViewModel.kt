@@ -5,162 +5,111 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.data.bars.requests.SaveBarRequest
 import org.darts.dartsmanagement.domain.bars.SaveBar
 import org.darts.dartsmanagement.domain.locations.GetLocations
-import org.darts.dartsmanagement.domain.locations.model.LocationModel
 import org.darts.dartsmanagement.domain.machines.GetMachines
-import org.darts.dartsmanagement.domain.machines.model.MachineModel
-import org.darts.dartsmanagement.ui.bars.BarState
+
+sealed interface NewBarEvent {
+    data class OnNameChanged(val name: String) : NewBarEvent
+    data class OnDescriptionChanged(val description: String) : NewBarEvent
+    data class OnAddressChanged(val address: String) : NewBarEvent
+    data class OnLatitudeChanged(val latitude: String) : NewBarEvent
+    data class OnLongitudeChanged(val longitude: String) : NewBarEvent
+    data class OnLocationBarUrlChanged(val url: String) : NewBarEvent
+    data class OnLocationSelected(val locationId: String) : NewBarEvent
+    data class ToggleMachineSelection(val machineId: Int) : NewBarEvent
+    data object OnSaveTapped : NewBarEvent
+}
 
 class NewBarViewModel(
-    val getMachines: GetMachines,
-    val getLocations: GetLocations,
-    val saveBar: SaveBar
+    private val getMachines: GetMachines,
+    private val getLocations: GetLocations,
+    private val saveBar: SaveBar
 ) : ViewModel() {
 
-    private val _machines = MutableStateFlow<List<MachineModel>?>(null)
-    val machines: StateFlow<List<MachineModel>?> = _machines
-
-    private val _locations = MutableStateFlow<List<LocationModel>?>(null)
-    val locations: StateFlow<List<LocationModel>?> = _locations
-
-    private val _bar = MutableStateFlow<BarState>(BarState())
-    val bar: StateFlow<BarState> = _bar
-
+    private val _uiState = MutableStateFlow(NewBarUiState())
+    val uiState = _uiState.asStateFlow()
 
     init {
-        getAllMachines()
-        getAllLocations()
+        loadInitialData()
     }
 
-
-    private fun getAllMachines() {
-        viewModelScope.launch {
-            val result: List<MachineModel> = withContext(Dispatchers.IO) {
-                getMachines()
-            }
-
-            _machines.value = result
-        }
-    }
-
-
-    private fun getAllLocations() {
-        viewModelScope.launch {
-            val result: List<LocationModel> = withContext(Dispatchers.IO) {
-                getLocations()
-            }
-
-            _locations.value = result
-        }
-    }
-
-
-    fun saveBar() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                saveBar(
-                    saveBarRequest = SaveBarRequest(
-                        name = bar.value.name ?: "",
-                        address = bar.value.address ?: "",
-                        latitude = bar.value.latitude ?: 0.0,
-                        longitude = bar.value.longitude ?: 0.0,
-                        description = bar.value.description,
-                        id = 0,
-                        statusId = 0,
-                        machineIds = emptyList(),
-                        locationId = bar.value.locationId ?: "",
-                        locationBarUrl = bar.value.locationBarUrl
+    private fun loadInitialData() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val locations = getLocations()
+                val machines = getMachines()
+                _uiState.update {
+                    it.copy(
+                        locations = locations,
+                        allMachines = machines,
+                        isLoading = false
                     )
-                )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
-
-    fun saveName(name: String) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    name = name,
-                )
+    fun onEvent(event: NewBarEvent) {
+        when (event) {
+            is NewBarEvent.OnNameChanged -> _uiState.update { it.copy(name = event.name) }
+            is NewBarEvent.OnDescriptionChanged -> _uiState.update { it.copy(description = event.description) }
+            is NewBarEvent.OnAddressChanged -> _uiState.update { it.copy(address = event.address) }
+            is NewBarEvent.OnLatitudeChanged -> _uiState.update { it.copy(latitude = event.latitude) }
+            is NewBarEvent.OnLongitudeChanged -> _uiState.update { it.copy(longitude = event.longitude) }
+            is NewBarEvent.OnLocationBarUrlChanged -> _uiState.update { it.copy(locationBarUrl = event.url) }
+            is NewBarEvent.OnLocationSelected -> {
+                val location = _uiState.value.locations.find { it.id == event.locationId }
+                _uiState.update { it.copy(selectedLocation = location) }
             }
+            is NewBarEvent.ToggleMachineSelection -> {
+                val selectedIds = _uiState.value.selectedMachineIds
+                if (event.machineId in selectedIds) {
+                    selectedIds.remove(event.machineId)
+                } else {
+                    selectedIds.add(event.machineId)
+                }
+                val assignedMachines = _uiState.value.allMachines.filter { it.id in selectedIds }
+                _uiState.update { it.copy(selectedMachineIds = selectedIds, assignedMachines = assignedMachines) }
+            }
+            is NewBarEvent.OnSaveTapped -> saveBar()
         }
     }
 
-    fun saveAddress(address: String) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    address = address,
-                )
+    private fun saveBar() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true) }
+            val currentState = _uiState.value
+            if (currentState.selectedLocation == null) {
+                _uiState.update { it.copy(isLoading = false, error = "Please select a location") }
+                return@launch
             }
-        }
-    }
 
-    fun saveLatitude(latitude: Double) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    latitude = latitude,
-                )
-            }
-        }
-    }
+            val request = SaveBarRequest(
+                name = currentState.name,
+                description = currentState.description,
+                locationId = currentState.selectedLocation.id!!,
+                address = currentState.address,
+                latitude = currentState.latitude.toDoubleOrNull() ?: 0.0,
+                longitude = currentState.longitude.toDoubleOrNull() ?: 0.0,
+                locationBarUrl = currentState.locationBarUrl,
+                machineIds = currentState.selectedMachineIds.map { it.toLong() },
+                //id = 0,
+                statusId = 1
+            )
 
-    fun saveLongitude(longitude: Double) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    longitude = longitude,
-                )
-            }
-        }
-    }
-
-
-    fun saveLocationId(locationId: String) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    locationId = locationId,
-                )
-            }
-        }
-    }
-
-
-    fun saveLocationBarUrl(locationBarUrl: String) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    locationBarUrl = locationBarUrl,
-                )
-            }
-        }
-    }
-
-    fun saveMachineId(machineId: Int) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    machineId = machineId,
-                )
-            }
-        }
-    }
-
-    fun saveDescription(description: String) {
-        viewModelScope.launch {
-            _bar.update { bar ->
-                bar.copy(
-                    description = description,
-                )
+            try {
+                saveBar(request)
+                _uiState.update { it.copy(isLoading = false, saveSuccess = true) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }

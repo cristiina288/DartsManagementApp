@@ -28,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -54,6 +55,7 @@ import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
 import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
+import org.darts.dartsmanagement.ui.bars.listing.TextPrimaryDark
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -77,6 +79,7 @@ class BarScreen (val barId: String) : Screen {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BarScreenContent(barId: String) {
     val navigator = LocalNavigator.currentOrThrow
@@ -304,7 +307,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
         modifier = Modifier
             .fillMaxWidth()
             .background(BackgroundDark) // Use same BackgroundDark as screen
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 58.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBackClick) {

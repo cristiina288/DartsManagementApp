@@ -17,7 +17,7 @@ class BarsRepositoryImpl(private val api: BarsApiService): BarsRepository {
     }
 
     override suspend fun saveBar(saveBarRequest: SaveBarRequest) {
-       // return api.saveBar(saveBarRequest)
+        return api.saveBar(saveBarRequest)
     }
 
     override suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit> {

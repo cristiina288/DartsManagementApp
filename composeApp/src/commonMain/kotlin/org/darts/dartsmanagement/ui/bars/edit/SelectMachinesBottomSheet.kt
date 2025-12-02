@@ -75,7 +75,6 @@ private val ConfirmButtonShadow = Primary.copy(alpha = 0.2f) // From HTML shadow
 @Composable
 fun SelectMachinesBottomSheet(
     sheetState: SheetState,
-    barModel: BarModel,
     allMachines: List<MachineModel>,
     selectedMachineIds: List<Int>,
     onConfirmButton: (List<Int>) -> Unit,
@@ -234,6 +233,7 @@ fun SelectMachinesBottomSheetContent(
                 .fillMaxWidth()
                 .background(ModalBackground)
                 .padding(16.dp)
+                .padding(bottom = 42.dp)
         ) {
             Button(
                 onClick = {

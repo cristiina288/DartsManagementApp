@@ -3,7 +3,8 @@ package org.darts.dartsmanagement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import org.darts.dartsmanagement.ui.theme.DartsManagementTheme
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,7 +22,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
+    DartsManagementTheme {
         val homeViewModel = koinViewModel<HomeViewModel>()
         val isCheckingAuth by homeViewModel.isCheckingAuth.collectAsState()
         val currentUser by homeViewModel.currentUser.collectAsState()

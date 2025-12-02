@@ -7,8 +7,9 @@ class SaveCollection (val collectionsRepository: CollectionsRepository) {//machi
     suspend operator fun invoke(collectionAmounts: CollectionAmountsModel,
                                 newCounterMachine: Int,
                                 machineId: Int,
+                                barId: String, // Keep barId
                                 comments: String) {
         return collectionsRepository.saveCollection(collectionAmounts,
-            newCounterMachine, machineId, comments)
+            newCounterMachine, machineId, barId, comments)
     }
 }

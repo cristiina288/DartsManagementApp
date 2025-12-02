@@ -1,10 +1,7 @@
 package org.darts.dartsmanagement.ui.home
 
-import ExcelExporterFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,23 +23,15 @@ import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -65,17 +53,13 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_beer
-import dartsmanagement.composeapp.generated.resources.ico_calendar
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import dartsmanagement.composeapp.generated.resources.ico_documents
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
 import org.darts.dartsmanagement.ui.bars.listing.BorderDark
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
+import org.darts.dartsmanagement.ui.collections.HistorialCollectionsScreen
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingScreen
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingScreen
 import org.jetbrains.compose.resources.painterResource
@@ -98,9 +82,6 @@ private fun HomeScreenContent() {
     val homeViewModel = koinViewModel<HomeViewModel>()
     val currentUser by homeViewModel.currentUser.collectAsState()
 
-    val sheetState = rememberModalBottomSheetState()
-    var showBottomSheet by remember { mutableStateOf(false) }
-
     LaunchedEffect(currentUser) {
         if (currentUser == null) {
             navigator.replaceAll(AuthScreen)
@@ -111,19 +92,8 @@ private fun HomeScreenContent() {
         MenuItem("Bares", icoPainter = painterResource(Res.drawable.ico_beer)) { navigator.push(BarsListingScreen) },
         MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
-        MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { showBottomSheet = true }
+        MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { navigator.push(HistorialCollectionsScreen) }
     )
-
-    if (showBottomSheet) {
-        ExportCollectionsBottomSheet(
-            sheetState = sheetState,
-            onDismiss = { showBottomSheet = false },
-            onExport = { selectedDate ->
-                homeViewModel.onEvent(HomeEvent.ExportCollections(selectedDate))
-                showBottomSheet = false
-            }
-        )
-    }
 
     Scaffold(
         containerColor = Color(0xFF0B0F13),
@@ -160,106 +130,6 @@ private fun HomeScreenContent() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ExportCollectionsBottomSheet(
-    sheetState: androidx.compose.material3.SheetState,
-    onDismiss: () -> Unit,
-    onExport: (LocalDate) -> Unit
-) {
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
-    val interactionSource = remember { MutableInteractionSource() }
-
-    if (interactionSource.collectIsPressedAsState().value) {
-        showDatePicker = true
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = Color(0xFF1C1C1E),
-        dragHandle = {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Box(modifier = Modifier.size(width = 36.dp, height = 4.dp).background(Color(0xFF3a5551), shape = RoundedCornerShape(99.dp)))
-            }
-        }
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Exportar recaudaciones",
-                color = Color.White,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-
-            Text(
-                text = "Desde cuándo exportar",
-                color = Color.LightGray,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-            )
-
-            OutlinedTextField(
-                value = selectedDate?.let { "${it.dayOfMonth.toString().padStart(2, '0')}/${it.monthNumber.toString().padStart(2, '0')}/${it.year}" } ?: "",
-                onValueChange = {},
-                readOnly = true,
-                placeholder = { Text("Seleccionar fecha", color = Color.Gray) },
-                trailingIcon = {
-                    Icon(
-                    modifier = Modifier.size(32.dp),
-                    painter = painterResource(Res.drawable.ico_calendar),
-                    contentDescription = "Select date", tint = Color.Gray
-                ) },
-                modifier = Modifier.fillMaxWidth(),
-                interactionSource = interactionSource
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { selectedDate?.let(onExport) },
-                enabled = selectedDate != null,
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF05b8a0))
-            ) {
-                Text("Exportar", fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState()
-        DatePickerDialog(
-            onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            val instant = Instant.fromEpochMilliseconds(it)
-                            selectedDate = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
-                        }
-                        showDatePicker = false
-                    }
-                ) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
-            }
-        ) {
-            DatePicker(state = datePickerState)
-        }
-    }
-}
 
 @Composable
 private fun ActionCard(title: String, icon: ImageVector, onClick: () -> Unit) {

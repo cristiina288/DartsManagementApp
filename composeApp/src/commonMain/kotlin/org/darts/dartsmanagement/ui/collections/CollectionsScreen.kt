@@ -65,11 +65,18 @@ private fun CollectionScreenContent() {
         }
     }
 
+    val isSaveButtonEnabled = collection.barId != null &&
+            collection.machineId != null &&
+            (collection.collectionAmounts?.totalCollection ?: 0.0) > 0.0
+
     Scaffold(
         containerColor = BackgroundDark,
         topBar = { TopBar() },
         bottomBar = {
-            BottomBar(onSave = { viewModel.saveActualCollection() })
+            BottomBar(
+                onSave = { viewModel.saveActualCollection() },
+                enabled = isSaveButtonEnabled
+            )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
@@ -83,6 +90,8 @@ private fun CollectionScreenContent() {
         ) {
             item { BasicDataSection(viewModel) }
             item { DistributionSection(collection) }
+            item { ExtraPaymentSection(viewModel) }
+            item { TotalDistributionSection(collection) }
             item { ObservationsSection(viewModel) }
             // item { PaymentSection(viewModel) } // Temporarily commented out
         }
@@ -104,11 +113,11 @@ private fun BasicDataSection(viewModel: CollectionsViewModel) {
 
     Section(title = "Datos Básicos") {
         // Bar Dropdown
-        AppDropdown(
+        SearchableAppDropdown(
             label = "Bar",
             options = bars?.filterNotNull() ?: emptyList(),
             selectedOption = selectedBar,
-            onOptionSelected = { bar -> viewModel.onBarSelected(bar.id ?: "") },
+            onOptionSelected = { bar -> viewModel.onBarSelected(bar?.id ?: "") },
             optionToString = { it.name }
         )
 
@@ -211,7 +220,7 @@ private fun DistributionSection(collection: CollectionsState) { // Changed to Co
         return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
     }
 
-    Section(title = "Distribución") {
+    Section(title = "Distribución inicial") {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DistributionBox(
                 label = "Empresa (60%)",
@@ -222,6 +231,75 @@ private fun DistributionSection(collection: CollectionsState) { // Changed to Co
             DistributionBox(
                 label = "Bar (40%)",
                 amount = formatCurrency(barAmount),
+                isPrimary = false,
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(Modifier.height(2.dp))
+        LinearProgressIndicator(
+            progress = { businessPercentage },
+            modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
+            color = Primary.copy(alpha = 0.7f),
+            trackColor = Primary.copy(alpha = 0.2f)
+        )
+    }
+}
+
+@Composable
+fun ExtraPaymentSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    Section(title = "Pago extra") {
+        AppTextField(
+            label = "Importe extra",
+            value = collection.collectionAmounts?.extraAmount?.toString() ?: "",
+            onValueChange = { viewModel.onExtraPaymentChanged(it.toDoubleOrNull() ?: 0.0) },
+            placeholder = "0.00",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold),
+            trailingIcon = {
+                Text(
+                    "€",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPlaceholder
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun TotalDistributionSection(collection: CollectionsState) {
+    val initialBusinessAmount = collection.collectionAmounts?.businessAmount ?: 0.0
+    val initialBarAmount = collection.collectionAmounts?.barAmount ?: 0.0
+    val extraAmount = collection.collectionAmounts?.extraAmount ?: 0.0
+
+    val totalBusinessAmount = initialBusinessAmount + extraAmount
+    val totalBarAmount = initialBarAmount - extraAmount
+
+    val total = totalBusinessAmount + totalBarAmount
+    val businessPercentage = if (total > 0) (totalBusinessAmount / total).toFloat() else 0.6f
+
+
+
+    fun formatCurrency(amount: Double): String {
+        val rounded = (amount * 100).toLong()
+        val integerPart = rounded / 100
+        val fractionalPart = rounded % 100
+        return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
+    }
+
+    Section(title = "Distribución total") {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            DistributionBox(
+                label = "Empresa",
+                amount = formatCurrency(totalBusinessAmount),
+                isPrimary = true,
+                modifier = Modifier.weight(1f)
+            )
+            DistributionBox(
+                label = "Bar",
+                amount = formatCurrency(totalBarAmount),
                 isPrimary = false,
                 modifier = Modifier.weight(1f)
             )
@@ -396,6 +474,97 @@ private fun <T> AppDropdown(
     }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> SearchableAppDropdown(
+    label: String,
+    options: List<T>,
+    selectedOption: T?,
+    onOptionSelected: (T?) -> Unit,
+    optionToString: (T) -> String,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf(selectedOption?.let { optionToString(it) } ?: "") }
+    var isSearching by remember { mutableStateOf(false) }
+
+    val filteredOptions = if (!isSearching) {
+        options
+    } else {
+        options.filter { optionToString(it).contains(searchText, ignoreCase = true) }
+    }
+
+    Column {
+        Text(
+            text = label,
+            color = TextSecondaryDark,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = {
+                if (enabled) {
+                    expanded = !expanded
+                    if (!expanded) {
+                        isSearching = false
+                    }
+                }
+            },
+        ) {
+            OutlinedTextField(
+                value = searchText,
+                onValueChange = {
+                    searchText = it
+                    isSearching = true
+                    if (it.isNotEmpty()) {
+                        expanded = true
+                    } else {
+                        expanded = false
+                        onOptionSelected(null)
+                    }
+                },
+                readOnly = false,
+                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = InputBackground,
+                    focusedContainerColor = InputBackground,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = Color.Transparent,
+                    unfocusedTextColor = TextPrimaryDark,
+                    focusedTextColor = TextPrimaryDark
+                ),
+                shape = RoundedCornerShape(12.dp),
+                trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TextPlaceholder) },
+                enabled = enabled
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                    isSearching = false
+                },
+                modifier = Modifier.background(SurfaceDark)
+            ) {
+                filteredOptions.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(optionToString(option), color = TextPrimaryDark) },
+                        onClick = {
+                            onOptionSelected(option)
+                            searchText = optionToString(option)
+                            expanded = false
+                            isSearching = false
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+
 @Composable
 private fun ReadOnlyField(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier) {
@@ -467,7 +636,7 @@ private fun TopBar() {
 }
 
 @Composable
-private fun BottomBar(onSave: () -> Unit) {
+private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
     BottomAppBar(
         containerColor = BackgroundDark.copy(alpha = 0.8f),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -479,7 +648,8 @@ private fun BottomBar(onSave: () -> Unit) {
             colors = ButtonDefaults.buttonColors(
                 containerColor = Primary,
                 contentColor = Color.Black
-            )
+            ),
+            enabled = enabled
         ) {
             Text(
                 "Guardar",

@@ -112,9 +112,9 @@ class HomeViewModel(
                             barName = bar?.name,
                             machineId = collection.machineId,
                             machineName = machine.name,
-                            businessAmount = collection.collectionAmounts?.businessAmount,
-                            barAmount = collection.collectionAmounts?.barAmount,
-                            totalCollections = collection.collectionAmounts?.totalCollection,
+                            businessAmount = collection.businessAmount,
+                            barAmount = collection.barAmount,
+                            totalCollections = collection.totalCollection,
                             createdAt = Instant.fromEpochSeconds(collection.createdAt)
                                 .toLocalDateTime(TimeZone.currentSystemDefault())
                                 .let { localDateTime ->

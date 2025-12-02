@@ -69,17 +69,23 @@ class CollectionsViewModel(
     fun saveActualCollection() {
         viewModelScope.launch {
             try {
+                val initialAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel()
+                val extraAmount = initialAmounts.extraAmount
+
+                val finalBusinessAmount = initialAmounts.businessAmount + extraAmount
+                val finalBarAmount = initialAmounts.barAmount - extraAmount
+
+                val finalCollectionAmounts = initialAmounts.copy(
+                    businessAmount = finalBusinessAmount,
+                    barAmount = finalBarAmount
+                )
+
                 withContext(Dispatchers.IO) {
                     saveCollection(
-                        collectionAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel(
-                            totalCollection = 0.0,
-                            barAmount = 0.0,
-                            barPayment = 0.0,
-                            businessAmount = 0.0,
-                            extraAmount = 0.0
-                        ),
+                        collectionAmounts = finalCollectionAmounts,
                         newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection?.toInt() ?: 0),
                         machineId = collection.value.machineId ?: 0,
+                        barId = collection.value.barId ?: "", // Keep barId
                         comments = collection.value.comments ?: ""
                     )
                 }
@@ -94,6 +100,14 @@ class CollectionsViewModel(
         _collection.update { it.copy(snackbarMessage = null) }
     }
 
+    fun onExtraPaymentChanged(extraAmount: Double) {
+        _collection.update { currentState ->
+            val currentAmounts = currentState.collectionAmounts ?: CollectionAmountsModel()
+            currentState.copy(
+                collectionAmounts = currentAmounts.copy(extraAmount = extraAmount)
+            )
+        }
+    }
 
     fun saveCollectionAmounts(collection: CollectionAmountsModel) {
         viewModelScope.launch {

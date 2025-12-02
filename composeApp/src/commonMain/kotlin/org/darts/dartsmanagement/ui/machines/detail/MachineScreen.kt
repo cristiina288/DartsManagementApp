@@ -359,7 +359,7 @@ fun CollectionHistoryItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "${collection.collectionAmounts.totalCollection ?: 0.0} €",
+                    text = "${collection.totalCollection ?: 0.0} €",
                     color = TextPrimaryDark,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

@@ -8,6 +8,7 @@ import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.GetCollectionsInDateRangeUseCase
+import org.darts.dartsmanagement.domain.collections.GetPaginatedCollectionsUseCase
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.machines.GetMachines
@@ -36,4 +37,5 @@ val domainModule = module {
     factory { UpdateBarMachinesUseCase(get(), get()) }
     factoryOf(::UpdateMachineStatusUseCase)
     factoryOf(::GetCollectionsInDateRangeUseCase)
+    factoryOf(::GetPaginatedCollectionsUseCase)
 }

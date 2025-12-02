@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.data.locations
 
+import org.darts.dartsmanagement.data.locations.requests.SaveLocationRequest
 import org.darts.dartsmanagement.domain.locations.LocationsRepository
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
 
@@ -7,5 +8,9 @@ class LocationsRepositoryImpl(private val api: LocationsApiService): LocationsRe
 
     override suspend fun getLocations(): List<LocationModel> {
         return api.getLocations().map { m -> m.toDomain() }
+    }
+
+    override suspend fun saveLocation(saveLocationRequest: SaveLocationRequest): String {
+        return api.saveLocation(saveLocationRequest)
     }
 }

@@ -11,6 +11,7 @@ import org.darts.dartsmanagement.domain.collections.GetCollectionsInDateRangeUse
 import org.darts.dartsmanagement.domain.collections.GetPaginatedCollectionsUseCase
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.locations.GetLocations
+import org.darts.dartsmanagement.domain.locations.SaveLocation
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.SaveMachine
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
@@ -38,4 +39,5 @@ val domainModule = module {
     factoryOf(::UpdateMachineStatusUseCase)
     factoryOf(::GetCollectionsInDateRangeUseCase)
     factoryOf(::GetPaginatedCollectionsUseCase)
+    factoryOf(::SaveLocation)
 }

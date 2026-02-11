@@ -184,17 +184,15 @@ class CollectionsApiService(
     ): List<CollectionModel> {
         return try {
             var query = firestore.getDocumentsQuery("collections")
-                .orderBy("createdAt", ExpectedFirestore.Direction.DESCENDING)
-                .orderBy("__name__", ExpectedFirestore.Direction.DESCENDING) // Add tie-breaker
+                .orderBy("createdAt.seconds", ExpectedFirestore.Direction.DESCENDING)
+                .orderBy("__name__", ExpectedFirestore.Direction.DESCENDING)
                 .limit(limit)
 
             if (lastCollectionCreatedAtLong != null && lastCollectionDocumentId != null) {
-                // To do startAfter with a full document, we need the actual DocumentSnapshot.
-                // However, since we only have the createdAt and id, we'll try to use startAfter with these values.
-                // This assumes ExpectedFirestore's startAfter can handle multiple fields.
-                // If not, a workaround might be needed (e.g., fetching the last document by ID first)
                 query = query.startAfter(
-                    Timestamp(lastCollectionCreatedAtLong / 1000, 0)
+                    Timestamp(lastCollectionCreatedAtLong / 1000, 0),
+                    
+                    lastCollectionDocumentId
                 )
             }
 

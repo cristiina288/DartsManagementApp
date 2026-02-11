@@ -7,7 +7,7 @@ interface MachinesRepository {
 
     suspend fun getMachines(): List<MachineModel>
 
-    suspend fun saveMachine(saveMachineRequest: SaveMachineRequest)
+    suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest)
 
     suspend fun updateMachineStatus(machineId: Int, statusId: Int): Result<Unit>
 

@@ -21,8 +21,8 @@ class MachinesApiService(private val firestore: ExpectedFirestore) {
     }
 
 
-    suspend fun saveMachine(saveMachineRequest: SaveMachineRequest) {
-        firestore.addDocument("machines", mapOf())//saveMachineRequest.toMap())
+    suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest) {
+        firestore.setDocument("machines", serialNumber, saveMachineRequest.toMap())
     }
 
     suspend fun updateMachineStatus(machineId: Int, statusId: Int) {
@@ -30,15 +30,12 @@ class MachinesApiService(private val firestore: ExpectedFirestore) {
         firestore.updateDocumentFields("machines", machineId.toString(), data)
     }
 }
-/*
-private fun SaveMachineRequest.toMap(): Map<String, Any> {
+
+private fun SaveMachineRequest.toMap(): Map<String, Any?> {
     return mapOf(
-        "id" to id,
         "name" to name,
-        "type" to type,
-        "last_collection" to last_collection,
         "counter" to counter,
         "barId" to barId,
-        "status" to mapOf("id" to statusId)
+        "status" to status
     )
-}*/
+}

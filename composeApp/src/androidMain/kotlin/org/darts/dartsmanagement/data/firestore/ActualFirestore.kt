@@ -17,6 +17,10 @@ actual class ExpectedFirestore {
         return documentRef.id
     }
 
+    actual suspend fun setDocument(collectionPath: String, documentId: String, data: Map<String, Any?>) {
+        firestore.collection(collectionPath).document(documentId).set(data).await()
+    }
+
     actual suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any>): String {
         firestore.collection(collectionPath).document(documentId).set(data).await()
         return documentId
@@ -50,6 +54,7 @@ actual class ExpectedFirestore {
     ): List<DocumentSnapshot> {
         return firestore.collection(collectionPath)
             .whereGreaterThanOrEqualTo(dateField, Timestamp(startTimestamp.seconds, startTimestamp.nanoseconds))
+            .whereLessThanOrEqualTo(dateField, Timestamp(endTimestamp.seconds, endTimestamp.nanoseconds))
             .whereLessThanOrEqualTo(dateField, Timestamp(endTimestamp.seconds, endTimestamp.nanoseconds))
             .get()
             .await()
@@ -100,6 +105,18 @@ class AndroidFirestoreQuery(private var query: Query) : FirestoreQuery {
 
     override fun startAfter(value: KmpTimestamp): FirestoreQuery {
         query = query.startAfter(Timestamp(value.seconds, value.nanoseconds))
+        return this
+    }
+
+    override fun startAfter(vararg values: Any): FirestoreQuery {
+        val convertedValues = values.map {
+            if (it is KmpTimestamp) {
+                Timestamp(it.seconds, it.nanoseconds)
+            } else {
+                it
+            }
+        }.toTypedArray()
+        query = query.startAfter(*convertedValues)
         return this
     }
 

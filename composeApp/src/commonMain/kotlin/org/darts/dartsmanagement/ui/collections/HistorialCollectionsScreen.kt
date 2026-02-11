@@ -191,7 +191,7 @@ fun HistorialCollectionsScreenContent() {
                 sheetState = sheetState,
                 onDismiss = { showBottomSheet = false },
                 onExport = { date ->
-                    // TODO: Implement actual export logic
+                    viewModel.onEvent(HistorialCollectionsEvent.ExportCollections(date))
                     println("Exporting collections from: $date")
                     showBottomSheet = false
                 }
@@ -273,11 +273,11 @@ fun CollectionAccordionItem(collection: CollectionModel, localDateTime: LocalDat
                     Text("€ ${collection.totalCollection.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Propietario Bar:", color = TextPrimary, fontSize = 14.sp)
+                    Text("Parte Bar:", color = TextPrimary, fontSize = 14.sp)
                     Text("€ ${collection.barAmount.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text("Comisión:", color = TextPrimary, fontSize = 14.sp)
+                    Text("Parte Empresa:", color = TextPrimary, fontSize = 14.sp)
                     Text("€ ${collection.businessAmount.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 collection.comments?.let {

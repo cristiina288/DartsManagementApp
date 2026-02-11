@@ -1,14 +1,17 @@
 package org.darts.dartsmanagement.ui.machines.newMachine
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,29 +21,34 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import org.darts.dartsmanagement.ui.components.SelectBarBottomSheet
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -51,197 +59,188 @@ object NewMachineScreen : Screen {
     }
 }
 
+private val BackgroundDark = Color(0xFF121212)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewMachineScreenContent() {
-    var name by remember { mutableStateOf("") }
-    var counter by remember { mutableStateOf("") }
-    var selectedBar by remember { mutableStateOf("Select Bar") }
-    var isDropdownExpanded by remember { mutableStateOf(false) }
     val navigator = LocalNavigator.currentOrThrow
-
     val newMachineViewModel = koinViewModel<NewMachineViewModel>()
+    val uiState by newMachineViewModel.uiState.collectAsState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    val bars by newMachineViewModel.bars.collectAsState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1E2832))
-            .padding(16.dp)
-    ) {
-        // Top Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 24.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(
-                onClick = { navigator.pop() },
-                modifier = Modifier.size(24.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White
-                )
+    LaunchedEffect(Unit) {
+        newMachineViewModel.effect.collect { effect ->
+            when (effect) {
+                NewMachineViewModel.Effect.MachineSaved -> navigator.pop()
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Text(
-                text = "Crear máquina",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
-            )
         }
+    }
 
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(errorMessage)
+            newMachineViewModel.onEvent(NewMachineEvent.ClearError)
+        }
+    }
+
+    Scaffold(
+        containerColor = BackgroundDark,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Crear Máquina",
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navigator.pop() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                ),
+                actions = {
+                    Spacer(modifier = Modifier.width(48.dp)) // To balance the title
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .weight(1f)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
         ) {
-            // Name Field
-            Text(
-                text = "Nombre",
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+            Spacer(modifier = Modifier.height(16.dp)) // Add some space after TopAppBar
+
+            // Serial Number Field
+            OutlinedTextField(
+                value = uiState.serialNumber,
+                onValueChange = { newMachineViewModel.onEvent(NewMachineEvent.OnSerialNumberChange(it)) },
+                label = { Text("Número de Serie") },
+                placeholder = { Text("Introduce el número de serie de la máquina") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
             )
 
+            // Name Field
             OutlinedTextField(
-                value = name,
-                onValueChange = {
-                    name = it
-                    newMachineViewModel.saveName(name)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF4A5568),
-                    unfocusedBorderColor = Color(0xFF4A5568),
-                    focusedContainerColor = Color(0xFF2D3748),
-                    unfocusedContainerColor = Color(0xFF2D3748),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
+                value = uiState.name,
+                onValueChange = { newMachineViewModel.onEvent(NewMachineEvent.OnNameChange(it)) },
+                label = { Text("Nombre de la máquina") },
+                placeholder = { Text("Introduce el nombre de la máquina") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
             )
 
             // Counter Field
-            Text(
-                text = "Contador actual de la máquina",
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
             OutlinedTextField(
-                value = counter,
-                onValueChange = {
-                    counter = it
-                    newMachineViewModel.saveCounter(counter?.toInt() ?: 0)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF4A5568),
-                    unfocusedBorderColor = Color(0xFF4A5568),
-                    focusedContainerColor = Color(0xFF2D3748),
-                    unfocusedContainerColor = Color(0xFF2D3748),
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
+                value = uiState.counter,
+                onValueChange = { newMachineViewModel.onEvent(NewMachineEvent.OnCounterChange(it)) },
+                label = { Text("Contador actual") },
+                placeholder = { Text("Introduce el contador actual") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
             )
 
-            // Select Bar Dropdown
-            Text(
-                text = "Selecciona un bar",
-                color = Color.White,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = isDropdownExpanded,
-                onExpandedChange = { isDropdownExpanded = !isDropdownExpanded }
+            // Select Bar
+            Button(
+                onClick = { newMachineViewModel.onEvent(NewMachineEvent.OnBarSelectionClick) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp), // Similar height to OutlinedTextField
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.1f) // Match TextField's container color
+                ),
+                shape = RoundedCornerShape(8.dp), // Match TextField's shape
+                contentPadding = PaddingValues(horizontal = 16.dp), // Match TextField's horizontal padding
+                // Add border if needed, similar to OutlinedTextField
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)) // Match TextField's unfocused border color
             ) {
-                OutlinedTextField(
-                    value = selectedBar,
-                    onValueChange = {},
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF4A5568),
-                        unfocusedBorderColor = Color(0xFF4A5568),
-                        focusedContainerColor = Color(0xFF2D3748),
-                        unfocusedContainerColor = Color(0xFF2D3748),
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    trailingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.ArrowDropDown,
-                            contentDescription = "Dropdown",
-                            tint = Color.White
-                        )
-                    }
-                )
-
-                ExposedDropdownMenu(
-                    expanded = isDropdownExpanded,
-                    onDismissRequest = { isDropdownExpanded = false },
-                    modifier = Modifier.background(Color(0xFF2D3748))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    bars?.forEach { bar ->
-                        DropdownMenuItem(
-                            text = {
-                                Text(
-                                    text = bar.name,
-                                    color = Color.White
-                                )
-                            },
-                            onClick = {
-                                selectedBar = bar.name
-                                isDropdownExpanded = false
-                                //newMachineViewModel.saveBarId(bar.id) //TODO COMMENT FOR ID OF FIREBASE
-                            }
-                        )
-                    }
+                    Text(
+                        text = uiState.selectedBarName ?: "Seleccionar bar",
+                        color = Color.White,
+                        fontWeight = FontWeight.Normal,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Seleccionar Bar",
+                        tint = Color.White
+                    )
                 }
+            }
+
+            // Save Changes Button
+            Button(
+                onClick = { newMachineViewModel.onEvent(NewMachineEvent.OnSaveMachineClick) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF00BFA6)
+                ),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !uiState.isLoading
+            ) {
+                Text(
+                    text = "Crear Máquina",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
-        // Save Changes Button
-        Button(
-            onClick = {
-                newMachineViewModel.saveMachine()
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 24.dp)
-                .height(56.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF0EA5E9)
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text(
-                text = "Crear máquina",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
+        if (uiState.showBarSelectionDialog) {
+            SelectBarBottomSheet(
+                sheetState = sheetState,
+                bars = uiState.allBars,
+                onBarSelected = { barId, barName ->
+                    newMachineViewModel.onEvent(NewMachineEvent.OnBarSelected(barId, barName))
+                },
+                onDismiss = {
+                    newMachineViewModel.onEvent(NewMachineEvent.OnDismissBarSelectionDialog)
+                }
             )
         }
     }
 }
+
+@Composable
+private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
+    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+    focusedLabelColor = Color.White.copy(alpha = 0.8f),
+    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedContainerColor = Color.White.copy(alpha = 0.1f),
+    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+    cursorColor = Color(0xFF00BFA6),
+    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+)

@@ -3,8 +3,9 @@ package org.darts.dartsmanagement.data.machines.requests
 import kotlinx.serialization.Serializable
 
 @Serializable
-class SaveMachineRequest(
+data class SaveMachineRequest(
     val name: String,
-    val counter: Int? = 0,
-    val barId: Int,
+    val counter: Int? = null,
+    val barId: String? = null,
+    val status: Map<String, Int> = mapOf("id" to 2) // Default status 2 if no barId is provided
 )

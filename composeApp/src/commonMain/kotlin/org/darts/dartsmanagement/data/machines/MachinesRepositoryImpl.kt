@@ -11,8 +11,8 @@ class MachinesRepositoryImpl(private val api: MachinesApiService): MachinesRepos
     }
 
 
-    override suspend fun saveMachine(saveMachineRequest: SaveMachineRequest) {
-        return api.saveMachine(saveMachineRequest)
+    override suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest) {
+        return api.saveMachine(serialNumber, saveMachineRequest)
     }
 
     override suspend fun updateMachineStatus(machineId: Int, statusId: Int): Result<Unit> {

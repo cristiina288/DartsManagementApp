@@ -98,7 +98,7 @@ class HistorialCollectionsViewModel(
                             businessAmount = collection.businessAmount,
                             barAmount = collection.barAmount,
                             totalCollections = collection.totalCollection,
-                            createdAt = Instant.fromEpochSeconds(collection.createdAt)
+                            createdAt = Instant.fromEpochMilliseconds(collection.createdAt)
                                 .toLocalDateTime(TimeZone.currentSystemDefault())
                                 .let { localDateTime ->
                                     "${localDateTime.dayOfMonth.toString().padStart(2, '0')}/${localDateTime.monthNumber.toString().padStart(2, '0')}/${localDateTime.year}"

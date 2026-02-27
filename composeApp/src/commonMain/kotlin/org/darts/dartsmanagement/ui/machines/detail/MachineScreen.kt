@@ -150,7 +150,8 @@ fun MachineScreenContent(
                 fontWeight = FontWeight.Medium
             )
 
-            if (currentMachine.status.id == Status.INACTIVE.id || currentMachine.status.id == Status.PENDING_REPAIR.id) {
+            if (currentMachine.status.id == Status.INACTIVE.id
+                || currentMachine.status.id == Status.PENDING_REPAIR.id) {
                 TextButton(
                     onClick = { showRepairDialog = true }
                 ) {
@@ -160,6 +161,8 @@ fun MachineScreenContent(
                         fontSize = 16.sp
                     )
                 }
+            } else {
+                Spacer(modifier = Modifier.width(10.dp))
             }
         }
         if (uiState.isLoading) {
@@ -227,6 +230,17 @@ fun MachineScreenContent(
                     collection = collection,
                     item = index
                 )
+            }
+
+            item {
+                if (uiState.collections.isEmpty() && !uiState.isLoading) {
+                    Text (
+                        text = "No hay recaudaciones con esta máquina.",
+                        color = TextPrimaryDark,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
             }
         }
     }

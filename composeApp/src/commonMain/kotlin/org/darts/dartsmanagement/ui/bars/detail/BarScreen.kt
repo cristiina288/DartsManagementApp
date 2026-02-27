@@ -307,7 +307,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
         modifier = Modifier
             .fillMaxWidth()
             .background(BackgroundDark) // Use same BackgroundDark as screen
-            .padding(start = 16.dp, end = 16.dp, top = 58.dp, bottom = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBackClick) {

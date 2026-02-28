@@ -56,6 +56,7 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
 import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
 import org.darts.dartsmanagement.ui.bars.listing.TextPrimaryDark
+import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -98,7 +99,8 @@ private fun BarScreenContent(barId: String) {
                 TopBar(
                     title = "Detalles del Bar",
                     onBackClick = { navigator.pop() },
-                    onEditClick = { navigator.push(EditBarScreen(bar)) }
+                    onEditClick = { navigator.push(EditBarScreen(bar)) },
+                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) }
                 )
             }
         }
@@ -302,12 +304,17 @@ private fun NotesSection(description: String?) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Unit) {
+private fun TopBar(
+    title: String,
+    onBackClick: () -> Unit,
+    onEditClick: () -> Unit,
+    onCollectClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(BackgroundDark) // Use same BackgroundDark as screen
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBackClick) {
@@ -320,16 +327,25 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
         Text(
             text = title,
             color = TextPrimaryDark,
-            fontSize = 22.sp, // Matching other screens
+            fontSize = 18.sp, // Reduced to fit more
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start,
+            maxLines = 1
         )
+        TextButton(onClick = onCollectClick) {
+            Text(
+                text = "Recaudar",
+                color = Primary,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
         TextButton(onClick = onEditClick) {
             Text(
                 text = "Editar",
-                color = Primary, // From HTML
-                fontSize = 16.sp,
+                color = TextSecondaryDark,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )
         }

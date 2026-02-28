@@ -16,6 +16,7 @@ import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 
 class CollectionsViewModel(
+    val initialBarId: String? = null,
     val getRandomCharacter: GetRandomCharacter,
     val getBars: GetBars,
     val saveCollection: SaveCollection
@@ -43,6 +44,10 @@ class CollectionsViewModel(
         }*/
 
         getAllBars()
+        
+        initialBarId?.let { barId ->
+            onBarSelected(barId)
+        }
     }
 
 

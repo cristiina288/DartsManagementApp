@@ -113,7 +113,7 @@ private fun HomeScreenContent() {
             ActionCard(
                 title = "Nueva Recaudación",
                 icon = Icons.Default.AddCircle,
-                onClick = { navigator.push(CollectionScreen) }
+                onClick = { navigator.push(CollectionScreen()) }
             )
             Spacer(modifier = Modifier.height(16.dp))
             LazyVerticalGrid(

@@ -32,6 +32,7 @@ import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.MachinesRepository
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
 import org.darts.dartsmanagement.domain.machines.usecases.UpdateMachineUseCase
+import org.darts.dartsmanagement.ui.collections.CollectionsViewModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineViewModel
 import org.darts.dartsmanagement.ui.machines.edit.EditMachineViewModel
 import org.koin.compose.viewmodel.dsl.viewModel
@@ -84,6 +85,7 @@ val dataModule = module {
     factoryOf(::UpdateMachineStatusUseCase)
     factoryOf(::GetCollectionsByMachineId)
 
+    viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get()) }
     viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
 }

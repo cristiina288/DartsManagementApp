@@ -27,6 +27,7 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
+import org.koin.core.parameter.parametersOf
 
 // --- Color Palette ---
 private val BackgroundDark = Color(0xFF0B0F13)
@@ -37,18 +38,18 @@ private val TextPrimaryDark = Color.White
 private val TextSecondaryDark = Color.White.copy(alpha = 0.8f)
 private val TextPlaceholder = Color.White.copy(alpha = 0.5f)
 
-object CollectionScreen : Screen {
+data class CollectionScreen(val barId: String? = null) : Screen {
     @Composable
     override fun Content() {
-        CollectionScreenContent()
+        CollectionScreenContent(barId)
     }
 }
 
 @OptIn(KoinExperimentalAPI::class)
 @Composable
 @Preview
-private fun CollectionScreenContent() {
-    val viewModel = koinViewModel<CollectionsViewModel>()
+private fun CollectionScreenContent(barId: String? = null) {
+    val viewModel = koinViewModel<CollectionsViewModel>(parameters = { parametersOf(barId) })
     val collection by viewModel.collection.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -488,6 +489,12 @@ private fun <T> SearchableAppDropdown(
     var expanded by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf(selectedOption?.let { optionToString(it) } ?: "") }
     var isSearching by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedOption) {
+        if (!isSearching) {
+            searchText = selectedOption?.let { optionToString(it) } ?: ""
+        }
+    }
 
     val filteredOptions = if (!isSearching) {
         options

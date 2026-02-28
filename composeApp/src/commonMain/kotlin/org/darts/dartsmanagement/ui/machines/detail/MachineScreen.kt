@@ -151,7 +151,7 @@ fun MachineScreenContent(
             }
 
             Text(
-                text = "Machine Details",
+                text = "Detalles de la máquina",
                 color = TextPrimaryDark,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Medium

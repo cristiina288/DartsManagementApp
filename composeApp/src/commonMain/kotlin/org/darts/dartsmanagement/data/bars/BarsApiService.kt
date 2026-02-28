@@ -8,21 +8,20 @@ import org.darts.dartsmanagement.data.common.firestore.BarFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.BarLocationFirestoreDetails
 import org.darts.dartsmanagement.data.common.firestore.MachineFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.UserFirestore
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.data.common.response.StatusResponse
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 
-class BarsApiService(private val firestore: ExpectedFirestore) {
+class BarsApiService(
+    private val firestore: ExpectedFirestore,
+    private val sessionManager: SessionManager
+) {
 
         suspend fun getBars(): List<BarResponse> {
-            // 1. Get the current user's UID
-            val userUID = firestore.getCurrentUserUID() ?: return emptyList()
+            // 1. Get the license_id from SessionManager
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
 
-            // 2. Get the user's license_id from the 'users' collection
-            val userDoc = firestore.getDocument("users", userUID)
-            val user = userDoc?.data<UserFirestore>() ?: return emptyList()
-            val licenseId = user.license_id
-
-            // 3. Get all bars associated with that license_id
+            // 2. Get all bars associated with that license_id
             val barDocs = firestore.getDocuments("bars", "license_id", licenseId)
             val barsFirestore = barDocs.map { it.data<BarFirestoreResponse>().copy(id = it.id) }
 
@@ -54,15 +53,10 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
 
     suspend fun saveBar(saveBarRequest: SaveBarRequest) {
         try {
-            // 1. Get the current user's UID
-            val userUID = firestore.getCurrentUserUID() ?: throw IllegalStateException("User not logged in")
+            // 1. Get the license_id from SessionManager
+            val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
 
-            // 2. Get the user's license_id from the 'users' collection
-            val userDoc = firestore.getDocument("users", userUID)
-            val user = userDoc?.data<UserFirestore>() ?: throw IllegalStateException("User data not found")
-            val licenseId = user.license_id
-
-            // 3. Create BarFirestoreResponse from SaveBarRequest
+            // 2. Create BarFirestoreResponse from SaveBarRequest
             val barData = mapOf(
                 //"id" to saveBarRequest.id,
                 "name" to saveBarRequest.name,
@@ -87,15 +81,10 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
 
     suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest) {
         try {
-            // 1. Get the current user's UID
-            val userUID = firestore.getCurrentUserUID() ?: throw IllegalStateException("User not logged in")
+            // 1. Get the license_id from SessionManager
+            val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
 
-            // 2. Get the user's license_id from the 'users' collection
-            val userDoc = firestore.getDocument("users", userUID)
-            val user = userDoc?.data<UserFirestore>() ?: throw IllegalStateException("User data not found")
-            val licenseId = user.license_id
-
-            // 3. Create Update map from SaveBarRequest
+            // 2. Create Update map from SaveBarRequest
             val barData = mapOf(
                 "name" to saveBarRequest.name,
                 "description" to saveBarRequest.description,
@@ -118,8 +107,15 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
     }
 
     suspend fun getBar(barId: String): BarResponse {
+        val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
+        
         val barDoc = firestore.getDocument("bars", barId) ?: throw NoSuchElementException("Bar with ID $barId not found.")
         val barFirestore = barDoc.data<BarFirestoreResponse>().copy(id = barDoc.id)
+        
+        // Security check: Verify license_id
+        if (barFirestore.license_id != licenseId) {
+            throw IllegalStateException("You do not have permission to access this bar.")
+        }
 
         val allMachinesDocs = firestore.getDocuments("machines")
         val allMachines = allMachinesDocs.mapNotNull { doc ->
@@ -130,6 +126,19 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
 
         return BarResponse(
             id = barFirestore.id,
+            /*name = barFirestore.name,
+            description = barFirestore.description,
+            location = BarLocationResponse(
+                id = barFirestore.location.id,
+                address = barFirestore.location.address,
+                latitude = barFirestore.location.latitude,
+                longitude = barFirestore.location.longitude,
+                locationBarUrl = barFirestore.location.locationBarUrl
+            ),
+            machines = machinesFirestoreResponses.map { it.toMachineResponse() },
+            status = StatusResponse(id = barFirestore.status_id.toInt())
+        )
+    }*/
             name = barFirestore.name,
             description = barFirestore.description,
             location = BarLocationResponse(

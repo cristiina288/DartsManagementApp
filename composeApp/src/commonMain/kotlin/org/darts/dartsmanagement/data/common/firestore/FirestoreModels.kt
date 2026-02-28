@@ -36,3 +36,10 @@ data class MachineFirestore(
     val type: String = "",
     val last_collection: Timestamp? = null
 )
+
+@Serializable
+data class LicenseFirestore(
+    val company_name: String = "",
+    val expires_at: Timestamp? = null,
+    val status: String = "" // "active", "inactive", etc.
+)

@@ -3,15 +3,21 @@ package org.darts.dartsmanagement.data.locations
 import org.darts.dartsmanagement.data.common.firestore.LocationFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.UserFirestore
 import org.darts.dartsmanagement.data.common.firestore.BarFirestoreResponse
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.data.locations.requests.SaveLocationRequest
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 
-class LocationsApiService(private val firestore: ExpectedFirestore) {
+class LocationsApiService(
+    private val firestore: ExpectedFirestore,
+    private val sessionManager: SessionManager
+) {
 
     suspend fun getLocations(): List<LocationFirestoreResponse> {
         return try {
-            // Fetch all documents from the 'locations' collection
-            val locationDocs = firestore.getDocuments("locations")
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
+            
+            // Fetch documents from the 'locations' collection filtered by license_id
+            val locationDocs = firestore.getDocuments("locations", "license_id", licenseId)
             val allLocations = locationDocs.map { doc ->
                 doc.data<LocationFirestoreResponse>().copy(id = doc.id)
             }
@@ -24,9 +30,12 @@ class LocationsApiService(private val firestore: ExpectedFirestore) {
 
     suspend fun saveLocation(saveLocationRequest: SaveLocationRequest): String {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
+            
             val locationData = mapOf(
                 "name" to saveLocationRequest.name,
-                "postalCode" to saveLocationRequest.postalCode
+                "postalCode" to saveLocationRequest.postalCode,
+                "license_id" to licenseId
             )
             firestore.addDocument("locations", locationData)
         } catch (e: Exception) {
@@ -37,9 +46,12 @@ class LocationsApiService(private val firestore: ExpectedFirestore) {
 
     suspend fun updateLocation(locationId: String, saveLocationRequest: SaveLocationRequest) {
         try {
+            val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
+            
             val locationData = mapOf(
                 "name" to saveLocationRequest.name,
-                "postalCode" to saveLocationRequest.postalCode
+                "postalCode" to saveLocationRequest.postalCode,
+                "license_id" to licenseId
             )
             firestore.updateDocument("locations", locationId, locationData)
         } catch (e: Exception) {

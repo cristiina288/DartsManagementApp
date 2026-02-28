@@ -12,9 +12,15 @@ import dev.gitlive.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.darts.dartsmanagement.data.auth.SessionManager
+import org.darts.dartsmanagement.domain.auth.AuthRepository
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
+) : ViewModel() {
 
     // Firebase Auth instance from KMP library
     private val auth = Firebase.auth
@@ -31,13 +37,52 @@ class AuthViewModel : ViewModel() {
     }
 
     /**
-     * Verifica si hay un usuario autenticado actualmente
+     * Verifica si hay un usuario autenticado actualmente y si su licencia es válida
      */
     private fun checkCurrentUser() {
-        val currentUser = auth.currentUser
+        val currentUser = authRepository.getCurrentUser()
         if (currentUser != null) {
-            _uiState.value = _uiState.value.copy(isAuthenticated = true)
+            val email = currentUser.email
+            if (email != null) {
+                viewModelScope.launch {
+                    _uiState.update { it.copy(isLoading = true) }
+                    val isValid = checkLicenseStatus(email)
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false, 
+                            isAuthenticated = isValid,
+                            errorMessage = if (!isValid) "Tu licencia no está activa. Contacta con soporte." else null
+                        ) 
+                    }
+                }
+            } else {
+                _uiState.value = _uiState.value.copy(isAuthenticated = true)
+            }
         }
+    }
+
+    /**
+     * Verifica el estado de la licencia del usuario en Firestore
+     */
+    private suspend fun checkLicenseStatus(email: String): Boolean {
+        // 1. Buscar usuario por email
+        val userResult = authRepository.getUserByEmail(email)
+        val user = userResult.getOrNull() ?: return false
+        
+        // 2. Buscar licencia por ID
+        val licenseResult = authRepository.getLicense(user.license_id)
+        val license = licenseResult.getOrNull() ?: return false
+        
+        // 3. Verificar estado (asumiendo que "active" es el estado correcto)
+        if (license.status.lowercase() == "active") {
+            sessionManager.updateSession(user.name, user.license_id)
+            return true
+        }
+        
+        // Si no está activa, forzar logout
+        authRepository.signOut()
+        sessionManager.clearSession()
+        return false
     }
 
     /**
@@ -125,21 +170,32 @@ class AuthViewModel : ViewModel() {
 
             try {
                 // Intentar hacer login con Firebase Auth KMP
-                val result = auth.signInWithEmailAndPassword(
+                val success = authRepository.signInWithEmailAndPassword(
                     currentState.email.trim(),
                     currentState.password
                 )
 
                 // Login exitoso
-                if (result.user != null) {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isAuthenticated = true
-                    )
+                if (success) {
+                    val email = currentState.email.trim()
+                    val isLicenseValid = checkLicenseStatus(email)
+                    
+                    if (isLicenseValid) {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            isAuthenticated = true
+                        )
+                    } else {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            isAuthenticated = false,
+                            errorMessage = "Tu licencia no está activa. Contacta con soporte."
+                        )
+                    }
                 } else {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        errorMessage = "Error inesperado durante el login"
+                        errorMessage = "Email o contraseña incorrectos"
                     )
                 }
 
@@ -287,7 +343,8 @@ class AuthViewModel : ViewModel() {
      */
     fun signOut() {
         viewModelScope.launch {
-            auth.signOut()
+            authRepository.signOut()
+            sessionManager.clearSession()
             _uiState.value = AuthUiState()
         }
     }

@@ -41,6 +41,7 @@ expect class ExpectedFirestore {
 
 // Interface for the query builder
 interface FirestoreQuery {
+    fun whereEqualTo(field: String, value: Any): FirestoreQuery
     fun orderBy(field: String, direction: ExpectedFirestore.Direction): FirestoreQuery
     fun limit(limit: Int): FirestoreQuery
     fun startAfter(value: Timestamp): FirestoreQuery

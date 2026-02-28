@@ -9,12 +9,14 @@ data class CollectionFirestoreResponse(
     val id: String = "",
     val machineId: Int = 0,
     val barId: String = "",
+    val batchId: String? = null,
     val comments: String? = "",
     val totalCollection: Double = 0.0,
     val barAmount: Double = 0.0,
     val barPayment: Double = 0.0,
     val businessAmount: Double = 0.0,
     val extraAmount: Double = 0.0,
+    val license_id: String = "",
     val createdAt: FirestoreTimestamp? = null,
     val status: Map<String, Long>? = null
 )

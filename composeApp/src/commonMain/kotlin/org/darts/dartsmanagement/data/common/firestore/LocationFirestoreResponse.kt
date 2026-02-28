@@ -10,7 +10,8 @@ data class LocationFirestoreResponse(
     val address: String = "",
     val city: String = "",
     val name: String? = null,
-    val postalCode: String? = null
+    val postalCode: String? = null,
+    val license_id: String = ""
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(

@@ -2,16 +2,21 @@ package org.darts.dartsmanagement.data.machines
 
 import org.darts.dartsmanagement.data.common.firestore.MachineFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.UserFirestore
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 import org.darts.dartsmanagement.data.machines.requests.SaveMachineRequest
 import org.darts.dartsmanagement.data.machines.response.MachineResponse
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
-class MachinesApiService(private val firestore: ExpectedFirestore) {
+class MachinesApiService(
+    private val firestore: ExpectedFirestore,
+    private val sessionManager: SessionManager
+) {
 
     suspend fun getMachines(): List<MachineResponse> {
         return try {
-            val machineDocs = firestore.getDocuments("machines")
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
+            val machineDocs = firestore.getDocuments("machines", "license_id", licenseId)
             machineDocs.map { doc ->
                 doc.data<MachineFirestoreResponse>().copy(id = doc.id).toMachineResponse()
             }
@@ -22,13 +27,24 @@ class MachinesApiService(private val firestore: ExpectedFirestore) {
     }
 
     suspend fun getMachine(machineId: Int): MachineResponse {
+        val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
         val doc = firestore.getDocument("machines", machineId.toString()) ?: throw NoSuchElementException("Machine with ID $machineId not found.")
-        return doc.data<MachineFirestoreResponse>().copy(id = doc.id).toMachineResponse()
+        val machineData = doc.data<MachineFirestoreResponse>().copy(id = doc.id)
+        
+        // Security check: Verify license_id
+        if (machineData.license_id != licenseId) {
+            throw IllegalStateException("You do not have permission to access this machine.")
+        }
+        
+        return machineData.toMachineResponse()
     }
 
 
     suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest) {
-        firestore.setDocument("machines", serialNumber, saveMachineRequest.toMap())
+        val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
+        val data = saveMachineRequest.toMap().toMutableMap()
+        data["license_id"] = licenseId
+        firestore.setDocument("machines", serialNumber, data)
     }
 
     suspend fun updateMachineStatus(machineId: Int, statusId: Int) {
@@ -37,13 +53,13 @@ class MachinesApiService(private val firestore: ExpectedFirestore) {
     }
 
     suspend fun updateMachine(machine: MachineModel) {
+        val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
         val data = mapOf(
             "name" to machine.name,
-            //"type" to machine.type, // Assuming type is part of MachineModel and needs to be updated
-            //"last_collection" to machine.lastCollection, // Assuming lastCollection is part of MachineModel
             "counter" to machine.counter,
             "barId" to machine.barId,
-            "status.id" to machine.status.id
+            "status.id" to machine.status.id,
+            "license_id" to licenseId
         )
         firestore.updateDocument(
             "machines",

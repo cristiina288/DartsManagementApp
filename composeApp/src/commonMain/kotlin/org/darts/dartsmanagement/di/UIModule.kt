@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.di
 
+import org.darts.dartsmanagement.domain.auth.AuthRepository
 import org.darts.dartsmanagement.ui.auth.AuthViewModel
 import org.darts.dartsmanagement.ui.bars.detail.BarViewModel
 import org.darts.dartsmanagement.ui.bars.edit.EditBarViewModel
@@ -20,7 +21,7 @@ import org.koin.dsl.module
 
 
 val uiModule = module {
-    single { AuthViewModel() }
+    single { AuthViewModel(get(), get()) }
     viewModelOf(::HomeViewModel)
     viewModelOf(::CollectionsViewModel)
     viewModelOf(::BarsListingViewModel)

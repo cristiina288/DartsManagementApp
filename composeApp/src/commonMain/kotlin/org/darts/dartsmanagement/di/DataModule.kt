@@ -10,6 +10,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.darts.dartsmanagement.data.auth.FirebaseAuthRepository
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.data.bars.BarsApiService
 import org.darts.dartsmanagement.data.bars.BarsRepositoryImpl
 import org.darts.dartsmanagement.data.characters.ApiService
@@ -48,7 +49,8 @@ import org.koin.dsl.module
 
 val dataModule = module {
     single { Firebase.auth }
-    factory<AuthRepository> { FirebaseAuthRepository(get()) }
+    single { SessionManager() }
+    factory<AuthRepository> { FirebaseAuthRepository(get(), get()) }
 
     single {
         HttpClient {
@@ -72,23 +74,23 @@ val dataModule = module {
 
 
 
-    factory { BarsApiService(get()) }
+    factory { BarsApiService(get(), get()) }
     factory<BarsRepository> { BarsRepositoryImpl(get()) }
     factoryOf(::GetBars) // Add the GetBars use case here
 
 
-    factory { CollectionsApiService(get()) }
+    factory { CollectionsApiService(get(), get()) }
     factory<CollectionsRepository> { CollectionsRepositoryImpl(get()) }
     factoryOf(::GetCollectionsForMonth) // Add the new use case here
 
 
-    factory { LocationsApiService(get()) }
+    factory { LocationsApiService(get(), get()) }
     factory<LocationsRepository> { LocationsRepositoryImpl(get()) }
     factoryOf(::GetLocations)
     factoryOf(::GetLocation)
     factoryOf(::UpdateLocation)
 
-    factory { MachinesApiService(get()) }
+    factory { MachinesApiService(get(), get()) }
     factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
     factoryOf(::GetMachines) // Add the GetMachines use case here
     factoryOf(::UpdateMachineUseCase)

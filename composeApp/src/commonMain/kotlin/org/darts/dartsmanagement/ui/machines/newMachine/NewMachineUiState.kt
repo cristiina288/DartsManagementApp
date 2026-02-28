@@ -1,6 +1,7 @@
 package org.darts.dartsmanagement.ui.machines.newMachine
 
 import org.darts.dartsmanagement.data.bars.response.BarResponse
+import org.darts.dartsmanagement.domain.bars.models.BarModel
 
 data class NewMachineUiState(
     val serialNumber: String = "",
@@ -8,7 +9,7 @@ data class NewMachineUiState(
     val counter: String = "",
     val selectedBarId: String? = null,
     val selectedBarName: String? = null,
-    val allBars: List<BarResponse> = emptyList(),
+    val allBars: List<BarModel> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
     val showBarSelectionDialog: Boolean = false,

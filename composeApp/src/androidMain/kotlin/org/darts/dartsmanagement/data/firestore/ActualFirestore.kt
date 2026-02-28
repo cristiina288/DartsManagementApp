@@ -21,12 +21,11 @@ actual class ExpectedFirestore {
         firestore.collection(collectionPath).document(documentId).set(data).await()
     }
 
-    actual suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any>): String {
-        firestore.collection(collectionPath).document(documentId).set(data).await()
-        return documentId
+    actual suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any?>) {
+        firestore.collection(collectionPath).document(documentId).update(data).await()
     }
 
-    actual suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any>) {
+    actual suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any?>) {
         firestore.collection(collectionPath).document(documentId).update(data).await()
     }
 

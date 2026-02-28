@@ -25,10 +25,16 @@ import org.darts.dartsmanagement.domain.bars.BarsRepository
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.characters.Repository
 import org.darts.dartsmanagement.domain.collections.CollectionsRepository
+import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
 import org.darts.dartsmanagement.domain.locations.LocationsRepository
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.MachinesRepository
+import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
+import org.darts.dartsmanagement.domain.machines.usecases.UpdateMachineUseCase
+import org.darts.dartsmanagement.ui.machines.detail.MachineViewModel
+import org.darts.dartsmanagement.ui.machines.edit.EditMachineViewModel
+import org.koin.compose.viewmodel.dsl.viewModel
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 
@@ -74,4 +80,10 @@ val dataModule = module {
     factory { MachinesApiService(get()) }
     factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
     factoryOf(::GetMachines) // Add the GetMachines use case here
+    factoryOf(::UpdateMachineUseCase)
+    factoryOf(::UpdateMachineStatusUseCase)
+    factoryOf(::GetCollectionsByMachineId)
+
+    viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get()) }
+    viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
 }

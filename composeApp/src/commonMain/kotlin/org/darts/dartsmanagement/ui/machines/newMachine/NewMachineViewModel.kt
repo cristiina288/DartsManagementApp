@@ -3,6 +3,7 @@ package org.darts.dartsmanagement.ui.machines.newMachine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -12,11 +13,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.data.bars.BarsApiService
 import org.darts.dartsmanagement.data.machines.requests.SaveMachineRequest
+import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.UpdateBarWithNewMachine
 import org.darts.dartsmanagement.domain.machines.SaveMachine
 
 class NewMachineViewModel(
-    private val barsApiService: BarsApiService,
+    private val getBars: GetBars,
     private val saveMachineUseCase: SaveMachine,
     private val updateBarWithNewMachineUseCase: UpdateBarWithNewMachine
 ) : ViewModel() {
@@ -58,7 +60,7 @@ class NewMachineViewModel(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 val result = withContext(Dispatchers.IO) {
-                    barsApiService.getBars()
+                    getBars()
                 }
                 _uiState.update { it.copy(allBars = result, isLoading = false) }
             } catch (e: Exception) {

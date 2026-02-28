@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
@@ -63,6 +64,7 @@ import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_collections
 import org.darts.dartsmanagement.domain.common.models.Status
 import org.darts.dartsmanagement.domain.common.models.toStatus
+import org.darts.dartsmanagement.ui.machines.edit.EditMachineScreen
 import org.jetbrains.compose.resources.painterResource
 
 // --- Color Palette from BarScreen.kt ---
@@ -98,6 +100,11 @@ fun MachineScreenContent(
     )
     val uiState by machineViewModel.uiState.collectAsState()
     val currentMachine = uiState.machine ?: machine
+
+    LifecycleResumeEffect(Unit) {
+        machineViewModel.onEvent(MachineEvent.OnRefresh)
+        onPauseOrDispose { }
+    }
 
     val text = if (currentMachine.status.id == Status.PENDING_REPAIR.id) {
         "¿Ya tienes la máquina reparada y la quieres marcar como 'inactiva'?"
@@ -150,23 +157,22 @@ fun MachineScreenContent(
                 fontWeight = FontWeight.Medium
             )
 
-            if (currentMachine.status.id == Status.INACTIVE.id
-                || currentMachine.status.id == Status.PENDING_REPAIR.id) {
+          //  if (currentMachine.status.id == Status.INACTIVE.id
+            //    || currentMachine.status.id == Status.PENDING_REPAIR.id) {
                 TextButton(
-                    onClick = { showRepairDialog = true }
+                    onClick = { navigator.push(EditMachineScreen(currentMachine)) }
                 ) {
                     Text(
-                        text = "Edit",
+                        text = "Editar",
                         color = Primary,
                         fontSize = 16.sp
                     )
                 }
-            } else {
-                Spacer(modifier = Modifier.width(10.dp))
-            }
+
         }
         if (uiState.isLoading) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            Spacer(modifier = Modifier.height(4.dp))
         }
 
         LazyColumn(
@@ -189,8 +195,14 @@ fun MachineScreenContent(
                             lineHeight = 38.sp
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        MachineStatusTag(status =
-                            currentMachine.status.toStatus)
+                        MachineStatusTag(
+                            status = currentMachine.status.toStatus,
+                            onClick = {
+                                if (currentMachine.status.id != Status.ACTIVE.id) {
+                                    showRepairDialog = true
+                                }
+                            }
+                        )
                     }
 
 
@@ -247,7 +259,7 @@ fun MachineScreenContent(
 }
 
 @Composable
-fun MachineStatusTag(status: Status) {
+fun MachineStatusTag(status: Status, onClick: () -> Unit = {}) {
     val (statusText, backgroundColor, textColor) = when (status) {
         Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
         Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
@@ -260,6 +272,7 @@ fun MachineStatusTag(status: Status) {
         modifier = Modifier
             .background(backgroundColor, CircleShape)
             .padding(horizontal = 12.dp, vertical = 6.dp)
+            .clickable(onClick = onClick)
     ) {
         Text(
             text = statusText,

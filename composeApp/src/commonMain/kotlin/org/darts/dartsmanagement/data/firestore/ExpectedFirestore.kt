@@ -7,8 +7,8 @@ import dev.gitlive.firebase.firestore.QuerySnapshot // Import QuerySnapshot
 expect class ExpectedFirestore {
     suspend fun addDocument(collectionPath: String, data: Map<String, Any?>): String
     suspend fun setDocument(collectionPath: String, documentId: String, data: Map<String, Any?>)
-    suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any>): String
-    suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any>)
+    suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any?>)
+    suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any?>)
     suspend fun getDocument(collectionPath: String, documentId: String): DocumentSnapshot?
 
     suspend fun getDocuments(

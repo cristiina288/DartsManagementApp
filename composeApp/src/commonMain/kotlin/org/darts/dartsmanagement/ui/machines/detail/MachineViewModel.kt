@@ -10,24 +10,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 import org.darts.dartsmanagement.domain.common.models.Status
+import org.darts.dartsmanagement.domain.machines.MachinesRepository
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 class MachineViewModel(
     private val initialMachine: MachineModel,
     private val getCollectionsByMachineId: GetCollectionsByMachineId,
-    private val updateMachineStatusUseCase: UpdateMachineStatusUseCase
+    private val updateMachineStatusUseCase: UpdateMachineStatusUseCase,
+    private val machinesRepository: MachinesRepository,
+    private val getBars: GetBars
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MachineUiState(machine = initialMachine))
     val uiState: StateFlow<MachineUiState> = _uiState.asStateFlow()
 
     init {
-        getCollectionsByMachine()
+        refresh()
     }
 
     fun onEvent(event: MachineEvent) {
@@ -53,18 +57,45 @@ class MachineViewModel(
                         }
                 }
             }
+            MachineEvent.OnRefresh -> refresh()
+        }
+    }
+
+    private fun refresh() {
+        val machineId = initialMachine.id?.toInt() ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            
+            // 1. Refresh Machine Details
+            machinesRepository.getMachine(machineId).onSuccess { updatedMachine ->
+                _uiState.update { it.copy(machine = updatedMachine) }
+                
+                // 2. Refresh Bar Details if assigned
+                if (!updatedMachine.barId.isNullOrEmpty()) {
+                    try {
+                        val bars = getBars()
+                        val assignedBar = bars.find { it.id == updatedMachine.barId }
+                        _uiState.update { it.copy(bar = assignedBar) }
+                    } catch (e: Exception) {
+                        println("Error fetching bar for machine: $e")
+                    }
+                } else {
+                    _uiState.update { it.copy(bar = null) }
+                }
+            }.onFailure { error ->
+                _uiState.update { it.copy(error = error.message) }
+            }
+
+            // 3. Refresh Collections
+            val collections = withContext(Dispatchers.IO) {
+                getCollectionsByMachineId(machineId)
+            }
+            _uiState.update { it.copy(isLoading = false, collections = collections) }
         }
     }
 
     private fun getCollectionsByMachine() {
-        val machineId = initialMachine.id?.toInt() ?: return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            val result = withContext(Dispatchers.IO) {
-                getCollectionsByMachineId(machineId)
-            }
-            _uiState.update { it.copy(isLoading = false, collections = result) }
-        }
+        // Now handled by refresh()
     }
 }
 
@@ -72,11 +103,12 @@ data class MachineUiState(
     val isLoading: Boolean = false,
     val machine: MachineModel? = null,
     val collections: List<CollectionModel> = emptyList(),
-    val bar: BarModel? = null, // Bar info can be derived from machine if needed, or passed in
+    val bar: BarModel? = null,
     val error: String? = null
 )
 
 sealed interface MachineEvent {
     data object ToggleRepairStatus : MachineEvent
+    data object OnRefresh : MachineEvent
 }
 

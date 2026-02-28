@@ -32,13 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.darts.dartsmanagement.data.bars.response.BarResponse
+import org.darts.dartsmanagement.domain.bars.models.BarModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectBarBottomSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState,
-    bars: List<BarResponse>,
+    bars: List<BarModel>,
     onBarSelected: (String, String) -> Unit, // barId, barName
     onDismiss: () -> Unit
 ) {

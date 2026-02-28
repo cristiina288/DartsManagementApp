@@ -1,5 +1,6 @@
 package org.darts.dartsmanagement.ui.collections
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -67,8 +68,8 @@ private fun CollectionScreenContent(barId: String? = null) {
     }
 
     val isSaveButtonEnabled = collection.barId != null &&
-            collection.machineId != null &&
-            (collection.collectionAmounts?.totalCollection ?: 0.0) > 0.0
+            collection.machineEntries.isNotEmpty() &&
+            collection.machineEntries.all { it.machineId != null && (it.collectionAmounts?.totalCollection ?: 0.0) > 0.0 }
 
     Scaffold(
         containerColor = BackgroundDark,
@@ -89,74 +90,89 @@ private fun CollectionScreenContent(barId: String? = null) {
             verticalArrangement = Arrangement.spacedBy(24.dp),
             contentPadding = PaddingValues(vertical = 24.dp)
         ) {
-            item { BasicDataSection(viewModel) }
-            item { DistributionSection(collection) }
-            item { ExtraPaymentSection(viewModel) }
+            item { 
+                val bars by viewModel.bars.collectAsState()
+                val selectedBar = remember(collection.barId, bars) {
+                    bars?.find { it?.id == collection.barId }
+                }
+
+                Section(title = "Datos del Bar") {
+                    SearchableAppDropdown(
+                        label = "Bar",
+                        options = bars?.filterNotNull() ?: emptyList(),
+                        selectedOption = selectedBar,
+                        onOptionSelected = { bar -> viewModel.onBarSelected(bar?.id ?: "") },
+                        optionToString = { it.name }
+                    )
+                }
+            }
+
+            collection.machineEntries.forEachIndexed { index, entry ->
+                item {
+                    if (index > 0) {
+                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                    MachineDataSection(viewModel, index)
+                }
+            }
+
+            item {
+                AddMachineButton(viewModel)
+            }
+
+            item { GlobalExtraPaymentSection(viewModel) }
+
             item { TotalDistributionSection(collection) }
             item { ObservationsSection(viewModel) }
-            // item { PaymentSection(viewModel) } // Temporarily commented out
         }
     }
 }
 
 @Composable
-private fun BasicDataSection(viewModel: CollectionsViewModel) {
+private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
     val bars by viewModel.bars.collectAsState()
     val collection by viewModel.collection.collectAsState()
+    val entry = collection.machineEntries[index]
 
     val selectedBar = remember(collection.barId, bars) {
         bars?.find { it?.id == collection.barId }
     }
 
-    val selectedMachine = remember(collection.machineId, selectedBar) {
-        selectedBar?.machines?.find { it.id == collection.machineId }
+    val selectedMachine = remember(entry.machineId, selectedBar) {
+        selectedBar?.machines?.find { it.id == entry.machineId }
     }
 
-    Section(title = "Datos Básicos") {
-        // Bar Dropdown
-        SearchableAppDropdown(
-            label = "Bar",
-            options = bars?.filterNotNull() ?: emptyList(),
-            selectedOption = selectedBar,
-            onOptionSelected = { bar -> viewModel.onBarSelected(bar?.id ?: "") },
-            optionToString = { it.name }
-        )
+    val selectedMachineIds = collection.machineEntries.mapNotNull { it.machineId }
+    val availableMachines = selectedBar?.machines?.filter { 
+        it.id == entry.machineId || !selectedMachineIds.contains(it.id) 
+    } ?: emptyList()
 
+    Section(title = if (collection.machineEntries.size > 1) "Máquina ${index + 1}" else "Datos Básicos") {
         // Machine Dropdown
-        if (collection.barId != null) {
-            AppDropdown(
-                label = "Máquina",
-                options = selectedBar?.machines ?: emptyList(),
-                selectedOption = selectedMachine,
-                onOptionSelected = { machine ->
-                    viewModel.saveCounterAndMachineIdCollection(
-                        machine.counter,
-                        machine.id
-                    )
-                },
-                optionToString = { it.name ?: "" },
-                enabled = selectedBar != null
-            )
-        }
-
-        // Date Field
-        /*AppTextField(
-            label = "Fecha de Recaudación",
-            value = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date()), // Placeholder
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { Icon(Icons.Default.CalendarToday, null, tint = TextPlaceholder) }
-        )*/
+        AppDropdown(
+            label = "Máquina",
+            options = availableMachines,
+            selectedOption = selectedMachine,
+            onOptionSelected = { machine ->
+                viewModel.saveCounterAndMachineIdCollection(
+                    machine.counter,
+                    machine.id,
+                    index
+                )
+            },
+            optionToString = { it.name ?: "" },
+            enabled = selectedBar != null
+        )
 
         // Total Collection Field
         AppTextField(
             label = "Recaudación Total (€)",
-            value = collection.collectionAmounts?.totalCollection?.toString() ?: "",
+            value = entry.collectionAmounts?.totalCollection?.toString() ?: "",
             onValueChange = {
                 val value = it.toDoubleOrNull() ?: 0.0
-                //viewModel.onTotalCollectionChanged(value)
                 viewModel.saveCollectionAmounts(
-                    buildCollectionAmounts(value, viewModel)
+                    buildCollectionAmountsForEntry(value, index, viewModel),
+                    index
                 )
             },
             placeholder = "0.00",
@@ -176,41 +192,87 @@ private fun BasicDataSection(viewModel: CollectionsViewModel) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             ReadOnlyField(
                 label = "Contador Antiguo",
-                value = (collection.counter ?: 0).toString(),
+                value = (entry.counter ?: 0).toString(),
                 modifier = Modifier.weight(1f)
             )
             ReadOnlyField(
                 label = "Contador Actual",
-                value = ((collection.counter
-                    ?: 0) + (collection.collectionAmounts?.totalCollection?.toInt()
+                value = ((entry.counter
+                    ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt()
                     ?: 0)).toString(),
                 modifier = Modifier.weight(1f)
             )
         }
+
+        DistributionBoxSection(entry)
+
+        if (collection.machineEntries.size > 1) {
+            TextButton(
+                onClick = { viewModel.onRemoveMachineEntry(index) },
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f)),
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text("Quitar máquina")
+            }
+        }
     }
 }
 
-private fun buildCollectionAmounts(
-    totalCollection: Double,
-    viewModel: CollectionsViewModel
-): CollectionAmountsModel {
-    val valueBarAmount = (totalCollection * 0.4).toDouble()
-    val valueBusinessAmount = (totalCollection * 0.6).toDouble()
+@Composable
+private fun AddMachineButton(viewModel: CollectionsViewModel) {
+    val bars by viewModel.bars.collectAsState()
+    val collection by viewModel.collection.collectAsState()
 
-    return CollectionAmountsModel(
-        totalCollection = totalCollection,
-        barAmount = valueBarAmount,
-        barPayment = viewModel.collection.value.collectionAmounts?.barPayment ?: 0.0,
-        businessAmount = valueBusinessAmount,
-        extraAmount = viewModel.collection.value.collectionAmounts?.extraAmount ?: 0.0
-    )
+    val selectedBar = remember(collection.barId, bars) {
+        bars?.find { it?.id == collection.barId }
+    }
+
+    val allMachineIdsInBar = selectedBar?.machines?.mapNotNull { it.id } ?: emptyList()
+    val currentlySelectedMachineIds = collection.machineEntries.mapNotNull { it.machineId }
+
+    val hasMoreMachines = allMachineIdsInBar.any { it !in currentlySelectedMachineIds }
+
+    if (hasMoreMachines && collection.barId != null) {
+        OutlinedButton(
+            onClick = { viewModel.onAddMachineEntry() },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary),
+            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Añadir máquina")
+        }
+    }
 }
 
+@Composable
+private fun GlobalExtraPaymentSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    
+    Section(title = "Ajustes del Bar") {
+        AppTextField(
+            label = "Pago extra global (€)",
+            value = if (collection.globalExtraPayment == 0.0) "" else collection.globalExtraPayment.toString(),
+            onValueChange = { viewModel.onGlobalExtraPaymentChanged(it.toDoubleOrNull() ?: 0.0) },
+            placeholder = "0.00",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+            trailingIcon = {
+                Text(
+                    "€",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPlaceholder
+                )
+            }
+        )
+    }
+}
 
 @Composable
-private fun DistributionSection(collection: CollectionsState) { // Changed to CollectionModel
-    val businessAmount = collection.collectionAmounts?.businessAmount ?: 0.0
-    val barAmount = collection.collectionAmounts?.barAmount ?: 0.0
+private fun DistributionBoxSection(entry: MachineCollectionEntry) {
+    val businessAmount = entry.collectionAmounts?.businessAmount ?: 0.0
+    val barAmount = entry.collectionAmounts?.barAmount ?: 0.0
     val total = businessAmount + barAmount
     val businessPercentage = if (total > 0) (businessAmount / total).toFloat() else 0.6f
 
@@ -221,7 +283,8 @@ private fun DistributionSection(collection: CollectionsState) { // Changed to Co
         return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
     }
 
-    Section(title = "Distribución inicial") {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("Distribución inicial", color = TextSecondaryDark, fontSize = 14.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DistributionBox(
                 label = "Empresa (60%)",
@@ -246,42 +309,46 @@ private fun DistributionSection(collection: CollectionsState) { // Changed to Co
     }
 }
 
+private fun buildCollectionAmountsForEntry(
+    totalCollection: Double,
+    index: Int,
+    viewModel: CollectionsViewModel
+): CollectionAmountsModel {
+    val valueBarAmount = (totalCollection * 0.4).toDouble()
+    val valueBusinessAmount = (totalCollection * 0.6).toDouble()
+    val currentEntry = viewModel.collection.value.machineEntries[index]
+
+    return CollectionAmountsModel(
+        totalCollection = totalCollection,
+        barAmount = valueBarAmount,
+        barPayment = currentEntry.collectionAmounts?.barPayment ?: 0.0,
+        businessAmount = valueBusinessAmount,
+        extraAmount = 0.0 // Extra amount is now global
+    )
+}
+
+
 @Composable
-fun ExtraPaymentSection(viewModel: CollectionsViewModel) {
-    val collection by viewModel.collection.collectAsState()
-    Section(title = "Pago extra") {
-        AppTextField(
-            label = "Importe extra",
-            value = collection.collectionAmounts?.extraAmount?.toString() ?: "",
-            onValueChange = { viewModel.onExtraPaymentChanged(it.toDoubleOrNull() ?: 0.0) },
-            placeholder = "0.00",
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = LocalTextStyle.current.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold),
-            trailingIcon = {
-                Text(
-                    "€",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPlaceholder
-                )
-            }
-        )
-    }
+private fun DistributionSection(collection: CollectionsState) { 
+    // This is no longer used directly as we have DistributionBoxSection per machine
+}
+
+@Composable
+fun ExtraPaymentSection(viewModel: CollectionsViewModel, index: Int) {
+    // This is no longer used per machine
 }
 
 @Composable
 fun TotalDistributionSection(collection: CollectionsState) {
-    val initialBusinessAmount = collection.collectionAmounts?.businessAmount ?: 0.0
-    val initialBarAmount = collection.collectionAmounts?.barAmount ?: 0.0
-    val extraAmount = collection.collectionAmounts?.extraAmount ?: 0.0
+    val totalInitialBusinessAmount = collection.machineEntries.sumOf { it.collectionAmounts?.businessAmount ?: 0.0 }
+    val totalInitialBarAmount = collection.machineEntries.sumOf { it.collectionAmounts?.barAmount ?: 0.0 }
+    val globalExtraAmount = collection.globalExtraPayment
 
-    val totalBusinessAmount = initialBusinessAmount + extraAmount
-    val totalBarAmount = initialBarAmount - extraAmount
+    val totalBusinessAmount = totalInitialBusinessAmount + globalExtraAmount
+    val totalBarAmount = totalInitialBarAmount - globalExtraAmount
 
     val total = totalBusinessAmount + totalBarAmount
     val businessPercentage = if (total > 0) (totalBusinessAmount / total).toFloat() else 0.6f
-
-
 
     fun formatCurrency(amount: Double): String {
         val rounded = (amount * 100).toLong()
@@ -290,16 +357,16 @@ fun TotalDistributionSection(collection: CollectionsState) {
         return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
     }
 
-    Section(title = "Distribución total") {
+    Section(title = "Distribución Final (Total Bar)") {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DistributionBox(
-                label = "Empresa",
+                label = "Total Empresa",
                 amount = formatCurrency(totalBusinessAmount),
                 isPrimary = true,
                 modifier = Modifier.weight(1f)
             )
             DistributionBox(
-                label = "Bar",
+                label = "Total Bar",
                 amount = formatCurrency(totalBarAmount),
                 isPrimary = false,
                 modifier = Modifier.weight(1f)

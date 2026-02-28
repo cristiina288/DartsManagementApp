@@ -65,8 +65,26 @@ class CollectionsViewModel(
         _collection.update { collection ->
             collection.copy(
                 barId = barId,
-                machineId = null
+                machineEntries = listOf(MachineCollectionEntry())
             )
+        }
+    }
+
+    fun onAddMachineEntry() {
+        _collection.update { collection ->
+            val newEntries = collection.machineEntries.toMutableList()
+            newEntries.add(MachineCollectionEntry())
+            collection.copy(machineEntries = newEntries)
+        }
+    }
+
+    fun onRemoveMachineEntry(index: Int) {
+        _collection.update { collection ->
+            val newEntries = collection.machineEntries.toMutableList()
+            if (newEntries.size > 1) {
+                newEntries.removeAt(index)
+            }
+            collection.copy(machineEntries = newEntries)
         }
     }
 
@@ -74,25 +92,35 @@ class CollectionsViewModel(
     fun saveActualCollection() {
         viewModelScope.launch {
             try {
-                val initialAmounts = collection.value.collectionAmounts ?: CollectionAmountsModel()
-                val extraAmount = initialAmounts.extraAmount
-
-                val finalBusinessAmount = initialAmounts.businessAmount + extraAmount
-                val finalBarAmount = initialAmounts.barAmount - extraAmount
-
-                val finalCollectionAmounts = initialAmounts.copy(
-                    businessAmount = finalBusinessAmount,
-                    barAmount = finalBarAmount
-                )
+                val currentState = collection.value
+                val barId = currentState.barId ?: return@launch
+                val comments = currentState.comments ?: ""
+                val globalExtra = currentState.globalExtraPayment
 
                 withContext(Dispatchers.IO) {
-                    saveCollection(
-                        collectionAmounts = finalCollectionAmounts,
-                        newCounterMachine = (collection.value.counter ?: 0) + (collection.value.collectionAmounts?.totalCollection?.toInt() ?: 0),
-                        machineId = collection.value.machineId ?: 0,
-                        barId = collection.value.barId ?: "", // Keep barId
-                        comments = collection.value.comments ?: ""
-                    )
+                    currentState.machineEntries.forEachIndexed { index, entry ->
+                        val initialAmounts = entry.collectionAmounts ?: CollectionAmountsModel()
+                        
+                        // Apply global extra payment ONLY to the first machine to record it once
+                        val machineExtra = if (index == 0) globalExtra else 0.0
+
+                        val finalBusinessAmount = initialAmounts.businessAmount + machineExtra
+                        val finalBarAmount = initialAmounts.barAmount - machineExtra
+
+                        val finalCollectionAmounts = initialAmounts.copy(
+                            businessAmount = finalBusinessAmount,
+                            barAmount = finalBarAmount,
+                            extraAmount = machineExtra
+                        )
+
+                        saveCollection(
+                            collectionAmounts = finalCollectionAmounts,
+                            newCounterMachine = (entry.counter ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt() ?: 0),
+                            machineId = entry.machineId ?: 0,
+                            barId = barId,
+                            comments = comments
+                        )
+                    }
                 }
                 _collection.update { it.copy(snackbarMessage = "Guardado correctamente") }
             } catch (e: Exception) {
@@ -105,34 +133,29 @@ class CollectionsViewModel(
         _collection.update { it.copy(snackbarMessage = null) }
     }
 
-    fun onExtraPaymentChanged(extraAmount: Double) {
-        _collection.update { currentState ->
-            val currentAmounts = currentState.collectionAmounts ?: CollectionAmountsModel()
-            currentState.copy(
-                collectionAmounts = currentAmounts.copy(extraAmount = extraAmount)
+    fun onGlobalExtraPaymentChanged(extraAmount: Double) {
+        _collection.update { it.copy(globalExtraPayment = extraAmount) }
+    }
+
+    fun saveCollectionAmounts(collectionAmounts: CollectionAmountsModel, index: Int) {
+        _collection.update { collections ->
+            val newEntries = collections.machineEntries.toMutableList()
+            newEntries[index] = newEntries[index].copy(
+                collectionAmounts = collectionAmounts
             )
-        }
-    }
-
-    fun saveCollectionAmounts(collection: CollectionAmountsModel) {
-        viewModelScope.launch {
-            _collection.update { collections ->
-                collections.copy(
-                    collectionAmounts = collection,
-                )
-            }
+            collections.copy(machineEntries = newEntries)
         }
     }
 
 
-    fun saveCounterAndMachineIdCollection(counterCollection: Int?, machineId: Int?) {
-        viewModelScope.launch {
-            _collection.update { collections ->
-                collections.copy(
-                    counter = (counterCollection ?: 0),
-                    machineId = (machineId ?: 0)
-                )
-            }
+    fun saveCounterAndMachineIdCollection(counterCollection: Int?, machineId: Int?, index: Int) {
+        _collection.update { collections ->
+            val newEntries = collections.machineEntries.toMutableList()
+            newEntries[index] = newEntries[index].copy(
+                counter = counterCollection ?: 0,
+                machineId = machineId ?: 0
+            )
+            collections.copy(machineEntries = newEntries)
         }
     }
 

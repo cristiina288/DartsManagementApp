@@ -26,19 +26,6 @@ sealed interface HomeEvent {
     data class ExportCollections(val fromDate: LocalDate) : HomeEvent
 }
 
-// Data class for export
-data class ExportableCollection(
-
-    val barName: String?,
-    val machineId: Int?,
-    val machineName: String?,
-    val businessAmount: Double?,
-    val barAmount: Double?,
-    val totalCollections: Double?,
-    val createdAt: String?, // Assuming String format for date
-    val comments: String?
-)
-
 // Extension function to convert dev.gitlive.firebase.firestore.Timestamp to kotlinx.datetime.LocalDateTime
 fun Timestamp.toKotlinxLocalDateTime(): kotlinx.datetime.LocalDateTime {
     return Instant.fromEpochSeconds(this.seconds, this.nanoseconds).toLocalDateTime(TimeZone.currentSystemDefault())
@@ -93,62 +80,82 @@ class HomeViewModel(
 
     fun exportData(fromDate: LocalDate) {
         viewModelScope.launch {
-            val excelExporter = ExcelExporterFactory.create() // Create exporter inside the function
+            val excelExporter = ExcelExporterFactory.create()
             val endDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
             val collections = getCollectionsInDateRangeUseCase(fromDate, endDate)
-            val allMachines = getMachines() // Get all machines
-            val allBars = getBars() // Get all bars
+            val allMachines = getMachines()
+            val allBars = getBars()
 
-            val machinesMap = allMachines.associateBy { it.id } // Map machineId to MachineModel
-            val barsMap = allBars.associateBy { it.id } // Map barId to BarModel
+            val machinesMap = allMachines.associateBy { it.id }
+            val barsMap = allBars.associateBy { it.id }
 
-            val exportableData = collections
-                .mapNotNull { collection -> // Use mapNotNull to filter out collections without a valid machine
+            // Grouping logic: Year-Month and MachineId
+            val groupedData = collections
+                .mapNotNull { collection ->
                     val machine = machinesMap[collection.machineId]
                     if (machine != null) {
-                        val bar = barsMap[machine.barId] // Get bar from machine's barId
-                        ExportableCollection(
-                            barName = bar?.name,
-                            machineId = collection.machineId,
-                            machineName = machine.name,
-                            businessAmount = collection.businessAmount,
-                            barAmount = collection.barAmount,
-                            totalCollections = collection.totalCollection,
-                            createdAt = Instant.fromEpochSeconds(collection.createdAt)
-                                .toLocalDateTime(TimeZone.currentSystemDefault())
-                                .let { localDateTime ->
-                                    "${localDateTime.dayOfMonth.toString().padStart(2, '0')}/${localDateTime.monthNumber.toString().padStart(2, '0')}/${localDateTime.year}"
-                                },
-                            comments = collection.comments
-                        )
-                    } else {
-                        null // Skip collections with no matching machine
-                    }
+                        val bar = barsMap[machine.barId]
+                        val dateTime = Instant.fromEpochMilliseconds(collection.createdAt)
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                        
+                        val monthKey = "${dateTime.year}-${dateTime.monthNumber}"
+                        val machineKey = collection.machineId
+                        
+                        Triple(monthKey, machineKey, Pair(collection, machine to bar))
+                    } else null
                 }
-                .sortedBy { it.barName }
-                .sortedBy { it.createdAt }
-                .sortedBy { it.machineId }
+                .groupBy { it.first } // Group by Month
+                .mapValues { monthGroup ->
+                    monthGroup.value.groupBy { it.second } // Group by Machine within Month
+                }
 
             val headers = listOf(
-                "Bar", "Id Máquina", "Máquina", "Empresa",
-                "Bar", "Recaudación total", "Fecha", "Comentarios de la recaudación"
+                "Bar", "ID Maquina", "Maquina", "Fecha 1", "R1 Total",
+                "Fecha 2", "R2 Total", "TOTAL R1+R2", "Porcentaje empresa",
+                "Comentarios R1", "Comentarios R2"
             )
 
-            // Convert to List<List<Any>> for the Excel exporter if it expects that format
-            val dataRows = exportableData.map {
-                listOf(
-                    it.barName ?: "",
-                    it.machineId ?: "",
-                    it.machineName ?: "",
-                    it.businessAmount ?: 0.0,
-                    it.barAmount ?: 0.0,
-                    it.totalCollections ?: 0.0,
-                    it.createdAt ?: "",
-                    it.comments ?: ""
-                )
-            }
+            val dataRows = mutableListOf<List<Any>>()
 
+            groupedData.forEach { (_, machinesInMonth) ->
+                machinesInMonth.forEach { (_, machineEntries) ->
+                    // Sort collections by date within the month
+                    val sortedEntries = machineEntries.map { it.third }.sortedBy { it.first.createdAt }
+                    
+                    val firstCollection = sortedEntries.getOrNull(0)?.first
+                    val secondCollection = sortedEntries.getOrNull(1)?.first
+                    val machineInfo = sortedEntries.first().second.first
+                    val barInfo = sortedEntries.first().second.second
+
+                    val r1Total = firstCollection?.totalCollection ?: 0.0
+                    val r2Total = secondCollection?.totalCollection ?: 0.0
+                    val totalR1R2 = r1Total + r2Total
+                    val companyPercentage = totalR1R2 * 0.6
+
+                    fun formatDate(timestamp: Long?): String {
+                        if (timestamp == null) return ""
+                        val dt = Instant.fromEpochMilliseconds(timestamp).toLocalDateTime(TimeZone.currentSystemDefault())
+                        return "${dt.dayOfMonth.toString().padStart(2, '0')}/${dt.monthNumber.toString().padStart(2, '0')}/${dt.year}"
+                    }
+
+                    dataRows.add(
+                        listOf(
+                            barInfo?.name ?: "",
+                            machineInfo.id ?: "",
+                            machineInfo.name ?: "",
+                            formatDate(firstCollection?.createdAt),
+                            r1Total,
+                            if (secondCollection != null) formatDate(secondCollection.createdAt) else "",
+                            if (secondCollection != null) r2Total else "",
+                            totalR1R2,
+                            companyPercentage,
+                            firstCollection?.comments ?: "",
+                            secondCollection?.comments ?: ""
+                        )
+                    )
+                }
+            }
 
             when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
                 is ExportResult.Success -> {

@@ -27,20 +27,25 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import dartsmanagement.composeapp.generated.resources.Res
+import dartsmanagement.composeapp.generated.resources.ico_dartboard
+import dartsmanagement.composeapp.generated.resources.ico_hide_visibility
+import dartsmanagement.composeapp.generated.resources.ico_show_visibility
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.ui.home.HomeScreen
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
 
-// Colores temáticos para viaje/aventura
+// Colores temáticos para la aplicación
 object AuthColors {
-    val Background = Color(0xFF1E2832)
-    val Surface = Color(0xFF2C3A47)
-    val Primary = Color(0xFF0ED2F7)
-    val TextPrimary = Color.White
-    val TextSecondary = Color.Gray
-    val Error = Color(0xFFCF6679)
+    val Background = Color(0xFF0B0F13)
+    val Surface = Color(0xFF111417)
+    val Primary = Color(0xFF00BFA6)
+    val TextPrimary = Color(0xFFE6EEF3)
+    val TextSecondary = Color(0xFF9AA6AD)
+    val Error = Color(0xFFFF6B6B)
 }
 
 
@@ -131,8 +136,15 @@ fun AuthScreenContent(
 @Composable
 private fun AppHeader() {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Icon(
+            painter = painterResource(Res.drawable.ico_dartboard),
+            contentDescription = null,
+            tint = AuthColors.Primary,
+            modifier = Modifier.size(80.dp)
+        )
         Text(
             text = "Darts Management",
             style = MaterialTheme.typography.headlineLarge.copy(
@@ -162,11 +174,11 @@ private fun AuthCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp)),
+            .clip(RoundedCornerShape(24.dp)),
         colors = CardDefaults.cardColors(
             containerColor = AuthColors.Surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -184,20 +196,6 @@ private fun AuthCard(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Campo de nombre (solo en modo registro)
-            AnimatedVisibility(visible = !isLoginMode) {
-                Column {
-                    AuthTextField(
-                        value = name,
-                        onValueChange = onNameChange,
-                        label = "Nombre completo",
-                        icon = Icons.Default.Person,
-                        keyboardType = KeyboardType.Text
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
 
             // Campo de email
             AuthTextField(
@@ -217,18 +215,6 @@ private fun AuthCard(
                 label = "Contraseña"
             )
 
-            // Campo de confirmar contraseña (solo en modo registro)
-            AnimatedVisibility(visible = !isLoginMode) {
-                Column {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    AuthPasswordField(
-                        value = confirmPassword,
-                        onValueChange = onConfirmPasswordChange,
-                        label = "Confirmar contraseña"
-                    )
-                }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // Botón de submit
@@ -236,30 +222,25 @@ private fun AuthCard(
                 onClick = onSubmit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFFB2FEFA), Color(0xFF0ED2F7))
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    ),
+                    .height(56.dp),
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent
+                    containerColor = AuthColors.Primary,
+                    contentColor = Color(0xFF0B0F13)
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color.White,
+                        color = Color(0xFF0B0F13),
                         strokeWidth = 2.dp
                     )
                 } else {
                     Text(
                         text = if (isLoginMode) "Iniciar Sesión" else "Crear Cuenta",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Bold
                         )
                     )
                 }
@@ -284,24 +265,27 @@ private fun AuthTextField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = AuthColors.TextSecondary) },
+        label = { Text(label) },
         leadingIcon = {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = AuthColors.Primary
+                tint = AuthColors.Primary.copy(alpha = 0.8f)
             )
         },
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AuthColors.Primary,
-            unfocusedBorderColor = AuthColors.TextSecondary,
+            focusedBorderColor = AuthColors.Primary.copy(alpha = 0.5f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
             focusedLabelColor = AuthColors.Primary,
-            cursorColor = AuthColors.Primary,
+            unfocusedLabelColor = AuthColors.TextSecondary,
             focusedTextColor = AuthColors.TextPrimary,
-            unfocusedTextColor = AuthColors.TextPrimary
+            unfocusedTextColor = AuthColors.TextPrimary,
+            focusedContainerColor = Color.White.copy(alpha = 0.05f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+            cursorColor = AuthColors.Primary
         ),
         shape = RoundedCornerShape(12.dp)
     )
@@ -319,28 +303,31 @@ private fun AuthPasswordField(
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = AuthColors.TextSecondary) },
+        label = { Text(label) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Lock,
                 contentDescription = null,
-                tint = AuthColors.Primary
+                tint = AuthColors.Primary.copy(alpha = 0.8f)
             )
         },
         trailingIcon = {
             IconButton(
-                onClick = { isPasswordVisible = !isPasswordVisible }
+                onClick = { isPasswordVisible = !isPasswordVisible },
+                modifier = Modifier.padding(end = 4.dp)
             ) {
                 Icon(
-                    imageVector = if (isPasswordVisible)
-                        Icons.Default.Clear
-                    else
-                        Icons.Default.ArrowDropDown,
+                    painter = if (isPasswordVisible) {
+                        painterResource(Res.drawable.ico_hide_visibility)
+                    } else {
+                        painterResource(Res.drawable.ico_show_visibility)
+                    },
                     contentDescription = if (isPasswordVisible)
                         "Ocultar contraseña"
                     else
                         "Mostrar contraseña",
-                    tint = AuthColors.Primary.copy(alpha = 0.7f)
+                    tint = AuthColors.TextSecondary,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },
@@ -352,12 +339,15 @@ private fun AuthPasswordField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AuthColors.Primary,
-            unfocusedBorderColor = AuthColors.TextSecondary,
+            focusedBorderColor = AuthColors.Primary.copy(alpha = 0.5f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
             focusedLabelColor = AuthColors.Primary,
-            cursorColor = AuthColors.Primary,
+            unfocusedLabelColor = AuthColors.TextSecondary,
             focusedTextColor = AuthColors.TextPrimary,
-            unfocusedTextColor = AuthColors.TextPrimary
+            unfocusedTextColor = AuthColors.TextPrimary,
+            focusedContainerColor = Color.White.copy(alpha = 0.05f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+            cursorColor = AuthColors.Primary
         ),
         shape = RoundedCornerShape(12.dp)
     )

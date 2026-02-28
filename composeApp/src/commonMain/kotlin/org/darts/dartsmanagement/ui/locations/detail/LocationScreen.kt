@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -50,6 +51,7 @@ import dartsmanagement.composeapp.generated.resources.ico_beer
 import org.darts.dartsmanagement.ui.bars.detail.BarScreen
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
+import org.darts.dartsmanagement.ui.locations.edit.EditLocationScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -71,8 +73,7 @@ class LocationScreen (val location: LocationModel) : Screen {
 
 @Composable
 fun LocationScreenContent(
-    location: LocationModel,
-    onEditClick: () -> Unit = {},
+    location: LocationModel
 ) {
     val navigator = LocalNavigator.currentOrThrow
     val uriHandler = LocalUriHandler.current
@@ -80,7 +81,13 @@ fun LocationScreenContent(
     val locationViewModel = koinViewModel<LocationViewModel>(
         parameters = { parametersOf(location.id) }
     )
-    val bars by locationViewModel.bars.collectAsState()
+    val uiState by locationViewModel.uiState.collectAsState()
+    val currentLocation = uiState.location ?: location
+
+    LifecycleResumeEffect(Unit) {
+        locationViewModel.refresh()
+        onPauseOrDispose { }
+    }
 
     Scaffold(
         containerColor = BackgroundDark,
@@ -88,7 +95,7 @@ fun LocationScreenContent(
             TopBar(
                 title = "Detalles de la Ubicación",
                 onBackClick = { navigator.pop() },
-                onEditClick = { /* TODO: Implement edit logic */ }
+                onEditClick = { navigator.push(EditLocationScreen(currentLocation)) }
             )
         }
     ) { paddingValues ->
@@ -102,14 +109,14 @@ fun LocationScreenContent(
         ) {
             item {
                 Text(
-                    text = location.name.orEmpty(),
+                    text = currentLocation.name.orEmpty(),
                     color = TextPrimaryDark,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 38.sp
                 )
                 Text(
-                    text = "Código Postal: ${location.postalCode}",
+                    text = "Código Postal: ${currentLocation.postalCode}",
                     color = TextSecondaryDark,
                     fontSize = 16.sp
                 )
@@ -124,20 +131,22 @@ fun LocationScreenContent(
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
 
-                if (bars.isNotEmpty()) { // Use the bars from the ViewModel
+                if (uiState.bars.isNotEmpty()) { // Use the bars from the ViewModel
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        bars.forEach { bar ->
+                        uiState.bars.forEach { bar ->
                             BarListItem(bar = bar, onClick = { navigator.push(BarScreen(bar.id ?:  "")) })
                         }
                     }
                 } else {
-                    Text(
-                        text = "Sin bares asignados",
-                        color = TextSecondaryDark,
-                        fontSize = 14.sp,
-                        fontStyle = FontStyle.Italic,
-                        modifier = Modifier.padding(vertical = 4.dp)
-                    )
+                    if (!uiState.isLoading) {
+                        Text(
+                            text = "Sin bares asignados",
+                            color = TextSecondaryDark,
+                            fontSize = 14.sp,
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
                 }
             }
         }

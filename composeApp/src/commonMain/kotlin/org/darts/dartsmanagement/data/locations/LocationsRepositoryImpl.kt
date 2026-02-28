@@ -13,4 +13,13 @@ class LocationsRepositoryImpl(private val api: LocationsApiService): LocationsRe
     override suspend fun saveLocation(saveLocationRequest: SaveLocationRequest): String {
         return api.saveLocation(saveLocationRequest)
     }
+
+    override suspend fun updateLocation(
+        locationId: String,
+        saveLocationRequest: SaveLocationRequest
+    ): Result<Unit> {
+        return runCatching {
+            api.updateLocation(locationId, saveLocationRequest)
+        }
+    }
 }

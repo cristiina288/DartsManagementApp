@@ -7,5 +7,6 @@ interface LocationsRepository {
 
     suspend fun getLocations(): List<LocationModel>
     suspend fun saveLocation(saveLocationRequest: SaveLocationRequest): String
+    suspend fun updateLocation(locationId: String, saveLocationRequest: SaveLocationRequest): Result<Unit>
 
 }

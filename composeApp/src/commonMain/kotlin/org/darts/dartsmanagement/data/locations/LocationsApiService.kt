@@ -34,4 +34,17 @@ class LocationsApiService(private val firestore: ExpectedFirestore) {
             ""
         }
     }
+
+    suspend fun updateLocation(locationId: String, saveLocationRequest: SaveLocationRequest) {
+        try {
+            val locationData = mapOf(
+                "name" to saveLocationRequest.name,
+                "postalCode" to saveLocationRequest.postalCode
+            )
+            firestore.updateDocument("locations", locationId, locationData)
+        } catch (e: Exception) {
+            println("/updateLocation: $e")
+            throw e
+        }
+    }
 }

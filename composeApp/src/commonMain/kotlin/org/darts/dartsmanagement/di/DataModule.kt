@@ -28,14 +28,18 @@ import org.darts.dartsmanagement.domain.characters.Repository
 import org.darts.dartsmanagement.domain.collections.CollectionsRepository
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
+import org.darts.dartsmanagement.domain.locations.GetLocation
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.LocationsRepository
+import org.darts.dartsmanagement.domain.locations.UpdateLocation
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.MachinesRepository
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
 import org.darts.dartsmanagement.domain.machines.usecases.UpdateMachineUseCase
 import org.darts.dartsmanagement.ui.bars.edit.EditBarViewModel
 import org.darts.dartsmanagement.ui.collections.CollectionsViewModel
+import org.darts.dartsmanagement.ui.locations.detail.LocationViewModel
+import org.darts.dartsmanagement.ui.locations.edit.EditLocationViewModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineViewModel
 import org.darts.dartsmanagement.ui.machines.edit.EditMachineViewModel
 import org.koin.compose.viewmodel.dsl.viewModel
@@ -81,6 +85,8 @@ val dataModule = module {
     factory { LocationsApiService(get()) }
     factory<LocationsRepository> { LocationsRepositoryImpl(get()) }
     factoryOf(::GetLocations)
+    factoryOf(::GetLocation)
+    factoryOf(::UpdateLocation)
 
     factory { MachinesApiService(get()) }
     factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
@@ -94,4 +100,6 @@ val dataModule = module {
     viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
     viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get()) }
+    viewModel { parameters -> LocationViewModel(parameters.get(), get(), get()) }
+    viewModel { parameters -> EditLocationViewModel(parameters.get(), get()) }
 }

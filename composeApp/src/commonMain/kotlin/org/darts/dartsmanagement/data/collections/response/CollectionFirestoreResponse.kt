@@ -10,6 +10,7 @@ data class CollectionFirestoreResponse(
     val machineId: Int = 0,
     val barId: String = "",
     val batchId: String? = null,
+    val userId: String? = null,
     val comments: String? = "",
     val totalCollection: Double = 0.0,
     val barAmount: Double = 0.0,

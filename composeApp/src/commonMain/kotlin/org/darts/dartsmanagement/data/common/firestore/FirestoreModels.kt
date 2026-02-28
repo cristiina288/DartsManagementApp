@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserFirestore(
+    val id: String = "",
     val email: String = "",
     val name: String = "",
     val license_id: String = ""

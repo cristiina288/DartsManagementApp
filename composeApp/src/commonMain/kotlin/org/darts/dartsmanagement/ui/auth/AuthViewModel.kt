@@ -75,7 +75,7 @@ class AuthViewModel(
         
         // 3. Verificar estado (asumiendo que "active" es el estado correcto)
         if (license.status.lowercase() == "active") {
-            sessionManager.updateSession(user.name, user.license_id)
+            sessionManager.updateSession(user.id, user.name, user.license_id)
             return true
         }
         

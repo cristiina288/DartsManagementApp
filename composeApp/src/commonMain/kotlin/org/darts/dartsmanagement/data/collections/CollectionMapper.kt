@@ -12,6 +12,7 @@ fun CollectionFirestoreResponse.toDomain(collectionId: String, barName: String):
         barId = barId, // New property
         barName = barName, // Added barName here
         batchId = batchId,
+        userId = userId,
         totalCollection = totalCollection,
         barAmount = barAmount,
         businessAmount = businessAmount,

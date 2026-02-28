@@ -35,7 +35,9 @@ data class CollectionSaveRequest(
     val businessAmount: Double,
     val extraAmount: Double,
     val createdAt: Timestamp,
-    val status: Map<String, Int>? = null
+    val status: Map<String, Int>? = null,
+    val license_id: String = "",
+    val userId: String? = null
 )
 
 class CollectionsApiService(
@@ -53,10 +55,12 @@ class CollectionsApiService(
     ): Boolean {
         return try {
             val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
+            val userId = sessionManager.userId.value ?: throw IllegalStateException("User ID not found in session")
             val collectionMap = mapOf<String, Any?>(
                 "machineId" to machineId,
                 "barId" to barId,
                 "batchId" to groupId,
+                "userId" to userId,
                 "comments" to comments,
                 "totalCollection" to collectionAmountsModel.totalCollection,
                 "barAmount" to collectionAmountsModel.barAmount,

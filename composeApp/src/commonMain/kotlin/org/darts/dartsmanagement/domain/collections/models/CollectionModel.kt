@@ -10,6 +10,7 @@ class CollectionModel(
     val barId: String, // New property
     val barName: String, // Re-added barName
     val batchId: String? = null,
+    val userId: String? = null,
     val totalCollection: Double,
     val barAmount: Double,
     val businessAmount: Double,

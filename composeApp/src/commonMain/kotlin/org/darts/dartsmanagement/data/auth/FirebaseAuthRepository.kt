@@ -32,7 +32,9 @@ class FirebaseAuthRepository(
     override suspend fun getUserByEmail(email: String): Result<UserFirestore?> {
         return runCatching {
             val docs = firestore.getDocuments("users", "email", email)
-            docs.firstOrNull()?.data<UserFirestore>()
+            docs.firstOrNull()?.let { doc ->
+                doc.data<UserFirestore>().copy(id = doc.id)
+            }
         }
     }
 

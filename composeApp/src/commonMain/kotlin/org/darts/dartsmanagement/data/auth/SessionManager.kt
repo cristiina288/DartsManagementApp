@@ -15,12 +15,17 @@ class SessionManager {
     private val _licenseId = MutableStateFlow<String?>(null)
     val licenseId: StateFlow<String?> = _licenseId.asStateFlow()
 
-    fun updateSession(name: String, license: String) {
+    private val _userId = MutableStateFlow<String?>(null)
+    val userId: StateFlow<String?> = _userId.asStateFlow()
+
+    fun updateSession(userId: String, name: String, license: String) {
+        _userId.value = userId
         _userName.value = name
         _licenseId.value = license
     }
 
     fun clearSession() {
+        _userId.value = null
         _userName.value = null
         _licenseId.value = null
     }

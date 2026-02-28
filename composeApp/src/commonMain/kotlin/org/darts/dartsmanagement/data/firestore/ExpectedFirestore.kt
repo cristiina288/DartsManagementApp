@@ -9,6 +9,7 @@ expect class ExpectedFirestore {
     suspend fun setDocument(collectionPath: String, documentId: String, data: Map<String, Any?>)
     suspend fun updateDocument(collectionPath: String, documentId: String, data: Map<String, Any?>)
     suspend fun updateDocumentFields(collectionPath: String, documentId: String, data: Map<String, Any?>)
+    suspend fun deleteDocument(collectionPath: String, documentId: String)
     suspend fun getDocument(collectionPath: String, documentId: String): DocumentSnapshot?
 
     suspend fun getDocuments(

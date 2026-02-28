@@ -13,6 +13,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.bars.GetBars
+import org.darts.dartsmanagement.domain.collections.DeleteCollectionUseCase
 import org.darts.dartsmanagement.domain.collections.GetCollectionsInDateRangeUseCase
 import org.darts.dartsmanagement.domain.collections.GetPaginatedCollectionsUseCase
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
@@ -21,6 +22,7 @@ import org.darts.dartsmanagement.domain.machines.GetMachines
 class HistorialCollectionsViewModel(
     private val getPaginatedCollectionsUseCase: GetPaginatedCollectionsUseCase,
     private val getCollectionsInDateRangeUseCase: GetCollectionsInDateRangeUseCase,
+    private val deleteCollectionUseCase: DeleteCollectionUseCase,
     private val getBars: GetBars,
     private val getMachines: GetMachines
 ) : ViewModel() {
@@ -38,6 +40,23 @@ class HistorialCollectionsViewModel(
         when (event) {
             is HistorialCollectionsEvent.LoadMoreCollections -> loadCollections()
             is HistorialCollectionsEvent.ExportCollections -> exportData(event.fromDate)
+            is HistorialCollectionsEvent.DeleteCollection -> deleteCollection(event.collectionId)
+        }
+    }
+
+    private fun deleteCollection(collectionId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            deleteCollectionUseCase(collectionId).onSuccess {
+                _uiState.update { state ->
+                    state.copy(
+                        collections = state.collections.filter { it.id != collectionId },
+                        isLoading = false
+                    )
+                }
+            }.onFailure { e ->
+                _uiState.update { it.copy(isLoading = false, error = "Error deleting collection: ${e.message}") }
+            }
         }
     }
 
@@ -175,4 +194,5 @@ data class HistorialCollectionsUiState(
 sealed interface HistorialCollectionsEvent {
     data object LoadMoreCollections : HistorialCollectionsEvent
     data class ExportCollections(val fromDate: LocalDate) : HistorialCollectionsEvent
+    data class DeleteCollection(val collectionId: String) : HistorialCollectionsEvent
 }

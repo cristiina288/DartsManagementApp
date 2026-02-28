@@ -36,4 +36,10 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
     override suspend fun getPaginatedCollections(lastCollectionCreatedAtLong: Long?, lastCollectionDocumentId: String?, limit: Int): List<CollectionModel> {
         return api.getPaginatedCollections(lastCollectionCreatedAtLong, lastCollectionDocumentId, limit)
     }
+
+    override suspend fun deleteCollection(collectionId: String): Result<Unit> {
+        return runCatching {
+            api.deleteCollection(collectionId)
+        }
+    }
 }

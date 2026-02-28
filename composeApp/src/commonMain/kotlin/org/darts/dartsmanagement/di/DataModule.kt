@@ -27,6 +27,7 @@ import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.characters.Repository
 import org.darts.dartsmanagement.domain.collections.CollectionsRepository
+import org.darts.dartsmanagement.domain.collections.DeleteCollectionUseCase
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
 import org.darts.dartsmanagement.domain.locations.GetLocation
@@ -96,6 +97,7 @@ val dataModule = module {
     factoryOf(::UpdateMachineUseCase)
     factoryOf(::UpdateMachineStatusUseCase)
     factoryOf(::GetCollectionsByMachineId)
+    factoryOf(::DeleteCollectionUseCase)
     factoryOf(::UpdateBarMachinesUseCase)
 
     viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get()) }

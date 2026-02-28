@@ -29,6 +29,10 @@ actual class ExpectedFirestore {
         firestore.collection(collectionPath).document(documentId).update(data).await()
     }
 
+    actual suspend fun deleteDocument(collectionPath: String, documentId: String) {
+        firestore.collection(collectionPath).document(documentId).delete().await()
+    }
+
     actual suspend fun getDocument(collectionPath: String, documentId: String): DocumentSnapshot? {
         return firestore.collection(collectionPath).document(documentId).get().await()?.let { DocumentSnapshot(it) }
     }

@@ -23,7 +23,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,6 +34,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -154,7 +158,41 @@ fun HistorialCollectionsScreenContent() {
                         if (index == 0 || currentMonthYear != previousMonthYear) {
                             MonthSeparator(monthYear = currentMonthYear)
                         }
-                        CollectionAccordionItem(collection = collection, localDateTime = localDateTime)
+                        
+                        var showDeleteConfirmation by remember { mutableStateOf<String?>(null) }
+                        
+                        CollectionAccordionItem(
+                            collection = collection, 
+                            localDateTime = localDateTime,
+                            onDeleteClick = { showDeleteConfirmation = collection.id }
+                        )
+
+                        if (showDeleteConfirmation == collection.id) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteConfirmation = null },
+                                title = { Text("Eliminar Recaudación") },
+                                text = { Text("¿Estás seguro de que deseas eliminar esta recaudación? Esta acción no se puede deshacer.") },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = {
+                                            viewModel.onEvent(HistorialCollectionsEvent.DeleteCollection(collection.id))
+                                            showDeleteConfirmation = null
+                                        },
+                                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                    ) {
+                                        Text("Eliminar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDeleteConfirmation = null }) {
+                                        Text("Cancelar")
+                                    }
+                                },
+                                containerColor = ElevatedSurface,
+                                titleContentColor = TextPrimary,
+                                textContentColor = TextSecondary
+                            )
+                        }
                     }
 
                     if (uiState.isLoading) {
@@ -214,7 +252,11 @@ fun MonthSeparator(monthYear: String) {
 }
 
 @Composable
-fun CollectionAccordionItem(collection: CollectionModel, localDateTime: LocalDateTime) {
+fun CollectionAccordionItem(
+    collection: CollectionModel, 
+    localDateTime: LocalDateTime,
+    onDeleteClick: () -> Unit
+) {
     val expandedStates = remember { mutableStateMapOf<String, Boolean>() }
     val isExpanded = expandedStates[collection.id.toString()] ?: false
 
@@ -249,7 +291,7 @@ fun CollectionAccordionItem(collection: CollectionModel, localDateTime: LocalDat
                 }
                 Column {
                     Text(text = "${collection.barName}, Máquina #${collection.machineId}", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text(text = "€ ${collection.totalCollection.formatCurrency()}", color = TextSecondary, fontSize = 14.sp)
+                    Text(text = "${collection.totalCollection.formatCurrency()} €", color = TextSecondary, fontSize = 14.sp)
                 }
             }
             Icon(
@@ -270,20 +312,40 @@ fun CollectionAccordionItem(collection: CollectionModel, localDateTime: LocalDat
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Recaudación Bruta:", color = TextPrimary, fontSize = 14.sp)
-                    Text("€ ${collection.totalCollection.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("${collection.totalCollection.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Parte Bar:", color = TextPrimary, fontSize = 14.sp)
-                    Text("€ ${collection.barAmount.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("${collection.barAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Parte Empresa:", color = TextPrimary, fontSize = 14.sp)
-                    Text("€ ${collection.businessAmount.formatCurrency()}", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("${collection.businessAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
-                collection.comments?.let {
-                    if (it.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(it, color = TextSecondary, fontSize = 12.sp)
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        collection.comments?.let {
+                            if (it.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(it, color = TextSecondary, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                    
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar",
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }

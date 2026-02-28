@@ -85,6 +85,10 @@ class CollectionsApiService(
         }
     }
 
+    suspend fun deleteCollection(collectionId: String) {
+        firestore.deleteDocument("collections", collectionId)
+    }
+
     private suspend fun getFullCollectionModels(documentSnapshots: List<dev.gitlive.firebase.firestore.DocumentSnapshot>): List<CollectionModel> {
         val collectionFirestoreResponsesWithIds = documentSnapshots.map {
             it.id to it.data<CollectionFirestoreResponse>()

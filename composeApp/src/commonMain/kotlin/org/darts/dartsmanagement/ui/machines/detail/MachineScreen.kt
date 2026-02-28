@@ -386,7 +386,7 @@ fun CollectionHistoryItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "${collection.totalCollection ?: 0.0} €",
+                    text = "${collection.totalCollection.formatCurrency()} €",
                     color = TextPrimaryDark,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
@@ -406,4 +406,10 @@ fun CollectionHistoryItem(
             }
         }
     }
+}
+
+fun Double.formatCurrency(): String {
+    val integerPart = this.toLong()
+    val fractionalPart = ((this - integerPart) * 100).toLong()
+    return "$integerPart,${fractionalPart.toString().padStart(2, '0')}"
 }

@@ -20,4 +20,6 @@ interface CollectionsRepository {
     suspend fun getCollectionsInDateRange(startDate: LocalDate, endDate: LocalDate): List<CollectionModel>
 
     suspend fun getPaginatedCollections(lastCollectionCreatedAtLong: Long?, lastCollectionDocumentId: String?, limit: Int): List<CollectionModel>
+
+    suspend fun deleteCollection(collectionId: String): Result<Unit>
 }

@@ -11,6 +11,8 @@ interface BarsRepository {
 
     suspend fun saveBar(saveBarRequest: SaveBarRequest)
 
+    suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest): Result<Unit>
+
     suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit>
 
 }

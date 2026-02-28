@@ -20,6 +20,12 @@ class BarsRepositoryImpl(private val api: BarsApiService): BarsRepository {
         return api.saveBar(saveBarRequest)
     }
 
+    override suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest): Result<Unit> {
+        return runCatching {
+            api.updateBar(barId, saveBarRequest)
+        }
+    }
+
     override suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit> {
         return runCatching {
             api.updateBarMachines(barId, machineIds)

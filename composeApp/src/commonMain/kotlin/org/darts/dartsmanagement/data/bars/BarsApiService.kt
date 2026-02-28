@@ -85,6 +85,38 @@ class BarsApiService(private val firestore: ExpectedFirestore) {
         }
     }
 
+    suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest) {
+        try {
+            // 1. Get the current user's UID
+            val userUID = firestore.getCurrentUserUID() ?: throw IllegalStateException("User not logged in")
+
+            // 2. Get the user's license_id from the 'users' collection
+            val userDoc = firestore.getDocument("users", userUID)
+            val user = userDoc?.data<UserFirestore>() ?: throw IllegalStateException("User data not found")
+            val licenseId = user.license_id
+
+            // 3. Create Update map from SaveBarRequest
+            val barData = mapOf(
+                "name" to saveBarRequest.name,
+                "description" to saveBarRequest.description,
+                "license_id" to licenseId,
+                "location" to mapOf(
+                    "id" to saveBarRequest.locationId,
+                    "address" to saveBarRequest.address,
+                    "latitude" to saveBarRequest.latitude,
+                    "longitude" to saveBarRequest.longitude,
+                    "locationBarUrl" to saveBarRequest.locationBarUrl
+                ),
+                "status_id" to saveBarRequest.statusId,
+                "machine_ids" to saveBarRequest.machineIds
+            )
+            firestore.updateDocument("bars", barId, barData)
+        } catch (e: Exception) {
+            println("Error updating bar: $e")
+            throw e
+        }
+    }
+
     suspend fun getBar(barId: String): BarResponse {
         val barDoc = firestore.getDocument("bars", barId) ?: throw NoSuchElementException("Bar with ID $barId not found.")
         val barFirestore = barDoc.data<BarFirestoreResponse>().copy(id = barDoc.id)

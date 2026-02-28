@@ -2,6 +2,7 @@ package org.darts.dartsmanagement.domain.bars
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.darts.dartsmanagement.data.bars.requests.SaveBarRequest
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 import org.darts.dartsmanagement.domain.common.models.Status
 
@@ -9,7 +10,7 @@ class UpdateBarMachinesUseCase(
     private val barsRepository: BarsRepository,
     private val firestore: ExpectedFirestore
 ) {
-    suspend operator fun invoke(barId: String, machineIds: List<Int>): Result<Unit> {
+    suspend operator fun invoke(barId: String, saveBarRequest: SaveBarRequest): Result<Unit> {
         // First, get the old state of the bar to find out which machines were assigned to it
         val oldMachineIdsResult = barsRepository.getBar(barId)
         if (oldMachineIdsResult.isFailure) {
@@ -17,11 +18,12 @@ class UpdateBarMachinesUseCase(
         }
         val oldMachineIds = oldMachineIdsResult.getOrThrow().machines.mapNotNull { it.id?.toInt() }.toSet()
 
-        // The main operation: update the bar's own list of machines
-        val barUpdateResult = barsRepository.updateBarMachines(barId, machineIds)
+        // The main operation: update the bar's own details and list of machines
+        val barUpdateResult = barsRepository.updateBar(barId, saveBarRequest)
 
         // If the main operation is successful, trigger the secondary updates on the machines themselves
         if (barUpdateResult.isSuccess) {
+            val machineIds = saveBarRequest.machineIds.map { it.toInt() }
             val newMachineIds = machineIds.toSet()
 
             val machinesToRemoveBarId = oldMachineIds - newMachineIds

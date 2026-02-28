@@ -15,25 +15,34 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowDropDown
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,6 +67,7 @@ import org.darts.dartsmanagement.ui.bars.components.AssignedMachinesSection
 import org.darts.dartsmanagement.ui.bars.components.MachineItem
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.domain.locations.model.LocationModel
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -165,7 +175,8 @@ private fun EditBarScreenContent(initialBar: BarModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (showBottomSheet) {
@@ -190,6 +201,33 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                     }
                 )
             }
+
+            BarDetailsSection(
+                name = uiState.name,
+                onNameChange = { editBarViewModel.onEvent(EditBarEvent.OnNameChanged(it)) },
+                description = uiState.description,
+                onDescriptionChange = { editBarViewModel.onEvent(EditBarEvent.OnDescriptionChanged(it)) }
+            )
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
+            LocationSection(
+                uiState = uiState,
+                locations = uiState.locations,
+                selectedLocation = uiState.selectedLocation,
+                onLocationSelected = { locationId ->
+                    editBarViewModel.onEvent(EditBarEvent.OnLocationSelected(locationId))
+                },
+                onAddressChange = { editBarViewModel.onEvent(EditBarEvent.OnAddressChanged(it)) },
+                onLatitudeChange = { editBarViewModel.onEvent(EditBarEvent.OnLatitudeChanged(it)) },
+                onLongitudeChange = { editBarViewModel.onEvent(EditBarEvent.OnLongitudeChanged(it)) },
+                onLocationBarUrlChange = {
+                    editBarViewModel.onEvent(EditBarEvent.OnLocationBarUrlChanged(it))
+                }
+            )
+
+            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+
             // Assigned Machines List
             AssignedMachinesSection(
                 machines = uiState.bar?.machines ?: emptyList(),
@@ -202,7 +240,149 @@ private fun EditBarScreenContent(initialBar: BarModel) {
     }
 }
 
+@Composable
+private fun BarDetailsSection(
+    name: String,
+    onNameChange: (String) -> Unit,
+    description: String,
+    onDescriptionChange: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        OutlinedTextField(
+            value = name,
+            onValueChange = onNameChange,
+            label = { Text("Nombre del bar") },
+            placeholder = { Text("Introduce el nombre del bar") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors(),
+            shape = RoundedCornerShape(8.dp)
+        )
+        OutlinedTextField(
+            value = description,
+            onValueChange = onDescriptionChange,
+            label = { Text("Descripción") },
+            placeholder = { Text("Introduce una descripción") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(120.dp),
+            colors = textFieldColors(),
+            shape = RoundedCornerShape(8.dp)
+        )
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LocationSection(
+    uiState: EditBarUiState,
+    locations: List<LocationModel>,
+    selectedLocation: LocationModel?,
+    onLocationSelected: (String) -> Unit,
+    onAddressChange: (String) -> Unit,
+    onLatitudeChange: (String) -> Unit,
+    onLongitudeChange: (String) -> Unit,
+    onLocationBarUrlChange: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(
+            text = "Localización",
+            style = MaterialTheme.typography.titleLarge,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            OutlinedTextField(
+                value = selectedLocation?.name ?: "Seleccionar población",
+                onValueChange = {},
+                readOnly = true,
+                label = { Text("Población") },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowDropDown,
+                        contentDescription = null
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .menuAnchor(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(Color(0xFF15181B))
+            ) {
+                locations.forEach { location ->
+                    DropdownMenuItem(
+                        text = { Text(location.name ?: "", color = Color.White) },
+                        onClick = {
+                            location.id?.let { onLocationSelected(it) }
+                            expanded = false
+                        }
+                    )
+                }
+            }
+        }
+
+        selectedLocation?.let {
+            OutlinedTextField(
+                value = uiState.address,
+                onValueChange = { onAddressChange(it) },
+                label = { Text("Dirección") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = uiState.latitude,
+                    onValueChange = { onLatitudeChange(it) },
+                    label = { Text("Latitud") },
+                    modifier = Modifier.weight(1f),
+                    colors = textFieldColors(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+                OutlinedTextField(
+                    value = uiState.longitude,
+                    onValueChange = { onLongitudeChange(it) },
+                    label = { Text("Longitud") },
+                    modifier = Modifier.weight(1f),
+                    colors = textFieldColors(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
+            OutlinedTextField(
+                value = uiState.locationBarUrl,
+                onValueChange = { onLocationBarUrlChange(it) },
+                label = { Text("URL de Google Maps (opcional)") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
+    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+    focusedLabelColor = Color.White.copy(alpha = 0.8f),
+    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
+    focusedTextColor = Color.White,
+    unfocusedTextColor = Color.White,
+    focusedContainerColor = Color.White.copy(alpha = 0.1f),
+    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+    cursorColor = Color(0xFF00BFA6),
+    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

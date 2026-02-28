@@ -8,8 +8,9 @@ class SaveCollection (val collectionsRepository: CollectionsRepository) {//machi
                                 newCounterMachine: Int,
                                 machineId: Int,
                                 barId: String, // Keep barId
-                                comments: String) {
+                                comments: String,
+                                groupId: String) {
         return collectionsRepository.saveCollection(collectionAmounts,
-            newCounterMachine, machineId, barId, comments)
+            newCounterMachine, machineId, barId, comments, groupId)
     }
 }

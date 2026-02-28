@@ -89,6 +89,11 @@ actual class ExpectedFirestore {
 
 // Android-specific implementation of FirestoreQuery
 class AndroidFirestoreQuery(private var query: Query) : FirestoreQuery {
+    override fun whereEqualTo(field: String, value: Any): FirestoreQuery {
+        query = query.whereEqualTo(field, value)
+        return this
+    }
+
     override fun orderBy(field: String, direction: ExpectedFirestore.Direction): FirestoreQuery {
         query = when (direction) {
             ExpectedFirestore.Direction.ASCENDING -> query.orderBy(field, Query.Direction.ASCENDING)

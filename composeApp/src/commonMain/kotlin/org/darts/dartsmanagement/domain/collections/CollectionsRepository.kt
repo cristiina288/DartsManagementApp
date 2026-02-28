@@ -10,7 +10,8 @@ interface CollectionsRepository {
                                newCounterMachine: Int,
                                machineId: Int,
                                barId: String, // Keep barId
-                               observations: String)
+                               observations: String,
+                               groupId: String)
 
     suspend fun getCollectionsById(machineId: Int) : List<CollectionModel>
 

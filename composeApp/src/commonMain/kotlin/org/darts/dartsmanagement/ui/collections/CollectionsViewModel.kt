@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Clock
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
@@ -96,6 +97,9 @@ class CollectionsViewModel(
                 val barId = currentState.barId ?: return@launch
                 val comments = currentState.comments ?: ""
                 val globalExtra = currentState.globalExtraPayment
+                
+                // Generate a unique ID for this batch of collections
+                val groupId = "${barId}_${Clock.System.now().toEpochMilliseconds()}"
 
                 withContext(Dispatchers.IO) {
                     currentState.machineEntries.forEachIndexed { index, entry ->
@@ -118,7 +122,8 @@ class CollectionsViewModel(
                             newCounterMachine = (entry.counter ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt() ?: 0),
                             machineId = entry.machineId ?: 0,
                             barId = barId,
-                            comments = comments
+                            comments = comments,
+                            groupId = groupId
                         )
                     }
                 }

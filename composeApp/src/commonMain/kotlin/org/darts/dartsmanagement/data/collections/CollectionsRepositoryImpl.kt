@@ -11,10 +11,11 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
         collectionAmountsModel: CollectionAmountsModel,
         newCounterMachine: Int,
         machineId: Int,
-        barId: String, // New parameter
-        comments: String
+        barId: String,
+        comments: String,
+        groupId: String
     ) {
-        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, barId, comments)
+        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, barId, comments, groupId)
     }
 
 

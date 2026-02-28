@@ -11,12 +11,13 @@ fun CollectionFirestoreResponse.toDomain(collectionId: String, barName: String):
         machineId = machineId,
         barId = barId, // New property
         barName = barName, // Added barName here
+        batchId = batchId,
         totalCollection = totalCollection,
         barAmount = barAmount,
         businessAmount = businessAmount,
         extraAmount = extraAmount,
         comments = comments,
-        status = status?.let { StatusModel(id = (it["id"] as Long).toInt()) }, // Assuming the map has an 'id' field
+        status = status?.get("id")?.let { StatusModel(id = it.toInt()) },
         createdAt = createdAt?.seconds?.times(1000L) ?: 0L
     )
 }

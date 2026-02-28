@@ -14,6 +14,7 @@ import kotlinx.serialization.json.long
 import org.darts.dartsmanagement.data.collections.response.CollectionFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.BarFirestoreResponse
 import org.darts.dartsmanagement.data.common.firestore.MachineFirestoreResponse
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.data.firestore.ExpectedFirestore
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
@@ -38,7 +39,8 @@ data class CollectionSaveRequest(
 )
 
 class CollectionsApiService(
-    private val firestore: ExpectedFirestore
+    private val firestore: ExpectedFirestore,
+    private val sessionManager: SessionManager
 ) {
 
     suspend fun saveCollection(
@@ -46,18 +48,22 @@ class CollectionsApiService(
         newCounterMachine: Int,
         machineId: Int,
         barId: String,
-        comments: String
+        comments: String,
+        groupId: String
     ): Boolean {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
             val collectionMap = mapOf<String, Any?>(
                 "machineId" to machineId,
                 "barId" to barId,
+                "batchId" to groupId,
                 "comments" to comments,
                 "totalCollection" to collectionAmountsModel.totalCollection,
                 "barAmount" to collectionAmountsModel.barAmount,
                 "barPayment" to collectionAmountsModel.barPayment,
                 "businessAmount" to collectionAmountsModel.businessAmount,
                 "extraAmount" to collectionAmountsModel.extraAmount,
+                "license_id" to licenseId,
                 "createdAt" to Timestamp.now(),
                 "status" to null
             )
@@ -82,8 +88,9 @@ class CollectionsApiService(
 
         val machineIds = collectionFirestoreResponsesWithIds.map { it.second.machineId }.distinct()
 
-        // Fetch all machines once
-        val allMachinesDocs = firestore.getDocuments("machines")
+        // Fetch all machines once (filtered by license)
+        val licenseId = sessionManager.licenseId.value ?: return emptyList()
+        val allMachinesDocs = firestore.getDocuments("machines", "license_id", licenseId)
         val allMachines = allMachinesDocs.mapNotNull { doc ->
             doc.data<MachineFirestoreResponse>().copy(id = doc.id)
         }
@@ -95,8 +102,8 @@ class CollectionsApiService(
         val barIds = collectionFirestoreResponsesWithIds.map { it.second.barId }.distinct()
             .filter { it.isNotBlank() }
 
-        // Fetch all bars once
-        val allBarsDocs = firestore.getDocuments("bars")
+        // Fetch all bars once (filtered by license)
+        val allBarsDocs = firestore.getDocuments("bars", "license_id", licenseId)
         val allBars = allBarsDocs.mapNotNull { doc ->
             doc.data<BarFirestoreResponse>().copy(id = doc.id)
         }
@@ -119,8 +126,11 @@ class CollectionsApiService(
         machineId: Int
     ): List<CollectionModel> {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
+            // Abstraction only supports one where clause for now, so we filter by machineId and check licenseId manually for safety
             val snapshot = firestore.getDocuments("collections", "machineId", machineId)
-            getFullCollectionModels(snapshot)
+            val filteredSnapshot = snapshot.filter { it.data<CollectionFirestoreResponse>().license_id == licenseId }
+            getFullCollectionModels(filteredSnapshot)
         } catch (e: Exception) {
             println("Error getting collections by machine id: $e")
             emptyList()
@@ -129,6 +139,7 @@ class CollectionsApiService(
 
     suspend fun getCollectionsForMonth(year: Int, month: Int): List<CollectionModel> {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
             val startOfMonth =
                 LocalDate(year, month, 1).atStartOfDayIn(TimeZone.currentSystemDefault())
             val nextMonth =
@@ -137,12 +148,12 @@ class CollectionsApiService(
 
             val startMillis = startOfMonth.toEpochMilliseconds()
             val endMillis = startOfNextMonth.toEpochMilliseconds()
-            val snapshot = firestore.getDocuments("collections")
+            val snapshot = firestore.getDocuments("collections", "license_id", licenseId)
 
             val filteredSnapshot = snapshot.filter { doc ->
                 val collection = doc.data<CollectionFirestoreResponse>()
-                val createdAtMillis = collection.createdAt?.seconds?.times(1000L)
-                createdAtMillis != null && createdAtMillis in startMillis until endMillis
+                val createdAtMillis = (collection.createdAt?.seconds ?: 0) * 1000L
+                createdAtMillis in startMillis until endMillis
             }
             getFullCollectionModels(filteredSnapshot)
         } catch (e: Exception) {
@@ -156,6 +167,7 @@ class CollectionsApiService(
         endDate: LocalDate
     ): List<CollectionModel> {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
             val startMillis =
                 startDate.atStartOfDayIn(TimeZone.currentSystemDefault()).toEpochMilliseconds()
             val endOfRangeExclusiveLocalDate = endDate.plus(1, kotlinx.datetime.DateTimeUnit.DAY)
@@ -163,12 +175,12 @@ class CollectionsApiService(
                 endOfRangeExclusiveLocalDate.atStartOfDayIn(TimeZone.currentSystemDefault())
                     .toEpochMilliseconds()
 
-            val snapshot = firestore.getDocuments("collections")
+            val snapshot = firestore.getDocuments("collections", "license_id", licenseId)
 
             val filteredSnapshot = snapshot.filter { doc ->
                 val collection = doc.data<CollectionFirestoreResponse>()
-                val createdAtMillis = collection.createdAt?.seconds?.times(1000L)
-                createdAtMillis != null && createdAtMillis in startMillis until endMillis
+                val createdAtMillis = (collection.createdAt?.seconds ?: 0) * 1000L
+                createdAtMillis in startMillis until endMillis
             }
             getFullCollectionModels(filteredSnapshot)
         } catch (e: Exception) {
@@ -183,7 +195,9 @@ class CollectionsApiService(
         limit: Int
     ): List<CollectionModel> {
         return try {
+            val licenseId = sessionManager.licenseId.value ?: return emptyList()
             var query = firestore.getDocumentsQuery("collections")
+                .whereEqualTo("license_id", licenseId)
                 .orderBy("createdAt.seconds", ExpectedFirestore.Direction.DESCENDING)
                 .orderBy("__name__", ExpectedFirestore.Direction.DESCENDING)
                 .limit(limit)

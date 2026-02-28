@@ -87,6 +87,11 @@ actual class ExpectedFirestore {
 
 // iOS-specific implementation of FirestoreQuery (placeholder)
 class IosFirestoreQuery(private var query: dev.gitlive.firebase.firestore.Query) : FirestoreQuery {
+    override fun whereEqualTo(field: String, value: Any): FirestoreQuery {
+        query = query.where(field, "==", value)
+        return this
+    }
+
     override fun orderBy(field: String, direction: ExpectedFirestore.Direction): FirestoreQuery {
         query = when (direction) {
             ExpectedFirestore.Direction.ASCENDING -> query.orderBy(field)

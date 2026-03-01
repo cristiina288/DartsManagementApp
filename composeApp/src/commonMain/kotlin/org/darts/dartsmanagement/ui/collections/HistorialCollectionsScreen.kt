@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +47,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +66,7 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
+import org.darts.dartsmanagement.ui.collections.edit.EditCollectionScreen
 import org.darts.dartsmanagement.ui.theme.Background
 import org.darts.dartsmanagement.ui.theme.Dimens
 import org.darts.dartsmanagement.ui.theme.ElevatedSurface
@@ -89,6 +93,11 @@ fun HistorialCollectionsScreenContent() {
 
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    LifecycleResumeEffect(Unit) {
+        viewModel.onEvent(HistorialCollectionsEvent.Refresh)
+        onPauseOrDispose { }
+    }
 
     LaunchedEffect(listState.canScrollForward, uiState.canLoadMore, uiState.isLoading) {
         // If we're at the end of the list, can load more, and not currently loading
@@ -164,6 +173,7 @@ fun HistorialCollectionsScreenContent() {
                         CollectionAccordionItem(
                             collection = collection, 
                             localDateTime = localDateTime,
+                            onEditClick = { navigator.push(EditCollectionScreen(collection)) },
                             onDeleteClick = { showDeleteConfirmation = collection.id }
                         )
 
@@ -255,6 +265,7 @@ fun MonthSeparator(monthYear: String) {
 fun CollectionAccordionItem(
     collection: CollectionModel, 
     localDateTime: LocalDateTime,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val expandedStates = remember { mutableStateMapOf<String, Boolean>() }
@@ -337,15 +348,30 @@ fun CollectionAccordionItem(
                         }
                     }
                     
-                    IconButton(
-                        onClick = onDeleteClick,
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
-                        )
+                    Row {
+                        IconButton(
+                            onClick = onEditClick,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar",
+                                tint = PrimaryAccent.copy(alpha = 0.7f)
+                            )
+                        }
+
+                        Spacer(Modifier.width(8.dp))
+
+                        IconButton(
+                            onClick = onDeleteClick,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar",
+                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
             }

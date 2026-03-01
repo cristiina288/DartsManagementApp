@@ -22,4 +22,6 @@ interface CollectionsRepository {
     suspend fun getPaginatedCollections(lastCollectionCreatedAtLong: Long?, lastCollectionDocumentId: String?, limit: Int): List<CollectionModel>
 
     suspend fun deleteCollection(collectionId: String): Result<Unit>
+
+    suspend fun updateCollection(collectionId: String, collectionAmountsModel: CollectionAmountsModel, comments: String): Result<Unit>
 }

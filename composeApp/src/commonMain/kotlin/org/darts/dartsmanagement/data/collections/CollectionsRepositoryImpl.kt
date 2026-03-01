@@ -42,4 +42,14 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
             api.deleteCollection(collectionId)
         }
     }
+
+    override suspend fun updateCollection(
+        collectionId: String,
+        collectionAmountsModel: CollectionAmountsModel,
+        comments: String
+    ): Result<Unit> {
+        return runCatching {
+            api.updateCollection(collectionId, collectionAmountsModel, comments)
+        }
+    }
 }

@@ -89,6 +89,23 @@ class CollectionsApiService(
         firestore.deleteDocument("collections", collectionId)
     }
 
+    suspend fun updateCollection(
+        collectionId: String,
+        collectionAmountsModel: CollectionAmountsModel,
+        comments: String
+    ) {
+        val updateMap = mapOf<String, Any?>(
+            "comments" to comments,
+            "totalCollection" to collectionAmountsModel.totalCollection,
+            "barAmount" to collectionAmountsModel.barAmount,
+            "barPayment" to collectionAmountsModel.barPayment,
+            "businessAmount" to collectionAmountsModel.businessAmount,
+            "extraAmount" to collectionAmountsModel.extraAmount,
+            "modified_on" to Timestamp.now()
+        )
+        firestore.updateDocument("collections", collectionId, updateMap)
+    }
+
     private suspend fun getFullCollectionModels(documentSnapshots: List<dev.gitlive.firebase.firestore.DocumentSnapshot>): List<CollectionModel> {
         val collectionFirestoreResponsesWithIds = documentSnapshots.map {
             it.id to it.data<CollectionFirestoreResponse>()

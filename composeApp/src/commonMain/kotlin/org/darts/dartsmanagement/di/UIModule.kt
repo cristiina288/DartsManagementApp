@@ -8,6 +8,7 @@ import org.darts.dartsmanagement.ui.bars.listing.BarsListingViewModel
 import org.darts.dartsmanagement.ui.bars.newBar.NewBarViewModel
 import org.darts.dartsmanagement.ui.collections.CollectionsViewModel
 import org.darts.dartsmanagement.ui.collections.HistorialCollectionsViewModel
+import org.darts.dartsmanagement.ui.collections.edit.EditCollectionViewModel
 import org.darts.dartsmanagement.ui.home.HomeViewModel
 import org.darts.dartsmanagement.ui.locations.detail.LocationViewModel
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingViewModel
@@ -34,6 +35,7 @@ val uiModule = module {
     viewModelOf(::MachineViewModel)
     viewModelOf(::NewMachineViewModel)
     viewModelOf(::HistorialCollectionsViewModel)
+    viewModel { parameters -> EditCollectionViewModel(parameters.get(), get()) }
     viewModelOf(::NewLocationViewModel)
     //    viewModelOf(::CollectionsHistoryListingViewModel)
 

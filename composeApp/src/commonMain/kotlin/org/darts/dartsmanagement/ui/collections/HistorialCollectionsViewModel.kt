@@ -41,6 +41,7 @@ class HistorialCollectionsViewModel(
             is HistorialCollectionsEvent.LoadMoreCollections -> loadCollections()
             is HistorialCollectionsEvent.ExportCollections -> exportData(event.fromDate)
             is HistorialCollectionsEvent.DeleteCollection -> deleteCollection(event.collectionId)
+            HistorialCollectionsEvent.Refresh -> loadCollections(isInitialLoad = true)
         }
     }
 
@@ -195,4 +196,5 @@ sealed interface HistorialCollectionsEvent {
     data object LoadMoreCollections : HistorialCollectionsEvent
     data class ExportCollections(val fromDate: LocalDate) : HistorialCollectionsEvent
     data class DeleteCollection(val collectionId: String) : HistorialCollectionsEvent
+    data object Refresh : HistorialCollectionsEvent
 }

@@ -13,9 +13,10 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
         machineId: Int,
         barId: String,
         comments: String,
-        groupId: String
+        groupId: String,
+        leaguePayment: Map<String, Any>?
     ) {
-        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, barId, comments, groupId)
+        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, barId, comments, groupId, leaguePayment)
     }
 
 

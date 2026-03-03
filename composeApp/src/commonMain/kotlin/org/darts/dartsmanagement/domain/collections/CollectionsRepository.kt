@@ -6,12 +6,16 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 
 interface CollectionsRepository {
 
-    suspend fun saveCollection(collectionAmountsModel: CollectionAmountsModel,
-                               newCounterMachine: Int,
-                               machineId: Int,
-                               barId: String, // Keep barId
-                               observations: String,
-                               groupId: String)
+    suspend fun saveCollection(
+        collectionAmountsModel: CollectionAmountsModel,
+        newCounterMachine: Int,
+        machineId: Int,
+        barId: String,
+        observations: String,
+        groupId: String,
+        leaguePayment: Map<String, Any>?
+    )
+
 
     suspend fun getCollectionsById(machineId: Int) : List<CollectionModel>
 

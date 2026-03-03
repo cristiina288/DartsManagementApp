@@ -33,15 +33,32 @@ This section outlines the strategy and current state of integrating Firebase Fir
 
 *   **`machines` Collection:**
     *   Document ID: Machine ID (e.g., `101`)
-    *   Fields: `name` (String), `type` (String), `last_collection` (Timestamp), `counter` (Number), `barId` (String, links to `bars`), `status` (Map with `id` (Number))
+    *   Fields: `name` (String), `type` (String), `last_collection` (Timestamp), `counter` (Number), `barId` (String, links to `bars`), `status` (Map with `id` (Number)), `license_id` (String, links to `licenses` collection)
 
 *   **`locations` Collection:**
     *   Document ID: Location ID (e.g., `loc_001`)
-    *   Fields: `name` (String), `postalCode` (String)
+    *   Fields: `name` (String), `postalCode` (String), `license_id` (String, links to `licenses` collection)
+	
+*   **`collections` Collection:**
+    *   Document ID: Auto-generated
+    *   Fields: 
+		*   `machineId` (Number), 
+		*   `barId` (String, links to `bars`), 
+		*   `batchId` (String), 
+		*   `userId` (String, links to `users`), 
+		*   `comments` (String), 
+		*   `totalCollection` (Double), 
+		*   `barAmount` (Double), 
+		*   `barPayment` (Double), 
+		*   `businessAmount` (Double), 
+		*   `extraAmount` (Double), 
+		*   `license_id` (String, links to `licenses`), 
+		*   `createdAt` (Timestamp), 
+		*   `status` (Map, nullable)
 
 *   **`bars` Collection:**
     *   Document ID: Bar ID (e.g., `bar_abc`)
-    *   Fields: `license_id` (String, links to `licenses`), `id` (Number), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`),
+    *   Fields: `license_id` (String, links to `licenses`), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`),
         `location` (Map):
             *   `id` (String, links to `locations`)
             *   `address` (String)

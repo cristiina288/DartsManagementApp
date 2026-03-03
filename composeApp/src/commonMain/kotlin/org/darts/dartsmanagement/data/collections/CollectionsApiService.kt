@@ -51,12 +51,13 @@ class CollectionsApiService(
         machineId: Int,
         barId: String,
         comments: String,
-        groupId: String
+        groupId: String,
+        leaguePayment: Map<String, Any>?
     ): Boolean {
         return try {
             val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
             val userId = sessionManager.userId.value ?: throw IllegalStateException("User ID not found in session")
-            val collectionMap = mapOf<String, Any?>(
+            val collectionMap = mutableMapOf<String, Any?>(
                 "machineId" to machineId,
                 "barId" to barId,
                 "batchId" to groupId,
@@ -71,6 +72,10 @@ class CollectionsApiService(
                 "createdAt" to Timestamp.now(),
                 "status" to null
             )
+
+            leaguePayment?.let {
+                collectionMap["league_payment"] = it
+            }
 
             firestore.addDocument("collections", collectionMap)
             firestore.updateDocumentFields(

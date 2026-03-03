@@ -23,6 +23,9 @@ import org.darts.dartsmanagement.data.machines.MachinesApiService
 import org.darts.dartsmanagement.data.machines.MachinesRepositoryImpl
 import org.darts.dartsmanagement.domain.auth.AuthRepository
 import org.darts.dartsmanagement.domain.bars.BarsRepository
+import org.darts.dartsmanagement.data.leagues.LeaguesApiService
+import org.darts.dartsmanagement.data.leagues.LeaguesRepositoryImpl
+import org.darts.dartsmanagement.domain.leagues.LeaguesRepository
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.characters.Repository
@@ -100,7 +103,10 @@ val dataModule = module {
     factoryOf(::DeleteCollectionUseCase)
     factoryOf(::UpdateBarMachinesUseCase)
 
-    viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get()) }
+    factory { LeaguesApiService(get(), get()) }
+    factory<LeaguesRepository> { LeaguesRepositoryImpl(get()) }
+
+    viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get(), get()) }
     viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
     viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get()) }

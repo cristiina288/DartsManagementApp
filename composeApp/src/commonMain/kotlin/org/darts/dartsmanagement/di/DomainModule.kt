@@ -19,6 +19,7 @@ import org.darts.dartsmanagement.domain.machines.SaveMachine
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
 import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
+import org.darts.dartsmanagement.domain.leagues.GetLeagues
 
 val domainModule = module {
     //factory<MachineName> { MachineName() }
@@ -44,4 +45,5 @@ val domainModule = module {
     factoryOf(::GetPaginatedCollectionsUseCase)
     factoryOf(::SaveLocation)
     factory { UpdateBarWithNewMachine(get()) }
+    factoryOf(::GetLeagues)
 }

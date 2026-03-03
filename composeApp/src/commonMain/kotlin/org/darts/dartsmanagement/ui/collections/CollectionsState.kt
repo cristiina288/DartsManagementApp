@@ -14,7 +14,9 @@ data class CollectionsState (
     val comments: String? = null,
     val snackbarMessage: String? = null,
     val globalExtraPayment: Double = 0.0,
-    // Keep these for backward compatibility during transition if needed, 
+    val selectedLeagueId: String? = null,
+    val leaguePayment: Double = 0.0,
+    // Keep these for backward compatibility during transition if needed,
     // but better to move everything to machineEntries
     val collectionAmounts: CollectionAmountsModel? = null,
     val counter: Int? = null,

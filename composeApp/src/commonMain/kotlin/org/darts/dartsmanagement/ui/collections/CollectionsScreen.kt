@@ -25,6 +25,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
+import org.darts.dartsmanagement.domain.leagues.League
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -32,6 +33,7 @@ import org.koin.core.parameter.parametersOf
 
 // --- Color Palette ---
 private val BackgroundDark = Color(0xFF0B0F13)
+val BorderDark = Color.White.copy(alpha = 0.1f)
 private val SurfaceDark = Color(0xFF111417)
 private val InputBackground = Color(0xFF273A38)
 private val Primary = Color(0xFF00BDA4)
@@ -123,10 +125,52 @@ private fun CollectionScreenContent(barId: String? = null) {
             item { GlobalExtraPaymentSection(viewModel) }
 
             item { TotalDistributionSection(collection) }
+            item { LeaguePaymentSection(viewModel) }
             item { ObservationsSection(viewModel) }
         }
     }
 }
+
+@Composable
+private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    val leagues by viewModel.leagues.collectAsState()
+    val selectedLeague = remember(collection.selectedLeagueId, leagues) {
+        leagues.find { it.id == collection.selectedLeagueId }
+    }
+
+    Section(title = "Pagos Ligas") {
+        Text(
+            text = "Tienes pendiente pagos de la liga: Liga1",
+            color = TextSecondaryDark,
+            fontSize = 14.sp
+        )
+        AppDropdown(
+            label = "Liga",
+            options = leagues,
+            selectedOption = selectedLeague,
+            onOptionSelected = { league -> viewModel.onLeagueSelected(league.id) },
+            optionToString = { it.name }
+        )
+        AppTextField(
+            label = "Pago Liga (€)",
+            value = if (collection.leaguePayment == 0.0) "" else collection.leaguePayment.toString(),
+            onValueChange = { viewModel.onLeaguePaymentChanged(it.toDoubleOrNull() ?: 0.0) },
+            placeholder = "0.00",
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
+            trailingIcon = {
+                Text(
+                    "€",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPlaceholder
+                )
+            }
+        )
+    }
+}
+
 
 @Composable
 private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {

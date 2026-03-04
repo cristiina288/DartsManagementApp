@@ -4,13 +4,23 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 
 class SaveCollection (val collectionsRepository: CollectionsRepository) {//machineName: MachineName) {
 
-    suspend operator fun invoke(collectionAmounts: CollectionAmountsModel,
-                                newCounterMachine: Int,
-                                machineId: Int,
-                                barId: String, // Keep barId
-                                comments: String,
-                                groupId: String) {
-        return collectionsRepository.saveCollection(collectionAmounts,
-            newCounterMachine, machineId, barId, comments, groupId)
+    suspend operator fun invoke(
+        barId: String,
+        barName: String,
+        comments: String,
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
+        machineCounters: Map<String, Int>
+    ): Boolean {
+        return collectionsRepository.saveCollection(
+            barId,
+            barName,
+            comments,
+            totalBarAmount,
+            totalBusinessAmount,
+            machines,
+            machineCounters
+        )
     }
 }

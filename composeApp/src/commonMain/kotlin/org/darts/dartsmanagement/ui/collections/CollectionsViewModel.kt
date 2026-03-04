@@ -34,21 +34,7 @@ class CollectionsViewModel(
 
 
     init {
-        /*viewModelScope.launch {
-            val result: CharacterModel = withContext(Dispatchers.IO) {
-                getRandomCharacter()
-            }
-
-            _state.update { states ->
-                states.copy(characterOfTheDay = result)
-            }
-        }*/
-
         getAllBars()
-        
-        initialBarId?.let { barId ->
-            onBarSelected(barId)
-        }
     }
 
 
@@ -59,14 +45,27 @@ class CollectionsViewModel(
             }
 
             _bars.value = result
+            
+            initialBarId?.let { barId ->
+                onBarSelected(barId)
+            }
         }
     }
 
     fun onBarSelected(barId: String) {
+        val selectedBar = _bars.value?.find { it?.id == barId }
+        val initialEntries = selectedBar?.machines?.map { machine ->
+            MachineCollectionEntry(
+                machineId = machine.id,
+                counter = machine.counter,
+                collectionAmounts = CollectionAmountsModel()
+            )
+        } ?: emptyList()
+
         _collection.update { collection ->
             collection.copy(
                 barId = barId,
-                machineEntries = listOf(MachineCollectionEntry())
+                machineEntries = initialEntries
             )
         }
     }
@@ -95,41 +94,60 @@ class CollectionsViewModel(
             try {
                 val currentState = collection.value
                 val barId = currentState.barId ?: return@launch
+                val barName = bars.value?.find { it?.id == barId }?.name ?: "Unknown Bar"
                 val comments = currentState.comments ?: ""
                 val globalExtra = currentState.globalExtraPayment
                 
-                // Generate a unique ID for this batch of collections
-                val groupId = "${barId}_${Clock.System.now().toEpochMilliseconds()}"
+                val machineFirestoreEntries = mutableListOf<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>()
+                val machineCounters = mutableMapOf<String, Int>()
 
-                withContext(Dispatchers.IO) {
-                    currentState.machineEntries.forEachIndexed { index, entry ->
-                        val initialAmounts = entry.collectionAmounts ?: CollectionAmountsModel()
-                        
-                        // Apply global extra payment ONLY to the first machine to record it once
-                        val machineExtra = if (index == 0) globalExtra else 0.0
+                var totalInitialBusinessAmount = 0.0
+                var totalInitialBarAmount = 0.0
 
-                        val finalBusinessAmount = initialAmounts.businessAmount + machineExtra
-                        val finalBarAmount = initialAmounts.barAmount - machineExtra
+                currentState.machineEntries.forEachIndexed { index, entry ->
+                    val machineIdInt = entry.machineId ?: return@forEachIndexed
+                    val mIdString = machineIdInt.toString()
+                    val initialAmounts = entry.collectionAmounts ?: CollectionAmountsModel()
+                    
+                    totalInitialBusinessAmount += initialAmounts.businessAmount
+                    totalInitialBarAmount += initialAmounts.barAmount
 
-                        val finalCollectionAmounts = initialAmounts.copy(
-                            businessAmount = finalBusinessAmount,
-                            barAmount = finalBarAmount,
-                            extraAmount = machineExtra
+                    val newCounter = (entry.counter ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt() ?: 0)
+                    machineCounters[mIdString] = newCounter
+                    
+                    // We record initial amounts per machine in the array
+                    machineFirestoreEntries.add(
+                        org.darts.dartsmanagement.data.collections.CollectionMachineFirestore(
+                            machineId = machineIdInt,
+                            barAmount = initialAmounts.barAmount,
+                            businessAmount = initialAmounts.businessAmount,
+                            totalCollection = initialAmounts.totalCollection
                         )
-
-                        saveCollection(
-                            collectionAmounts = finalCollectionAmounts,
-                            newCounterMachine = (entry.counter ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt() ?: 0),
-                            machineId = entry.machineId ?: 0,
-                            barId = barId,
-                            comments = comments,
-                            groupId = groupId
-                        )
-                    }
+                    )
                 }
-                _collection.update { it.copy(snackbarMessage = "Guardado correctamente") }
+
+                val finalTotalBusinessAmount = totalInitialBusinessAmount + globalExtra
+                val finalTotalBarAmount = totalInitialBarAmount - globalExtra
+
+                val success = withContext(Dispatchers.IO) {
+                    saveCollection(
+                        barId = barId,
+                        barName = barName,
+                        comments = comments,
+                        totalBarAmount = finalTotalBarAmount,
+                        totalBusinessAmount = finalTotalBusinessAmount,
+                        machines = machineFirestoreEntries,
+                        machineCounters = machineCounters
+                    )
+                }
+                
+                if (success) {
+                    _collection.update { it.copy(snackbarMessage = "Guardado correctamente") }
+                } else {
+                    _collection.update { it.copy(snackbarMessage = "Error al guardar") }
+                }
             } catch (e: Exception) {
-                _collection.update { it.copy(snackbarMessage = "Error al guardar") }
+                _collection.update { it.copy(snackbarMessage = "Error al guardar: ${e.message}") }
             }
         }
     }

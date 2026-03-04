@@ -32,7 +32,8 @@ import org.koin.core.parameter.parametersOf
 
 // --- Color Palette ---
 private val BackgroundDark = Color(0xFF0B0F13)
-private val SurfaceDark = Color(0xFF111417)
+val BorderDark = Color.White.copy(alpha = 0.1f)
+private val SurfaceDark = Color.White.copy(alpha = 0.1f)//Color(0xFF111417)
 private val InputBackground = Color(0xFF273A38)
 private val Primary = Color(0xFF00BDA4)
 private val TextPrimaryDark = Color.White
@@ -107,23 +108,29 @@ private fun CollectionScreenContent(barId: String? = null) {
                 }
             }
 
-            collection.machineEntries.forEachIndexed { index, entry ->
-                item {
-                    if (index > 0) {
-                        HorizontalDivider(color = Color.White.copy(alpha = 0.1f), modifier = Modifier.padding(vertical = 8.dp))
+            if (collection.barId != null) {
+                collection.machineEntries.forEachIndexed { index, entry ->
+                    item {
+                        if (index > 0) {
+                            HorizontalDivider(
+                                color = Color.White.copy(alpha = 0.1f),
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                            Spacer (modifier = Modifier.height(24.dp))
+                        }
+                        MachineDataSection(viewModel, index)
                     }
-                    MachineDataSection(viewModel, index)
                 }
+
+                item {
+                    AddMachineButton(viewModel)
+                }
+
+                item { GlobalExtraPaymentSection(viewModel) }
+
+                item { TotalDistributionSection(collection) }
+                item { ObservationsSection(viewModel) }
             }
-
-            item {
-                AddMachineButton(viewModel)
-            }
-
-            item { GlobalExtraPaymentSection(viewModel) }
-
-            item { TotalDistributionSection(collection) }
-            item { ObservationsSection(viewModel) }
         }
     }
 }
@@ -227,18 +234,22 @@ private fun AddMachineButton(viewModel: CollectionsViewModel) {
         bars?.find { it?.id == collection.barId }
     }
 
-    val allMachineIdsInBar = selectedBar?.machines?.mapNotNull { it.id } ?: emptyList()
-    val currentlySelectedMachineIds = collection.machineEntries.mapNotNull { it.machineId }
+    val totalMachinesInBar = selectedBar?.machines?.size ?: 0
+    val currentEntriesCount = collection.machineEntries.size
 
-    val hasMoreMachines = allMachineIdsInBar.any { it !in currentlySelectedMachineIds }
+    // Solo permitimos añadir si hay menos entradas que máquinas en el bar
+    val canAddMoreEntries = currentEntriesCount < totalMachinesInBar
+    // Y solo si todas las entradas actuales tienen una máquina asignada
+    val allEntriesFilled = collection.machineEntries.all { it.machineId != null }
 
-    if (hasMoreMachines && collection.barId != null) {
+    if (canAddMoreEntries && collection.barId != null) {
         OutlinedButton(
             onClick = { viewModel.onAddMachineEntry() },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary),
             border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            enabled = allEntriesFilled
         ) {
             Text("Añadir máquina")
         }
@@ -316,14 +327,11 @@ private fun buildCollectionAmountsForEntry(
 ): CollectionAmountsModel {
     val valueBarAmount = (totalCollection * 0.4).toDouble()
     val valueBusinessAmount = (totalCollection * 0.6).toDouble()
-    val currentEntry = viewModel.collection.value.machineEntries[index]
 
     return CollectionAmountsModel(
         totalCollection = totalCollection,
         barAmount = valueBarAmount,
-        barPayment = currentEntry.collectionAmounts?.barPayment ?: 0.0,
-        businessAmount = valueBusinessAmount,
-        extraAmount = 0.0 // Extra amount is now global
+        businessAmount = valueBusinessAmount
     )
 }
 

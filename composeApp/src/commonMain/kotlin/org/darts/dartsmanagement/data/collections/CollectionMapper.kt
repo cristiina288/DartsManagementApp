@@ -8,17 +8,23 @@ import org.darts.dartsmanagement.domain.common.model.StatusModel
 fun CollectionFirestoreResponse.toDomain(collectionId: String, barName: String): CollectionModel {
     return CollectionModel(
         id = collectionId,
-        machineId = machineId,
-        barId = barId, // New property
-        barName = barName, // Added barName here
-        batchId = batchId,
-        userId = userId,
-        totalCollection = totalCollection,
-        barAmount = barAmount,
-        businessAmount = businessAmount,
-        extraAmount = extraAmount,
-        comments = comments,
-        status = status?.get("id")?.let { StatusModel(id = it.toInt()) },
-        createdAt = createdAt?.seconds?.times(1000L) ?: 0L
+        licenseId = licenseId,
+        status = status,
+        barId = barId,
+        barName = this.barName.ifBlank { barName },
+        totalBarAmount = totalBarAmount,
+        totalBusinessAmount = totalBusinessAmount,
+        comments = comments ?: "",
+        billingMonth = billingMonth ?: "",
+        recordedBy = recordedBy ?: "",
+        createdAt = createdAt?.seconds?.times(1000L) ?: 0L,
+        machinesCollection = machinesCollection.map {
+            org.darts.dartsmanagement.domain.collections.models.MachineCollectionModel(
+                machineId = it.machineId,
+                barAmount = it.barAmount,
+                businessAmount = it.businessAmount,
+                totalCollection = it.totalCollection
+            )
+        }
     )
 }

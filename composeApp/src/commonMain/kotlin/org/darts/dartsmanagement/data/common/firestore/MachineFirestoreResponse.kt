@@ -19,10 +19,10 @@ data class MachineFirestoreResponse(
 ) {
     fun toDomain(): MachineModel {
         return MachineModel(
-            id = null, // Still null as MachineModel expects Int?, but we have String
+            id = id.toIntOrNull(), 
             name = name,
             counter = counter,
-            barId = barId, // Convert String barId to Int?
+            barId = barId, 
             status = status?.toDomain() ?: StatusResponse(id = 0).toDomain()
         )
     }

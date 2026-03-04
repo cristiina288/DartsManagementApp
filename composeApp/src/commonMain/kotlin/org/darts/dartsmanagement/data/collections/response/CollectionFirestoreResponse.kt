@@ -7,19 +7,25 @@ import kotlinx.serialization.json.JsonObject
 @Serializable
 data class CollectionFirestoreResponse(
     val id: String = "",
-    val machineId: Int = 0,
+    val licenseId: String = "",
+    val status: String = "active",
     val barId: String = "",
-    val batchId: String? = null,
-    val userId: String? = null,
+    val barName: String = "",
+    val totalBarAmount: Double = 0.0,
+    val totalBusinessAmount: Double = 0.0,
     val comments: String? = "",
-    val totalCollection: Double = 0.0,
-    val barAmount: Double = 0.0,
-    val barPayment: Double = 0.0,
-    val businessAmount: Double = 0.0,
-    val extraAmount: Double = 0.0,
-    val license_id: String = "",
+    val billingMonth: String? = null,
+    val recordedBy: String? = null,
     val createdAt: FirestoreTimestamp? = null,
-    val status: Map<String, Long>? = null
+    val machinesCollection: List<MachineCollectionFirestoreResponse> = emptyList()
+)
+
+@Serializable
+data class MachineCollectionFirestoreResponse(
+    val machineId: Int = 0,
+    val barAmount: Double = 0.0,
+    val businessAmount: Double = 0.0,
+    val totalCollection: Double = 0.0
 )
 
 @Serializable

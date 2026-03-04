@@ -8,15 +8,25 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 class CollectionsRepositoryImpl(private val api: CollectionsApiService): CollectionsRepository {
 
     override suspend fun saveCollection(
-        collectionAmountsModel: CollectionAmountsModel,
-        newCounterMachine: Int,
-        machineId: Int,
         barId: String,
+        barName: String,
         comments: String,
-        groupId: String
-    ) {
-        api.saveCollection(collectionAmountsModel, newCounterMachine, machineId, barId, comments, groupId)
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
+        machineCounters: Map<String, Int>
+    ): Boolean {
+        return api.saveCollection(
+            barId,
+            barName,
+            comments,
+            totalBarAmount,
+            totalBusinessAmount,
+            machines,
+            machineCounters
+        )
     }
+
 
 
     override suspend fun getCollectionsById(

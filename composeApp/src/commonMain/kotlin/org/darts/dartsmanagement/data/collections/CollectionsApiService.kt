@@ -1,12 +1,16 @@
 package org.darts.dartsmanagement.data.collections
 
 import dev.gitlive.firebase.firestore.Timestamp
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
@@ -20,24 +24,38 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsMode
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 import org.darts.dartsmanagement.data.collections.toDomain // Import the extension function
 
+@Serializable
+data class MonthStatus(
+    val license_id: String = "",
+    val status: String = ""
+)
+
 // Extension function to convert kotlinx.datetime.Instant to dev.gitlive.firebase.firestore.Timestamp
 fun Instant.toFirebaseTimestamp(): Timestamp {
     return Timestamp(this.epochSeconds, this.nanosecondsOfSecond)
 }
 
 @Serializable
-data class CollectionSaveRequest(
+data class CollectionMachineFirestore(
     val machineId: Int,
-    val comments: String,
-    val totalCollection: Double,
     val barAmount: Double,
-    val barPayment: Double,
     val businessAmount: Double,
-    val extraAmount: Double,
+    val totalCollection: Double
+)
+
+@Serializable
+data class CollectionSaveRequest(
+    val licenseId: String,
+    val status: String,
+    val barId: String,
+    val barName: String,
+    val totalBarAmount: Double,
+    val totalBusinessAmount: Double,
+    val comments: String,
     val createdAt: Timestamp,
-    val status: Map<String, Int>? = null,
-    val license_id: String = "",
-    val userId: String? = null
+    val billingMonth: String,
+    val recordedBy: String,
+    val machinesCollection: List<CollectionMachineFirestore>
 )
 
 class CollectionsApiService(
@@ -46,43 +64,90 @@ class CollectionsApiService(
 ) {
 
     suspend fun saveCollection(
-        collectionAmountsModel: CollectionAmountsModel,
-        newCounterMachine: Int,
-        machineId: Int,
         barId: String,
+        barName: String,
         comments: String,
-        groupId: String
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        machines: List<CollectionMachineFirestore>,
+        machineCounters: Map<String, Int> // machineId to new counter
     ): Boolean {
         return try {
             val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
             val userId = sessionManager.userId.value ?: throw IllegalStateException("User ID not found in session")
+            val billingMonth = findOpenBillingMonth(licenseId) ?: throw IllegalStateException("No open billing month found for license $licenseId")
+
             val collectionMap = mapOf<String, Any?>(
-                "machineId" to machineId,
+                "licenseId" to licenseId,
+                "status" to "active",
                 "barId" to barId,
-                "batchId" to groupId,
-                "userId" to userId,
+                "barName" to barName,
+                "totalBarAmount" to totalBarAmount,
+                "totalBusinessAmount" to totalBusinessAmount,
                 "comments" to comments,
-                "totalCollection" to collectionAmountsModel.totalCollection,
-                "barAmount" to collectionAmountsModel.barAmount,
-                "barPayment" to collectionAmountsModel.barPayment,
-                "businessAmount" to collectionAmountsModel.businessAmount,
-                "extraAmount" to collectionAmountsModel.extraAmount,
-                "license_id" to licenseId,
                 "createdAt" to Timestamp.now(),
-                "status" to null
+                "billingMonth" to billingMonth,
+                "recordedBy" to userId,
+                "machinesCollection" to machines.map {
+                    mapOf(
+                        "machineId" to it.machineId,
+                        "barAmount" to it.barAmount,
+                        "businessAmount" to it.businessAmount,
+                        "totalCollection" to it.totalCollection
+                    )
+                }
             )
 
             firestore.addDocument("collections", collectionMap)
-            firestore.updateDocumentFields(
-                "machines",
-                machineId.toString(),
-                mapOf("counter" to newCounterMachine)
-            )
+            
+            // Update each machine's counter
+            machineCounters.forEach { (mId, newCounter) ->
+                firestore.updateDocumentFields(
+                    "machines",
+                    mId,
+                    mapOf("counter" to newCounter)
+                )
+            }
             true
         } catch (e: Exception) {
             println("Error saving collection: $e")
             false
         }
+    }
+
+    private suspend fun findOpenBillingMonth(licenseId: String): String? {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+
+        // Try current month
+        val currentMonth = "${now.year}-${now.monthNumber.toString().padStart(2, '0')}"
+        val currentId = "${licenseId}_$currentMonth"
+        val currentDoc = firestore.getDocument("monthStatus", currentId)
+        if (currentDoc != null && currentDoc.data<MonthStatus>().status == "open") {
+            return currentMonth
+        }
+
+        // Try previous month
+        val prevMonthDate = now.date.minus(1, DateTimeUnit.MONTH)
+        val prevMonth = "${prevMonthDate.year}-${prevMonthDate.monthNumber.toString().padStart(2, '0')}"
+        val prevId = "${licenseId}_$prevMonth"
+        val prevDoc = firestore.getDocument("monthStatus", prevId)
+        if (prevDoc != null && prevDoc.data<MonthStatus>().status == "open") {
+            return prevMonth
+        }
+
+        // Fallback: query any open status for this license
+        val queryResult = firestore.getDocumentsQuery("monthStatus")
+            .whereEqualTo("license_id", licenseId)
+            .whereEqualTo("status", "open")
+            .get()
+
+        if (queryResult.documents.isNotEmpty()) {
+            // Pick the one from the ID if possible, or just the first one
+            val doc = queryResult.documents.first()
+            return doc.id.substringAfterLast("_")
+        }
+
+        return null
     }
 
     suspend fun deleteCollection(collectionId: String) {

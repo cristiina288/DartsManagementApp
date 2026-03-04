@@ -25,30 +25,101 @@ This section outlines the strategy and current state of integrating Firebase Fir
 
 *   **`licenses` Collection:**
     *   Document ID: `license_123`
-    *   Fields: `company_name` (String), `expires_at` (Timestamp), `status` (String)
+    *   Fields: `businessName` (String), `expiredAt` (Timestamp), `status` (String: "active", "inactive")
 
 *   **`users` Collection:**
     *   Document ID: Firebase Authentication UID
-    *   Fields: `email` (String), `name` (String), `license_id` (String, links to `licenses` collection)
+    *   Fields: `email` (String), `name` (String), `licenseId` (String, links to `licenses` collection)
 
 *   **`machines` Collection:**
-    *   Document ID: Machine ID (e.g., `101`)
-    *   Fields: `name` (String), `type` (String), `last_collection` (Timestamp), `counter` (Number), `barId` (String, links to `bars`), `status` (Map with `id` (Number))
+    *   Document ID: User-provided (e.g., Machine ID "101")
+    *   Fields:
+        *   `licenseId`: (String)
+        *   `status`: (String: "active", "inactive", "pending repair")
+        *   `barId`: (String)
+        *   `counter`: (Number)
+        *   `name`: (String)
+
+*   **`monthStatus` Collection:**
+    *   Document ID: `licenseId + "_" + yyyy-MM` (e.g., `license1518_2026-02`)
+    *   Fields: `licenseId` (String), `status` (String: "open" or "closed")
+
+*   **`collections` Collection:**
+    *   Document ID: Auto-generated
+    *   Fields:
+        *   `licenseId`: (String)
+        *   `status`: (String: "active", "delete")
+        *   `barId`: (String)
+        *   `barName`: (String)
+        *   `totalBarAmount`: (Number)
+        *   `totalBusinessAmount`: (Number)
+        *   `comments`: (String)
+        *   `createdAt`: (Timestamp)
+        *   `billingMonth`: (String: "yyyy-MM")
+        *   `recordedBy`: (String) - User ID of the person who recorded the collection.
+        *   `machinesCollection`: (Array of Maps)
+            *   `machineId`: (String)
+            *   `barAmount`: (Number)
+            *   `businessAmount`: (Number)
+            *   `totalCollection`: (Number)
 
 *   **`locations` Collection:**
-    *   Document ID: Location ID (e.g., `loc_001`)
-    *   Fields: `name` (String), `postalCode` (String)
+    *   Document ID: Auto-generated
+    *   Fields:
+        *   `licenseId`: (String)
+        *   `province`: (String)
+        *   `postalCode`: (String)
+        *   `name`: (String)
 
 *   **`bars` Collection:**
-    *   Document ID: Bar ID (e.g., `bar_abc`)
-    *   Fields: `license_id` (String, links to `licenses`), `id` (Number), `name` (String), `description` (String), `machine_ids` (Array of Numbers, links to `machines`),
-        `location` (Map):
-            *   `id` (String, links to `locations`)
-            *   `address` (String)
-            *   `latitude` (Double)
-            *   `longitude` (Double)
-            *   `locationBarUrl` (String)
-        `status_id` (Number)
+    *   Document ID: Auto-generated
+    *   Fields:
+        *   `licenseId`: (String)
+        *   `status`: (String)
+        *   `name`: (String)
+        *   `machineIds`: (Array of Numbers)
+        *   `location`: (Map)
+            *   `id`: (String)
+            *   `address`: (String)
+            *   `latitude`: (Number)
+            *   `longitude`: (Number)
+            *   `locationBarUrl`: (String)
+
+*   **`leagues` Collection:**
+    *   Document ID: Auto-generated
+    *   Fields:
+        *   `license_id`: (String)
+        *   `name`: (String)
+        *   `paymentType`: (String: "BAR" or "TEAM")
+        *   `feePerTeam`: (Number)
+        *   `bars`: (Array of Maps)
+            *   `barId`: (String)
+            *   `barFinances`: (Map)
+                *   `totalAmountToPay`: (Number)
+                *   `amountPaid`: (Number)
+                *   `amountPending`: (Number)
+                *   `paymentStatus`: (String: "PENDING", "N/A", "PAID")
+            *   `teams`: (Array of Maps)
+                *   `teamId`: (String)
+                *   `teamName`: (String)
+                *   `teamFinances`: (Map)
+                    *   `amountPaid`: (Number)
+                    *   `amountPending`: (Number)
+                    *   `paymentStatus`: (String: "PENDING", "N/A", "PAID")
+
+*   **`leagueCollections` Collection:**
+    *   Document ID: Auto-generated
+    *   Fields:
+        *   `licenseId`: (String)
+        *   `status`: (String: "active", "delete")
+        *   `leagueId`: (String)
+        *   `amount`: (Number)
+        *   `collectionId`: (String)
+        *   `payeeId`: (String) - ID of the Bar or Team that made the payment.
+        *   `method`: (String: "CASH", "TRANSFER", "CARD", "CASH_COLLECTION")
+        *   `userId`: (String)
+        *   `createdAt`: (Timestamp)
+        *   `recordedBy`: (String) - User ID of the person who recorded the transaction.
 
 **2. `getBars` Implementation Approach:**
 

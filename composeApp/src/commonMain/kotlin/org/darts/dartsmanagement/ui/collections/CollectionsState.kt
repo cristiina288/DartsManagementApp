@@ -9,7 +9,7 @@ data class MachineCollectionEntry(
 )
 
 data class CollectionsState (
-    val machineEntries: List<MachineCollectionEntry> = listOf(MachineCollectionEntry()),
+    val machineEntries: List<MachineCollectionEntry> = emptyList(),
     val barId: String? = null,
     val comments: String? = null,
     val snackbarMessage: String? = null,

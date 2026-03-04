@@ -4,18 +4,25 @@ import kotlinx.serialization.Serializable
 import org.darts.dartsmanagement.domain.common.model.StatusModel
 
 @Serializable
-class CollectionModel(
+data class CollectionModel(
     val id: String,
+    val licenseId: String,
+    val status: String,
+    val barId: String,
+    val barName: String,
+    val totalBarAmount: Double,
+    val totalBusinessAmount: Double,
+    val comments: String,
+    val billingMonth: String,
+    val recordedBy: String,
+    val createdAt: Long,
+    val machinesCollection: List<MachineCollectionModel>
+)
+
+@Serializable
+data class MachineCollectionModel(
     val machineId: Int,
-    val barId: String, // New property
-    val barName: String, // Re-added barName
-    val batchId: String? = null,
-    val userId: String? = null,
-    val totalCollection: Double,
     val barAmount: Double,
     val businessAmount: Double,
-    val extraAmount: Double,
-    val comments: String? = null,
-    val status: StatusModel? = null,
-    val createdAt: Long
+    val totalCollection: Double
 )

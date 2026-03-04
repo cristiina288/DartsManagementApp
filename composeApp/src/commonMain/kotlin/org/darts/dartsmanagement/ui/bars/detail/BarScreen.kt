@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -87,9 +88,29 @@ private fun BarScreenContent(barId: String) {
     val uriHandler = LocalUriHandler.current
     val viewModel = koinViewModel<BarViewModel>(parameters = { parametersOf(barId) })
     val uiState by viewModel.uiState.collectAsState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            navigator.pop()
+        }
+    }
 
     LaunchedEffect(navigator.lastItem) {
         viewModel.loadBarDetails()
+    }
+
+    if (showDeleteDialog) {
+        org.darts.dartsmanagement.ui.machines.detail.RepairConfirmationDialog(
+            text = "¿Estás seguro de que deseas eliminar este bar? Las máquinas asociadas quedarán sin bar asignado.",
+            onConfirm = {
+                viewModel.onEvent(BarEvent.DeleteBar)
+                showDeleteDialog = false
+            },
+            onDismiss = {
+                showDeleteDialog = false
+            }
+        )
     }
 
     Scaffold(
@@ -100,7 +121,8 @@ private fun BarScreenContent(barId: String) {
                     title = "Detalles del Bar",
                     onBackClick = { navigator.pop() },
                     onEditClick = { navigator.push(EditBarScreen(bar)) },
-                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) }
+                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) },
+                    onDeleteClick = { showDeleteDialog = true }
                 )
             }
         }
@@ -308,7 +330,8 @@ private fun TopBar(
     title: String,
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
-    onCollectClick: () -> Unit
+    onCollectClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -333,6 +356,13 @@ private fun TopBar(
             textAlign = TextAlign.Start,
             maxLines = 1
         )
+        IconButton(onClick = onDeleteClick) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Eliminar",
+                tint = Color.Red.copy(alpha = 0.7f)
+            )
+        }
         TextButton(onClick = onCollectClick) {
             Text(
                 text = "Recaudar",

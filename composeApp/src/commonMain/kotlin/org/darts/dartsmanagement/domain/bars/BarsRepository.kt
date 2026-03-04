@@ -15,4 +15,6 @@ interface BarsRepository {
 
     suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit>
 
+    suspend fun deleteBar(barId: String): Result<Unit>
+
 }

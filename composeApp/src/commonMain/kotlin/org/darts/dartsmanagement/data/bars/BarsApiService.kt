@@ -162,4 +162,8 @@ class BarsApiService(
             throw e
         }
     }
+
+    suspend fun deleteBar(barId: String) {
+        firestore.deleteDocument("bars", barId)
+    }
 }

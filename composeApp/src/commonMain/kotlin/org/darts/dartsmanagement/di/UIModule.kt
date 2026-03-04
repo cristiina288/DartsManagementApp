@@ -29,7 +29,7 @@ val uiModule = module {
     viewModelOf(::LocationsListingViewModel)
     viewModelOf(::LocationViewModel)
     viewModelOf(::MachinesListingViewModel)
-    viewModel { (barId: String) -> BarViewModel(barId, get()) }
+    viewModel { (barId: String) -> BarViewModel(barId, get(), get()) }
     viewModelOf(::NewBarViewModel)
     viewModelOf(::EditBarViewModel)
     viewModelOf(::MachineViewModel)

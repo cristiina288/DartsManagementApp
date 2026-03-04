@@ -2,6 +2,7 @@ package org.darts.dartsmanagement.ui.collections
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -171,20 +172,33 @@ private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
             enabled = selectedBar != null
         )
 
+        Spacer(Modifier.height(8.dp))
+
+        SegmentedToggle(
+            options = listOf("Recaudación", "Contador"),
+            selectedIndex = if (entry.inputMode == CollectionInputMode.COLLECTION) 0 else 1,
+            onOptionSelected = { idx ->
+                val mode = if (idx == 0) CollectionInputMode.COLLECTION else CollectionInputMode.COUNTER
+                viewModel.onInputModeChanged(mode, index)
+            }
+        )
+
         // Total Collection Field
         AppTextField(
             label = "Recaudación Total (€)",
-            value = entry.collectionAmounts?.totalCollection?.toString() ?: "",
+            value = entry.recaudacionInput,
             onValueChange = {
-                val value = it.toDoubleOrNull() ?: 0.0
-                viewModel.saveCollectionAmounts(
-                    buildCollectionAmountsForEntry(value, index, viewModel),
-                    index
-                )
+                viewModel.saveCollectionAmounts(it, index)
             },
             placeholder = "0.00",
+            readOnly = entry.inputMode == CollectionInputMode.COUNTER,
+            containerColor = if (entry.inputMode == CollectionInputMode.COLLECTION) InputBackground else InputBackground.copy(alpha = 0.2f),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = LocalTextStyle.current.copy(fontSize = 28.sp, fontWeight = FontWeight.Bold),
+            textStyle = LocalTextStyle.current.copy(
+                fontSize = 28.sp, 
+                fontWeight = FontWeight.Bold,
+                color = if (entry.inputMode == CollectionInputMode.COLLECTION) Primary else TextPrimaryDark
+            ),
             trailingIcon = {
                 Text(
                     "€",
@@ -196,18 +210,34 @@ private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
         )
 
         // Counters
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             ReadOnlyField(
                 label = "Contador Antiguo",
                 value = (entry.counter ?: 0).toString(),
                 modifier = Modifier.weight(1f)
             )
-            ReadOnlyField(
+            
+            val isCounterMode = entry.inputMode == CollectionInputMode.COUNTER
+
+            AppTextField(
                 label = "Contador Actual",
-                value = ((entry.counter
-                    ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt()
-                    ?: 0)).toString(),
-                modifier = Modifier.weight(1f)
+                value = entry.contadorInput,
+                onValueChange = {
+                    viewModel.onCurrentCounterChanged(it, index)
+                },
+                readOnly = !isCounterMode,
+                containerColor = if (isCounterMode) InputBackground else InputBackground.copy(alpha = 0.2f),
+                placeholder = (entry.counter ?: 0).toString(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (isCounterMode) Primary else TextPrimaryDark
+                )
             )
         }
 
@@ -457,11 +487,12 @@ private fun AppTextField(
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     enabled: Boolean = true,
+    containerColor: Color = InputBackground,
     textStyle: androidx.compose.ui.text.TextStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
-    Column {
+    Column(modifier = modifier) {
         if (label != null) {
             Text(
                 text = label,
@@ -473,15 +504,15 @@ private fun AppTextField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(placeholder, color = TextPlaceholder) },
             readOnly = readOnly,
             singleLine = singleLine,
             enabled = enabled,
             textStyle = textStyle.copy(color = TextPrimaryDark),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = InputBackground,
-                focusedContainerColor = InputBackground,
+                unfocusedContainerColor = containerColor,
+                focusedContainerColor = containerColor,
                 unfocusedBorderColor = Color.Transparent,
                 focusedBorderColor = Color.Transparent,
             ),
@@ -649,7 +680,7 @@ private fun <T> SearchableAppDropdown(
 
 @Composable
 private fun ReadOnlyField(label: String, value: String, modifier: Modifier = Modifier) {
-    Column(modifier) {
+    Column(modifier = modifier) {
         Text(
             text = label,
             color = TextSecondaryDark,
@@ -739,6 +770,41 @@ private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
+        }
+    }
+}
+
+@Composable
+private fun SegmentedToggle(
+    options: List<String>,
+    selectedIndex: Int,
+    onOptionSelected: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(InputBackground, RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        options.forEachIndexed { index, text ->
+            val isSelected = index == selectedIndex
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(if (isSelected) Primary else Color.Transparent)
+                    .clickable { onOptionSelected(index) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = text,
+                    color = if (isSelected) Color.Black else TextSecondaryDark,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 14.sp
+                )
+            }
         }
     }
 }

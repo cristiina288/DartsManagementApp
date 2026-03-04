@@ -1,15 +1,23 @@
 package org.darts.dartsmanagement.domain.collections
 
-import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
-
 class UpdateCollectionUseCase(
     private val collectionsRepository: CollectionsRepository
 ) {
     suspend operator fun invoke(
         collectionId: String,
-        collectionAmountsModel: CollectionAmountsModel,
-        comments: String
+        comments: String,
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        totalCollection: Double,
+        machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>
     ): Result<Unit> {
-        return collectionsRepository.updateCollection(collectionId, collectionAmountsModel, comments)
+        return collectionsRepository.updateCollection(
+            collectionId,
+            comments,
+            totalBarAmount,
+            totalBusinessAmount,
+            totalCollection,
+            machines
+        )
     }
 }

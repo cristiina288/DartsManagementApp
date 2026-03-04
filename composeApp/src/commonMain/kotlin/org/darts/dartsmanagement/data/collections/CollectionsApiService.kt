@@ -69,6 +69,7 @@ class CollectionsApiService(
         comments: String,
         totalBarAmount: Double,
         totalBusinessAmount: Double,
+        totalCollection: Double,
         machines: List<CollectionMachineFirestore>,
         machineCounters: Map<String, Int> // machineId to new counter
     ): Boolean {
@@ -84,6 +85,7 @@ class CollectionsApiService(
                 "barName" to barName,
                 "totalBarAmount" to totalBarAmount,
                 "totalBusinessAmount" to totalBusinessAmount,
+                "totalCollection" to totalCollection,
                 "comments" to comments,
                 "createdAt" to Timestamp.now(),
                 "billingMonth" to billingMonth,
@@ -156,16 +158,25 @@ class CollectionsApiService(
 
     suspend fun updateCollection(
         collectionId: String,
-        collectionAmountsModel: CollectionAmountsModel,
-        comments: String
+        comments: String,
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        totalCollection: Double,
+        machines: List<CollectionMachineFirestore>
     ) {
         val updateMap = mapOf<String, Any?>(
             "comments" to comments,
-            "totalCollection" to collectionAmountsModel.totalCollection,
-            "barAmount" to collectionAmountsModel.barAmount,
-            "barPayment" to collectionAmountsModel.barPayment,
-            "businessAmount" to collectionAmountsModel.businessAmount,
-            "extraAmount" to collectionAmountsModel.extraAmount,
+            "totalBarAmount" to totalBarAmount,
+            "totalBusinessAmount" to totalBusinessAmount,
+            "totalCollection" to totalCollection,
+            "machinesCollection" to machines.map {
+                mapOf(
+                    "machineId" to it.machineId,
+                    "barAmount" to it.barAmount,
+                    "businessAmount" to it.businessAmount,
+                    "totalCollection" to it.totalCollection
+                )
+            },
             "modified_on" to Timestamp.now()
         )
         firestore.updateDocument("collections", collectionId, updateMap)
@@ -176,35 +187,18 @@ class CollectionsApiService(
             it.id to it.data<CollectionFirestoreResponse>()
         }
 
-        val machineIds = collectionFirestoreResponsesWithIds.map { it.second.machineId }.distinct()
-
-        // Fetch all machines once (filtered by license)
-        val licenseId = sessionManager.licenseId.value ?: return emptyList()
-        val allMachinesDocs = firestore.getDocuments("machines", "license_id", licenseId)
-        val allMachines = allMachinesDocs.mapNotNull { doc ->
-            doc.data<MachineFirestoreResponse>().copy(id = doc.id)
-        }
-
-        // Filter machines based on machineIds from collections
-        val machines = allMachines.filter { machine -> machineIds.contains(machine.id.toInt()) }
-        val machineIdToBarIdMap = machines.associate { it.id.toInt() to (it.barId ?: "") }
-
-        val barIds = collectionFirestoreResponsesWithIds.map { it.second.barId }.distinct()
-            .filter { it.isNotBlank() }
-
         // Fetch all bars once (filtered by license)
-        val allBarsDocs = firestore.getDocuments("bars", "license_id", licenseId)
+        val licenseId = sessionManager.licenseId.value ?: return emptyList()
+        val allBarsDocs = firestore.getDocuments("bars", "licenseId", licenseId)
         val allBars = allBarsDocs.mapNotNull { doc ->
             doc.data<BarFirestoreResponse>().copy(id = doc.id)
         }
 
-        // Filter bars based on barIds from collections
-        val bars = allBars.filter { bar -> barIds.contains(bar.id) }
-        val barIdToBarNameMap = bars.associate { it.id.toString() to it.name }
+        val barIdToBarNameMap = allBars.associate { it.id.toString() to it.name }
 
         return collectionFirestoreResponsesWithIds.map { (collectionId, collectionResponse) ->
             val barId = collectionResponse.barId
-            val barName = barIdToBarNameMap[barId] ?: "Unknown Bar"
+            val barName = barIdToBarNameMap[barId] ?: collectionResponse.barName.ifBlank { "Unknown Bar" }
 
             // Use the toDomain extension function
             collectionResponse.toDomain(collectionId, barName)
@@ -217,9 +211,15 @@ class CollectionsApiService(
     ): List<CollectionModel> {
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()
-            // Abstraction only supports one where clause for now, so we filter by machineId and check licenseId manually for safety
-            val snapshot = firestore.getDocuments("collections", "machineId", machineId)
-            val filteredSnapshot = snapshot.filter { it.data<CollectionFirestoreResponse>().license_id == licenseId }
+            // We search for documents where machinesCollection contains a map with machineId
+            // Note: Firestore simplified abstraction might not support array-contains for maps easily, 
+            // so we might need to fetch all and filter locally if getDocuments doesn't support it.
+            // For now, let's fetch all collections of the license and filter.
+            val snapshot = firestore.getDocuments("collections", "licenseId", licenseId)
+            val filteredSnapshot = snapshot.filter { doc ->
+                val response = doc.data<CollectionFirestoreResponse>()
+                response.machinesCollection.any { it.machineId == machineId }
+            }
             getFullCollectionModels(filteredSnapshot)
         } catch (e: Exception) {
             println("Error getting collections by machine id: $e")
@@ -230,22 +230,14 @@ class CollectionsApiService(
     suspend fun getCollectionsForMonth(year: Int, month: Int): List<CollectionModel> {
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()
-            val startOfMonth =
-                LocalDate(year, month, 1).atStartOfDayIn(TimeZone.currentSystemDefault())
-            val nextMonth =
-                if (month == 12) LocalDate(year + 1, 1, 1) else LocalDate(year, month + 1, 1)
-            val startOfNextMonth = nextMonth.atStartOfDayIn(TimeZone.currentSystemDefault())
+            val billingMonth = "${year}-${month.toString().padStart(2, '0')}"
+            
+            val snapshot = firestore.getDocumentsQuery("collections")
+                .whereEqualTo("licenseId", licenseId)
+                .whereEqualTo("billingMonth", billingMonth)
+                .get()
 
-            val startMillis = startOfMonth.toEpochMilliseconds()
-            val endMillis = startOfNextMonth.toEpochMilliseconds()
-            val snapshot = firestore.getDocuments("collections", "license_id", licenseId)
-
-            val filteredSnapshot = snapshot.filter { doc ->
-                val collection = doc.data<CollectionFirestoreResponse>()
-                val createdAtMillis = (collection.createdAt?.seconds ?: 0) * 1000L
-                createdAtMillis in startMillis until endMillis
-            }
-            getFullCollectionModels(filteredSnapshot)
+            getFullCollectionModels(snapshot.documents)
         } catch (e: Exception) {
             println("Error getting collections for month: $e")
             emptyList()
@@ -265,7 +257,7 @@ class CollectionsApiService(
                 endOfRangeExclusiveLocalDate.atStartOfDayIn(TimeZone.currentSystemDefault())
                     .toEpochMilliseconds()
 
-            val snapshot = firestore.getDocuments("collections", "license_id", licenseId)
+            val snapshot = firestore.getDocuments("collections", "licenseId", licenseId)
 
             val filteredSnapshot = snapshot.filter { doc ->
                 val collection = doc.data<CollectionFirestoreResponse>()
@@ -287,7 +279,7 @@ class CollectionsApiService(
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()
             var query = firestore.getDocumentsQuery("collections")
-                .whereEqualTo("license_id", licenseId)
+                .whereEqualTo("licenseId", licenseId)
                 .orderBy("createdAt.seconds", ExpectedFirestore.Direction.DESCENDING)
                 .orderBy("__name__", ExpectedFirestore.Direction.DESCENDING)
                 .limit(limit)

@@ -58,7 +58,8 @@ class CollectionsViewModel(
             MachineCollectionEntry(
                 machineId = machine.id,
                 counter = machine.counter,
-                collectionAmounts = CollectionAmountsModel()
+                collectionAmounts = CollectionAmountsModel(),
+                contadorInput = machine.counter?.toString() ?: ""
             )
         } ?: emptyList()
 
@@ -103,6 +104,7 @@ class CollectionsViewModel(
 
                 var totalInitialBusinessAmount = 0.0
                 var totalInitialBarAmount = 0.0
+                var totalCollection = 0.0
 
                 currentState.machineEntries.forEachIndexed { index, entry ->
                     val machineIdInt = entry.machineId ?: return@forEachIndexed
@@ -111,6 +113,7 @@ class CollectionsViewModel(
                     
                     totalInitialBusinessAmount += initialAmounts.businessAmount
                     totalInitialBarAmount += initialAmounts.barAmount
+                    totalCollection += initialAmounts.totalCollection
 
                     val newCounter = (entry.counter ?: 0) + (entry.collectionAmounts?.totalCollection?.toInt() ?: 0)
                     machineCounters[mIdString] = newCounter
@@ -136,6 +139,7 @@ class CollectionsViewModel(
                         comments = comments,
                         totalBarAmount = finalTotalBarAmount,
                         totalBusinessAmount = finalTotalBusinessAmount,
+                        totalCollection = totalCollection,
                         machines = machineFirestoreEntries,
                         machineCounters = machineCounters
                     )
@@ -160,11 +164,26 @@ class CollectionsViewModel(
         _collection.update { it.copy(globalExtraPayment = extraAmount) }
     }
 
-    fun saveCollectionAmounts(collectionAmounts: CollectionAmountsModel, index: Int) {
+    fun saveCollectionAmounts(totalCollectionStr: String, index: Int) {
+        val totalCollection = totalCollectionStr.toDoubleOrNull() ?: 0.0
+        
         _collection.update { collections ->
             val newEntries = collections.machineEntries.toMutableList()
+            val oldCounter = newEntries[index].counter ?: 0
+            
+            val valueBarAmount = (totalCollection * 0.4)
+            val valueBusinessAmount = (totalCollection * 0.6)
+            
+            val currentCounter = (oldCounter + totalCollection.toInt())
+
             newEntries[index] = newEntries[index].copy(
-                collectionAmounts = collectionAmounts
+                recaudacionInput = totalCollectionStr,
+                contadorInput = currentCounter.toString(),
+                collectionAmounts = CollectionAmountsModel(
+                    totalCollection = totalCollection,
+                    barAmount = valueBarAmount,
+                    businessAmount = valueBusinessAmount
+                )
             )
             collections.copy(machineEntries = newEntries)
         }
@@ -176,7 +195,44 @@ class CollectionsViewModel(
             val newEntries = collections.machineEntries.toMutableList()
             newEntries[index] = newEntries[index].copy(
                 counter = counterCollection ?: 0,
-                machineId = machineId ?: 0
+                machineId = machineId ?: 0,
+                contadorInput = counterCollection?.toString() ?: ""
+            )
+            collections.copy(machineEntries = newEntries)
+        }
+    }
+
+    fun onInputModeChanged(mode: CollectionInputMode, index: Int) {
+        _collection.update { collections ->
+            val newEntries = collections.machineEntries.toMutableList()
+            newEntries[index] = newEntries[index].copy(
+                inputMode = mode
+            )
+            collections.copy(machineEntries = newEntries)
+        }
+    }
+
+    fun onCurrentCounterChanged(currentCounterStr: String, index: Int) {
+        val currentCounter = currentCounterStr.toIntOrNull()
+        
+        _collection.update { collections ->
+            val newEntries = collections.machineEntries.toMutableList()
+            val oldCounter = newEntries[index].counter ?: 0
+            
+            // If currentCounter is null (empty field), we treat it as 0 collection internally
+            val totalCollection = if (currentCounter == null) 0.0 else (currentCounter - oldCounter).toDouble().coerceAtLeast(0.0)
+
+            val valueBarAmount = (totalCollection * 0.4)
+            val valueBusinessAmount = (totalCollection * 0.6)
+
+            newEntries[index] = newEntries[index].copy(
+                contadorInput = currentCounterStr,
+                recaudacionInput = if (currentCounter == null || totalCollection == 0.0) "" else totalCollection.toString(),
+                collectionAmounts = CollectionAmountsModel(
+                    totalCollection = totalCollection,
+                    barAmount = valueBarAmount,
+                    businessAmount = valueBusinessAmount
+                )
             )
             collections.copy(machineEntries = newEntries)
         }
@@ -189,13 +245,4 @@ class CollectionsViewModel(
             )
         }
     }
-
-
-    /*collectionAmounts = CollectionAmountsRequest(
-                        totalCollection = 200,
-                        barAmount = 80,
-                        barPayment = 0,
-                        businessAmount = 120,
-                        extraAmount = 0
-                    )*/
 }

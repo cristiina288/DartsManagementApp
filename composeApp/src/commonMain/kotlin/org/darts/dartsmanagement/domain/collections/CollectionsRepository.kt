@@ -12,6 +12,7 @@ interface CollectionsRepository {
         comments: String,
         totalBarAmount: Double,
         totalBusinessAmount: Double,
+        totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
     ): Boolean
@@ -27,5 +28,12 @@ interface CollectionsRepository {
 
     suspend fun deleteCollection(collectionId: String): Result<Unit>
 
-    suspend fun updateCollection(collectionId: String, collectionAmountsModel: CollectionAmountsModel, comments: String): Result<Unit>
+    suspend fun updateCollection(
+        collectionId: String,
+        comments: String,
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        totalCollection: Double,
+        machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>
+    ): Result<Unit>
 }

@@ -13,6 +13,7 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
         comments: String,
         totalBarAmount: Double,
         totalBusinessAmount: Double,
+        totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
     ): Boolean {
@@ -22,6 +23,7 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
             comments,
             totalBarAmount,
             totalBusinessAmount,
+            totalCollection,
             machines,
             machineCounters
         )
@@ -55,11 +57,14 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
 
     override suspend fun updateCollection(
         collectionId: String,
-        collectionAmountsModel: CollectionAmountsModel,
-        comments: String
+        comments: String,
+        totalBarAmount: Double,
+        totalBusinessAmount: Double,
+        totalCollection: Double,
+        machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>
     ): Result<Unit> {
         return runCatching {
-            api.updateCollection(collectionId, collectionAmountsModel, comments)
+            api.updateCollection(collectionId, comments, totalBarAmount, totalBusinessAmount, totalCollection, machines)
         }
     }
 }

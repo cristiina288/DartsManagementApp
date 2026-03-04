@@ -2,10 +2,18 @@ package org.darts.dartsmanagement.ui.collections
 
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
 
+enum class CollectionInputMode {
+    COLLECTION,
+    COUNTER
+}
+
 data class MachineCollectionEntry(
     val machineId: Int? = null,
-    val counter: Int? = null,
-    val collectionAmounts: CollectionAmountsModel? = null
+    val counter: Int? = null, // Old counter
+    val collectionAmounts: CollectionAmountsModel? = null,
+    val inputMode: CollectionInputMode = CollectionInputMode.COLLECTION,
+    val recaudacionInput: String = "",
+    val contadorInput: String = ""
 )
 
 data class CollectionsState (

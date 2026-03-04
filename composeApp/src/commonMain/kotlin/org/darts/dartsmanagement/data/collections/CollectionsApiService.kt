@@ -72,7 +72,7 @@ class CollectionsApiService(
         totalCollection: Double,
         machines: List<CollectionMachineFirestore>,
         machineCounters: Map<String, Int> // machineId to new counter
-    ): Boolean {
+    ): String? {
         return try {
             val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
             val userId = sessionManager.userId.value ?: throw IllegalStateException("User ID not found in session")
@@ -100,7 +100,7 @@ class CollectionsApiService(
                 }
             )
 
-            firestore.addDocument("collections", collectionMap)
+            val collectionId = firestore.addDocument("collections", collectionMap)
             
             // Update each machine's counter
             machineCounters.forEach { (mId, newCounter) ->
@@ -110,10 +110,10 @@ class CollectionsApiService(
                     mapOf("counter" to newCounter)
                 )
             }
-            true
+            collectionId
         } catch (e: Exception) {
             println("Error saving collection: $e")
-            false
+            null
         }
     }
 

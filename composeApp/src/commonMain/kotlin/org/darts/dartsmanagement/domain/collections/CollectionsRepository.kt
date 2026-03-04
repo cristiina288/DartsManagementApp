@@ -15,7 +15,7 @@ interface CollectionsRepository {
         totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
-    ): Boolean
+    ): String?
 
 
     suspend fun getCollectionsById(machineId: Int) : List<CollectionModel>

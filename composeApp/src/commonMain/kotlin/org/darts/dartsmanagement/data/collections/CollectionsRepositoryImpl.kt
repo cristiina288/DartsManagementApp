@@ -16,7 +16,7 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
         totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
-    ): Boolean {
+    ): String? {
         return api.saveCollection(
             barId,
             barName,

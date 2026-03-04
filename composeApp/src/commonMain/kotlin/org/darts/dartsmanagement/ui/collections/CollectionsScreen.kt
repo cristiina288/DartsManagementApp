@@ -11,6 +11,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +28,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
+import org.darts.dartsmanagement.ui.theme.SecondaryAccent
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -131,9 +134,158 @@ private fun CollectionScreenContent(barId: String? = null) {
 
                 item { TotalDistributionSection(collection) }
                 item { ObservationsSection(viewModel) }
+
+                if (collection.availableLeagues.isNotEmpty()) {
+                    item { LeaguePaymentSection(viewModel) }
+                }
+
+                item { GeneralSummarySection(collection) }
+            }
+        }
+
+        if (collection.showLeagueValidationDialog) {
+            LeagueValidationDialog(viewModel)
+        }
+    }
+}
+
+@Composable
+private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
+    val collection by viewModel.collection.collectAsState()
+    
+    Section(title = "Pagos pendientes de ligas") {
+        collection.leaguePayments.forEachIndexed { index, entry ->
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (index > 0) {
+                    HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val selectedLeague = collection.availableLeagues.find { it.id == entry.leagueId }
+                    
+                    Box(modifier = Modifier.weight(1f)) {
+                        AppDropdown(
+                            label = "Liga",
+                            options = collection.availableLeagues,
+                            selectedOption = selectedLeague,
+                            onOptionSelected = { league ->
+                                viewModel.onLeagueSelected(index, league.id)
+                            },
+                            optionToString = { it.name }
+                        )
+                    }
+
+                    if (collection.leaguePayments.size > 1) {
+                        IconButton(
+                            onClick = { viewModel.onRemoveLeaguePaymentEntry(index) },
+                            modifier = Modifier.padding(top = 24.dp)
+                        ) {
+                            Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.6f))
+                        }
+                    }
+                }
+
+                AppTextField(
+                    label = "Precio (€)",
+                    value = entry.amount,
+                    onValueChange = { viewModel.onLeagueAmountChanged(index, it) },
+                    placeholder = "0.00",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    trailingIcon = { Text("€", color = TextPlaceholder) }
+                )
+            }
+        }
+
+        if (collection.leaguePayments.size < collection.availableLeagues.size) {
+            TextButton(
+                onClick = { viewModel.onAddLeaguePaymentEntry() },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("Añadir otro pago de liga", fontSize = 14.sp, color = Primary)
             }
         }
     }
+}
+
+@Composable
+private fun GeneralSummarySection(collection: CollectionsState) {
+    val totalInitialBusinessAmount = collection.machineEntries.sumOf { it.collectionAmounts?.businessAmount ?: 0.0 }
+    val totalInitialBarAmount = collection.machineEntries.sumOf { it.collectionAmounts?.barAmount ?: 0.0 }
+    val globalExtraAmount = collection.globalExtraPayment
+    val leagueTotalAmount = collection.leaguePayments.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
+
+    val totalBusinessAmount = totalInitialBusinessAmount + globalExtraAmount + leagueTotalAmount
+    val totalBarAmount = totalInitialBarAmount - globalExtraAmount - leagueTotalAmount
+
+    fun formatCurrency(amount: Double): String {
+        val rounded = (amount * 100).toLong()
+        val integerPart = rounded / 100
+        val fractionalPart = rounded % 100
+        return "$integerPart,${fractionalPart.toString().padStart(2, '0')} €"
+    }
+
+    Section(title = "Resumen general (Inc. Ligas)") {
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            SummaryBox(
+                label = "Total Empresa",
+                amount = formatCurrency(totalBusinessAmount),
+                color = Primary,
+                modifier = Modifier.weight(1f)
+            )
+            SummaryBox(
+                label = "Total Bar",
+                amount = formatCurrency(totalBarAmount),
+                color = SecondaryAccent,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummaryBox(
+    label: String,
+    amount: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .background(color.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+            .padding(12.dp)
+    ) {
+        Text(text = label, color = TextSecondaryDark, fontSize = 12.sp)
+        Spacer(Modifier.height(4.dp))
+        Text(text = amount, color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun LeagueValidationDialog(viewModel: CollectionsViewModel) {
+    AlertDialog(
+        onDismissRequest = { viewModel.onDismissLeagueValidation() },
+        title = { Text("Pago de liga pendiente") },
+        text = { Text("Tienes pendiente rellenar el pago de la liga, ¿quieres guardar el resto de la recaudación y salir o continuar y rellenar el dato que falta?") },
+        confirmButton = {
+            TextButton(onClick = { viewModel.saveActualCollection(ignoreLeagueValidation = true) }) {
+                Text("Guardar y salir")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { viewModel.onDismissLeagueValidation() }) {
+                Text("Rellenar el dato")
+            }
+        },
+        containerColor = SurfaceDark,
+        titleContentColor = TextPrimaryDark,
+        textContentColor = TextSecondaryDark
+    )
 }
 
 @Composable

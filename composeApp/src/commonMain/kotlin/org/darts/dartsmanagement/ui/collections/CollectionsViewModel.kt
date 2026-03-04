@@ -10,17 +10,24 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import org.darts.dartsmanagement.data.auth.SessionManager
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.characters.GetRandomCharacter
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
+import org.darts.dartsmanagement.domain.leagues.GetPendingLeaguesForBarUseCase
+import org.darts.dartsmanagement.domain.leagues.SaveLeagueCollectionUseCase
+import org.darts.dartsmanagement.domain.leagues.models.LeagueCollectionModel
 
 class CollectionsViewModel(
     val initialBarId: String? = null,
     val getRandomCharacter: GetRandomCharacter,
     val getBars: GetBars,
-    val saveCollection: SaveCollection
+    val saveCollection: SaveCollection,
+    private val getPendingLeaguesForBarUseCase: GetPendingLeaguesForBarUseCase,
+    private val saveLeagueCollectionUseCase: SaveLeagueCollectionUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<CollectionsState>(CollectionsState())
@@ -66,8 +73,27 @@ class CollectionsViewModel(
         _collection.update { collection ->
             collection.copy(
                 barId = barId,
-                machineEntries = initialEntries
+                machineEntries = initialEntries,
+                leaguePayments = emptyList(), // Reset league payments
+                availableLeagues = emptyList()
             )
+        }
+
+        // Fetch pending leagues for this bar
+        viewModelScope.launch {
+            try {
+                val pendingLeagues = withContext(Dispatchers.IO) {
+                    getPendingLeaguesForBarUseCase(barId)
+                }
+                _collection.update { it.copy(availableLeagues = pendingLeagues) }
+                
+                // If there are pending leagues, add one initial entry if needed
+                if (pendingLeagues.isNotEmpty()) {
+                    onAddLeaguePaymentEntry()
+                }
+            } catch (e: Exception) {
+                println("Error fetching pending leagues: $e")
+            }
         }
     }
 
@@ -89,11 +115,56 @@ class CollectionsViewModel(
         }
     }
 
+    fun onAddLeaguePaymentEntry() {
+        _collection.update { collection ->
+            val newPayments = collection.leaguePayments.toMutableList()
+            newPayments.add(LeaguePaymentEntry())
+            collection.copy(leaguePayments = newPayments)
+        }
+    }
 
-    fun saveActualCollection() {
+    fun onRemoveLeaguePaymentEntry(index: Int) {
+        _collection.update { collection ->
+            val newPayments = collection.leaguePayments.toMutableList()
+            newPayments.removeAt(index)
+            collection.copy(leaguePayments = newPayments)
+        }
+    }
+
+    fun onLeagueSelected(index: Int, leagueId: String) {
+        _collection.update { collection ->
+            val newPayments = collection.leaguePayments.toMutableList()
+            val leagueName = collection.availableLeagues.find { it.id == leagueId }?.name ?: ""
+            newPayments[index] = newPayments[index].copy(leagueId = leagueId, leagueName = leagueName)
+            collection.copy(leaguePayments = newPayments)
+        }
+    }
+
+    fun onLeagueAmountChanged(index: Int, amount: String) {
+        _collection.update { collection ->
+            val newPayments = collection.leaguePayments.toMutableList()
+            newPayments[index] = newPayments[index].copy(amount = amount)
+            collection.copy(leaguePayments = newPayments)
+        }
+    }
+
+
+    fun saveActualCollection(ignoreLeagueValidation: Boolean = false) {
         viewModelScope.launch {
             try {
                 val currentState = collection.value
+                
+                // League Payment Validation
+                if (!ignoreLeagueValidation) {
+                    val emptyLeagueIndex = currentState.leaguePayments.indexOfFirst { 
+                        it.leagueId.isNotEmpty() && (it.amount.isEmpty() || (it.amount.toDoubleOrNull() ?: 0.0) <= 0.0) 
+                    }
+                    if (emptyLeagueIndex != -1) {
+                        _collection.update { it.copy(showLeagueValidationDialog = true, pendingLeagueIndex = emptyLeagueIndex) }
+                        return@launch
+                    }
+                }
+
                 val barId = currentState.barId ?: return@launch
                 val barName = bars.value?.find { it?.id == barId }?.name ?: "Unknown Bar"
                 val comments = currentState.comments ?: ""
@@ -132,7 +203,7 @@ class CollectionsViewModel(
                 val finalTotalBusinessAmount = totalInitialBusinessAmount + globalExtra
                 val finalTotalBarAmount = totalInitialBarAmount - globalExtra
 
-                val success = withContext(Dispatchers.IO) {
+                val collectionId = withContext(Dispatchers.IO) {
                     saveCollection(
                         barId = barId,
                         barName = barName,
@@ -145,8 +216,10 @@ class CollectionsViewModel(
                     )
                 }
                 
-                if (success) {
-                    _collection.update { it.copy(snackbarMessage = "Guardado correctamente") }
+                if (collectionId != null) {
+                    // If collection saved, save league payments
+                    saveLeagueCollections(barId, collectionId)
+                    _collection.update { it.copy(snackbarMessage = "Guardado correctamente", showLeagueValidationDialog = false) }
                 } else {
                     _collection.update { it.copy(snackbarMessage = "Error al guardar") }
                 }
@@ -154,6 +227,35 @@ class CollectionsViewModel(
                 _collection.update { it.copy(snackbarMessage = "Error al guardar: ${e.message}") }
             }
         }
+    }
+
+    private suspend fun saveLeagueCollections(barId: String, collectionId: String) {
+        val currentState = collection.value
+        val licenseId = sessionManager.licenseId.value ?: return
+        val userId = sessionManager.userId.value ?: return
+
+        currentState.leaguePayments.forEach { payment ->
+            val amount = payment.amount.toDoubleOrNull() ?: 0.0
+            if (payment.leagueId.isNotEmpty() && amount > 0.0) {
+                val leagueCollection = LeagueCollectionModel(
+                    licenseId = licenseId,
+                    leagueId = payment.leagueId,
+                    amount = amount,
+                    collectionId = collectionId, // Link to collection
+                    payeeId = barId,
+                    method = "CASH_COLLECTION",
+                    userId = userId,
+                    recordedBy = userId
+                )
+                withContext(Dispatchers.IO) {
+                    saveLeagueCollectionUseCase(leagueCollection)
+                }
+            }
+        }
+    }
+
+    fun onDismissLeagueValidation() {
+        _collection.update { it.copy(showLeagueValidationDialog = false) }
     }
 
     fun onSnackbarShown() {

@@ -13,7 +13,7 @@ class SaveCollection (val collectionsRepository: CollectionsRepository) {//machi
         totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
-    ): Boolean {
+    ): String? {
         return collectionsRepository.saveCollection(
             barId,
             barName,

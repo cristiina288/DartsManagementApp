@@ -17,6 +17,8 @@ import org.darts.dartsmanagement.data.characters.ApiService
 import org.darts.dartsmanagement.data.characters.RepositoryImpl
 import org.darts.dartsmanagement.data.collections.CollectionsApiService
 import org.darts.dartsmanagement.data.collections.CollectionsRepositoryImpl
+import org.darts.dartsmanagement.data.leagues.LeaguesApiService
+import org.darts.dartsmanagement.data.leagues.LeaguesRepositoryImpl
 import org.darts.dartsmanagement.data.locations.LocationsApiService
 import org.darts.dartsmanagement.data.locations.LocationsRepositoryImpl
 import org.darts.dartsmanagement.data.machines.MachinesApiService
@@ -32,6 +34,9 @@ import org.darts.dartsmanagement.domain.collections.CollectionsRepository
 import org.darts.dartsmanagement.domain.collections.DeleteCollectionUseCase
 import org.darts.dartsmanagement.domain.collections.GetCollectionsByMachineId
 import org.darts.dartsmanagement.domain.collections.GetCollectionsForMonth
+import org.darts.dartsmanagement.domain.leagues.GetPendingLeaguesForBarUseCase
+import org.darts.dartsmanagement.domain.leagues.LeaguesRepository
+import org.darts.dartsmanagement.domain.leagues.SaveLeagueCollectionUseCase
 import org.darts.dartsmanagement.domain.locations.GetLocation
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.LocationsRepository
@@ -96,6 +101,11 @@ val dataModule = module {
     factoryOf(::GetLocation)
     factoryOf(::UpdateLocation)
 
+    factory { LeaguesApiService(get(), get()) }
+    factory<LeaguesRepository> { LeaguesRepositoryImpl(get()) }
+    factoryOf(::GetPendingLeaguesForBarUseCase)
+    factoryOf(::SaveLeagueCollectionUseCase)
+
     factory { MachinesApiService(get(), get()) }
     factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
     factoryOf(::GetMachines) // Add the GetMachines use case here
@@ -106,7 +116,7 @@ val dataModule = module {
     factoryOf(::UpdateBarMachinesUseCase)
     factoryOf(::DeleteMachineUseCase)
 
-    viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get()) }
+    viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get(), get(), get(), get()) }
     viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
     viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get()) }

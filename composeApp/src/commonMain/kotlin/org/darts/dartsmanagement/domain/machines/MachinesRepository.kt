@@ -15,4 +15,6 @@ interface MachinesRepository {
 
     suspend fun updateMachine(machine: MachineModel)
 
+    suspend fun deleteMachine(machineId: Int): Result<Unit>
+
 }

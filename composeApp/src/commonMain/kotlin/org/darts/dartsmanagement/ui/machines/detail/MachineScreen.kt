@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +45,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -94,12 +97,19 @@ fun MachineScreenContent(
 ) {
     val navigator = LocalNavigator.currentOrThrow
     var showRepairDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val machineViewModel = koinViewModel<MachineViewModel>(
         parameters = { parametersOf(machine) }
     )
     val uiState by machineViewModel.uiState.collectAsState()
     val currentMachine = uiState.machine ?: machine
+
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            navigator.pop()
+        }
+    }
 
     LifecycleResumeEffect(Unit) {
         machineViewModel.onEvent(MachineEvent.OnRefresh)
@@ -121,6 +131,19 @@ fun MachineScreenContent(
             },
             onDismiss = {
                 showRepairDialog = false
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        RepairConfirmationDialog(
+            text = "¿Estás seguro de que deseas eliminar esta máquina? Se desvinculará del bar si está asignada.",
+            onConfirm = {
+                machineViewModel.onEvent(MachineEvent.DeleteMachine)
+                showDeleteDialog = false
+            },
+            onDismiss = {
+                showDeleteDialog = false
             }
         )
     }
@@ -157,8 +180,17 @@ fun MachineScreenContent(
                 fontWeight = FontWeight.Medium
             )
 
-          //  if (currentMachine.status.id == Status.INACTIVE.id
-            //    || currentMachine.status.id == Status.PENDING_REPAIR.id) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(
+                    onClick = { showDeleteDialog = true }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete",
+                        tint = Color.Red.copy(alpha = 0.7f)
+                    )
+                }
+
                 TextButton(
                     onClick = { navigator.push(EditMachineScreen(currentMachine)) }
                 ) {
@@ -168,7 +200,7 @@ fun MachineScreenContent(
                         fontSize = 16.sp
                     )
                 }
-
+            }
         }
         if (uiState.isLoading) {
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())

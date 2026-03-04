@@ -67,6 +67,10 @@ class MachinesApiService(
             data
         )
     }
+
+    suspend fun deleteMachine(machineId: Int) {
+        firestore.deleteDocument("machines", machineId.toString())
+    }
 }
 
 private fun SaveMachineRequest.toMap(): Map<String, Any?> {

@@ -17,6 +17,7 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 import org.darts.dartsmanagement.domain.common.models.Status
 import org.darts.dartsmanagement.domain.machines.MachinesRepository
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
+import org.darts.dartsmanagement.domain.machines.DeleteMachineUseCase
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 class MachineViewModel(
@@ -24,6 +25,7 @@ class MachineViewModel(
     private val getCollectionsByMachineId: GetCollectionsByMachineId,
     private val updateMachineStatusUseCase: UpdateMachineStatusUseCase,
     private val machinesRepository: MachinesRepository,
+    private val deleteMachineUseCase: DeleteMachineUseCase,
     private val getBars: GetBars
 ) : ViewModel() {
 
@@ -58,6 +60,19 @@ class MachineViewModel(
                 }
             }
             MachineEvent.OnRefresh -> refresh()
+            MachineEvent.DeleteMachine -> {
+                viewModelScope.launch {
+                    val machineId = _uiState.value.machine?.id?.toInt() ?: return@launch
+                    _uiState.update { it.copy(isLoading = true) }
+                    deleteMachineUseCase(machineId)
+                        .onSuccess {
+                            _uiState.update { it.copy(isLoading = false, isDeleted = true) }
+                        }
+                        .onFailure { error ->
+                            _uiState.update { it.copy(isLoading = false, error = error.message) }
+                        }
+                }
+            }
         }
     }
 
@@ -104,11 +119,13 @@ data class MachineUiState(
     val machine: MachineModel? = null,
     val collections: List<CollectionModel> = emptyList(),
     val bar: BarModel? = null,
-    val error: String? = null
+    val error: String? = null,
+    val isDeleted: Boolean = false
 )
 
 sealed interface MachineEvent {
     data object ToggleRepairStatus : MachineEvent
     data object OnRefresh : MachineEvent
+    data object DeleteMachine : MachineEvent
 }
 

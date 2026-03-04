@@ -34,6 +34,7 @@ import org.darts.dartsmanagement.domain.locations.GetLocation
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.LocationsRepository
 import org.darts.dartsmanagement.domain.locations.UpdateLocation
+import org.darts.dartsmanagement.domain.machines.DeleteMachineUseCase
 import org.darts.dartsmanagement.domain.machines.GetMachines
 import org.darts.dartsmanagement.domain.machines.MachinesRepository
 import org.darts.dartsmanagement.domain.machines.UpdateMachineStatusUseCase
@@ -92,16 +93,17 @@ val dataModule = module {
     factoryOf(::UpdateLocation)
 
     factory { MachinesApiService(get(), get()) }
-    factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
+    factory<MachinesRepository> { MachinesRepositoryImpl(get(), get()) }
     factoryOf(::GetMachines) // Add the GetMachines use case here
     factoryOf(::UpdateMachineUseCase)
     factoryOf(::UpdateMachineStatusUseCase)
     factoryOf(::GetCollectionsByMachineId)
     factoryOf(::DeleteCollectionUseCase)
     factoryOf(::UpdateBarMachinesUseCase)
+    factoryOf(::DeleteMachineUseCase)
 
     viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get()) }
-    viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get()) }
+    viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
     viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get()) }
     viewModel { parameters -> LocationViewModel(parameters.get(), get(), get()) }

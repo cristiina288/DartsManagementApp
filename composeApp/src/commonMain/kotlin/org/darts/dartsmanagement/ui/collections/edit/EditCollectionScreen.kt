@@ -132,8 +132,9 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
                 fontWeight = FontWeight.Medium
             )
             
+            val machineIds = collection.machinesCollection.map { it.machineId }
             Text(
-                text = "Máquina ID: ${collection.machineId}",
+                text = if (machineIds.size == 1) "Máquina ID: ${machineIds.first()}" else "Máquinas: ${machineIds.joinToString(", ")}",
                 color = TextPrimary,
                 fontSize = 16.sp
             )
@@ -143,12 +144,34 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
             OutlinedTextField(
                 value = uiState.totalCollection,
                 onValueChange = { viewModel.onTotalCollectionChange(it) },
-                label = { Text("Recaudación Total (€)") },
+                label = { Text("Recaudación Total Bruta (€)") },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
             )
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = uiState.totalBarAmount,
+                    onValueChange = { viewModel.onTotalBarAmountChange(it) },
+                    label = { Text("Total Bar (€)") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = textFieldColors(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+
+                OutlinedTextField(
+                    value = uiState.totalBusinessAmount,
+                    onValueChange = { viewModel.onTotalBusinessAmountChange(it) },
+                    label = { Text("Total Empresa (€)") },
+                    modifier = Modifier.weight(1f),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = textFieldColors(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+            }
 
             OutlinedTextField(
                 value = uiState.comments,

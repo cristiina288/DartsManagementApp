@@ -13,6 +13,7 @@ data class CollectionFirestoreResponse(
     val barName: String = "",
     val totalBarAmount: Double = 0.0,
     val totalBusinessAmount: Double = 0.0,
+    val totalCollection: Double = 0.0,
     val comments: String? = "",
     val billingMonth: String? = null,
     val recordedBy: String? = null,

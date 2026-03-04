@@ -12,6 +12,8 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 
 data class EditCollectionUiState(
     val totalCollection: String = "",
+    val totalBarAmount: String = "",
+    val totalBusinessAmount: String = "",
     val comments: String = "",
     val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
@@ -26,13 +28,23 @@ class EditCollectionViewModel(
     private val _uiState = MutableStateFlow(
         EditCollectionUiState(
             totalCollection = initialCollection.totalCollection.toString(),
-            comments = initialCollection.comments ?: ""
+            totalBarAmount = initialCollection.totalBarAmount.toString(),
+            totalBusinessAmount = initialCollection.totalBusinessAmount.toString(),
+            comments = initialCollection.comments
         )
     )
     val uiState = _uiState.asStateFlow()
 
     fun onTotalCollectionChange(value: String) {
         _uiState.update { it.copy(totalCollection = value) }
+    }
+
+    fun onTotalBarAmountChange(value: String) {
+        _uiState.update { it.copy(totalBarAmount = value) }
+    }
+
+    fun onTotalBusinessAmountChange(value: String) {
+        _uiState.update { it.copy(totalBusinessAmount = value) }
     }
 
     fun onCommentsChange(value: String) {
@@ -42,6 +54,8 @@ class EditCollectionViewModel(
     fun save() {
         val currentState = _uiState.value
         val total = currentState.totalCollection.toDoubleOrNull() ?: 0.0
+        val bar = currentState.totalBarAmount.toDoubleOrNull() ?: 0.0
+        val business = currentState.totalBusinessAmount.toDoubleOrNull() ?: 0.0
         
         if (total <= 0) {
             _uiState.update { it.copy(error = "La recaudación debe ser mayor a 0") }
@@ -51,22 +65,23 @@ class EditCollectionViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            // Recalculate business and bar amounts (60/40 as per existing logic)
-            // Note: If there was an extraAmount, we might want to preserve it or let the user edit it.
-            // For now, I'll keep it simple and recalculate based on 60/40 + existing extraAmount
-            val extra = initialCollection.extraAmount
-            val business = total * 0.6 + extra
-            val bar = total * 0.4 - extra
+            val machines = initialCollection.machinesCollection.map {
+                org.darts.dartsmanagement.data.collections.CollectionMachineFirestore(
+                    machineId = it.machineId,
+                    barAmount = it.barAmount,
+                    businessAmount = it.businessAmount,
+                    totalCollection = it.totalCollection
+                )
+            }
 
-            val amounts = CollectionAmountsModel(
+            updateCollectionUseCase(
+                collectionId = initialCollection.id,
+                comments = currentState.comments,
+                totalBarAmount = bar,
+                totalBusinessAmount = business,
                 totalCollection = total,
-                barAmount = bar,
-                businessAmount = business,
-                extraAmount = extra,
-                barPayment = 0.0 // Assuming not used or preserved
+                machines = machines
             )
-
-            updateCollectionUseCase(initialCollection.id, amounts, currentState.comments)
                 .onSuccess {
                     _uiState.update { it.copy(isLoading = false, saveSuccess = true) }
                 }

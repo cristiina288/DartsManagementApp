@@ -300,9 +300,26 @@ fun CollectionAccordionItem(
                         fontWeight = FontWeight.Bold
                     )
                 }
-                Column {
-                    Text(text = "${collection.barName}, Máquina #${collection.machineId}", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-                    Text(text = "${collection.totalCollection.formatCurrency()} €", color = TextSecondary, fontSize = 14.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = collection.barName,
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    val machineIds = collection.machinesCollection.map { it.machineId }
+                    val machinesLabel = if (machineIds.size == 1) {
+                        "Máquina #${machineIds.first()}"
+                    } else {
+                        "${machineIds.size} máquinas: ${machineIds.joinToString(", ") { "#$it" }}"
+                    }
+                    Text(
+                        text = machinesLabel,
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                        lineHeight = 16.sp
+                    )
+                    Text(text = "${collection.totalCollection.formatCurrency()} €", color = PrimaryAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 }
             }
             Icon(
@@ -327,11 +344,11 @@ fun CollectionAccordionItem(
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Parte Bar:", color = TextPrimary, fontSize = 14.sp)
-                    Text("${collection.barAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("${collection.totalBarAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Parte Empresa:", color = TextPrimary, fontSize = 14.sp)
-                    Text("${collection.businessAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                    Text("${collection.totalBusinessAmount.formatCurrency()} €", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 }
                 
                 Row(

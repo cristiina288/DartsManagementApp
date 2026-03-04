@@ -53,6 +53,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
         *   `barName`: (String)
         *   `totalBarAmount`: (Number)
         *   `totalBusinessAmount`: (Number)
+        *   `totalCollection`: (Number)
         *   `comments`: (String)
         *   `createdAt`: (Timestamp)
         *   `billingMonth`: (String: "yyyy-MM")

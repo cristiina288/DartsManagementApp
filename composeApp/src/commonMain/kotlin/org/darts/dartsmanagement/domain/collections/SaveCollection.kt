@@ -10,6 +10,7 @@ class SaveCollection (val collectionsRepository: CollectionsRepository) {//machi
         comments: String,
         totalBarAmount: Double,
         totalBusinessAmount: Double,
+        totalCollection: Double,
         machines: List<org.darts.dartsmanagement.data.collections.CollectionMachineFirestore>,
         machineCounters: Map<String, Int>
     ): Boolean {
@@ -19,6 +20,7 @@ class SaveCollection (val collectionsRepository: CollectionsRepository) {//machi
             comments,
             totalBarAmount,
             totalBusinessAmount,
+            totalCollection,
             machines,
             machineCounters
         )

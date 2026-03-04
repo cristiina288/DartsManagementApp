@@ -106,20 +106,25 @@ class HistorialCollectionsViewModel(
             val barsMap = allBars.associateBy { it.id }
 
             // Grouping logic: Year-Month and MachineId
-            val groupedData = collections
-                .mapNotNull { collection ->
-                    val machine = machinesMap[collection.machineId]
+            // One collection can have multiple machines, so we flatten them for the machine-based report
+            val flattenedEntries = collections.flatMap { collection ->
+                collection.machinesCollection.mapNotNull { machineEntry ->
+                    val machine = machinesMap[machineEntry.machineId]
                     if (machine != null) {
                         val bar = barsMap[machine.barId]
                         val dateTime = Instant.fromEpochMilliseconds(collection.createdAt)
                             .toLocalDateTime(TimeZone.currentSystemDefault())
                         
                         val monthKey = "${dateTime.year}-${dateTime.monthNumber}"
-                        val machineKey = collection.machineId
+                        val machineKey = machineEntry.machineId
                         
-                        Triple(monthKey, machineKey, Pair(collection, machine to bar))
+                        // We store: collection-level data, machine-specific amounts, and machine/bar info
+                        Triple(monthKey, machineKey, Triple(collection, machineEntry, machine to bar))
                     } else null
                 }
+            }
+
+            val groupedData = flattenedEntries
                 .groupBy { it.first } // Group by Month
                 .mapValues { monthGroup ->
                     monthGroup.value.groupBy { it.second } // Group by Machine within Month
@@ -138,13 +143,20 @@ class HistorialCollectionsViewModel(
                     // Sort collections by date within the month
                     val sortedEntries = machineEntries.map { it.third }.sortedBy { it.first.createdAt }
                     
-                    val firstCollection = sortedEntries.getOrNull(0)?.first
-                    val secondCollection = sortedEntries.getOrNull(1)?.first
-                    val machineInfo = sortedEntries.first().second.first
-                    val barInfo = sortedEntries.first().second.second
+                    val firstEntry = sortedEntries.getOrNull(0)
+                    val secondEntry = sortedEntries.getOrNull(1)
 
-                    val r1Total = firstCollection?.totalCollection ?: 0.0
-                    val r2Total = secondCollection?.totalCollection ?: 0.0
+                    val firstCollection = firstEntry?.first
+                    val firstMachineEntry = firstEntry?.second
+
+                    val secondCollection = secondEntry?.first
+                    val secondMachineEntry = secondEntry?.second
+
+                    val machineInfo = firstEntry!!.third.first
+                    val barInfo = firstEntry.third.second
+
+                    val r1Total = firstMachineEntry?.totalCollection ?: 0.0
+                    val r2Total = secondMachineEntry?.totalCollection ?: 0.0
                     val totalR1R2 = r1Total + r2Total
                     val companyPercentage = totalR1R2 * 0.6
 

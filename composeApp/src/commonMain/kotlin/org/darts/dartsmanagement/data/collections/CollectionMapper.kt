@@ -14,6 +14,7 @@ fun CollectionFirestoreResponse.toDomain(collectionId: String, barName: String):
         barName = this.barName.ifBlank { barName },
         totalBarAmount = totalBarAmount,
         totalBusinessAmount = totalBusinessAmount,
+        totalCollection = totalCollection,
         comments = comments ?: "",
         billingMonth = billingMonth ?: "",
         recordedBy = recordedBy ?: "",

@@ -12,6 +12,7 @@ data class CollectionModel(
     val barName: String,
     val totalBarAmount: Double,
     val totalBusinessAmount: Double,
+    val totalCollection: Double,
     val comments: String,
     val billingMonth: String,
     val recordedBy: String,

@@ -14,8 +14,8 @@ data class MachineFirestoreResponse(
     val last_collection: Timestamp? = null,
     val counter: Int? = null,
     val barId: String? = null, // Assuming barId will be a String (document ID) in Firestore
-    val status: StatusResponse? = null,
-    val license_id: String = ""
+    val status: String = "active",
+    val licenseId: String = ""
 ) {
     fun toDomain(): MachineModel {
         return MachineModel(
@@ -23,7 +23,7 @@ data class MachineFirestoreResponse(
             name = name,
             counter = counter,
             barId = barId, 
-            status = status?.toDomain() ?: StatusResponse(id = 0).toDomain()
+            status = status
         )
     }
 
@@ -33,7 +33,7 @@ data class MachineFirestoreResponse(
             name = name,
             counter = counter,
             barId = barId, // Convert String barId to Int?
-            status = status ?: StatusResponse(id = 0) // Default status if null
+            status = status
         )
     }
 }

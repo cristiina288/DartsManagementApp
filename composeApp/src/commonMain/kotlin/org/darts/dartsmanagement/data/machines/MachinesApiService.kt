@@ -16,7 +16,7 @@ class MachinesApiService(
     suspend fun getMachines(): List<MachineResponse> {
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()
-            val machineDocs = firestore.getDocuments("machines", "license_id", licenseId)
+            val machineDocs = firestore.getDocuments("machines", "licenseId", licenseId)
             machineDocs.map { doc ->
                 doc.data<MachineFirestoreResponse>().copy(id = doc.id).toMachineResponse()
             }
@@ -31,8 +31,8 @@ class MachinesApiService(
         val doc = firestore.getDocument("machines", machineId.toString()) ?: throw NoSuchElementException("Machine with ID $machineId not found.")
         val machineData = doc.data<MachineFirestoreResponse>().copy(id = doc.id)
         
-        // Security check: Verify license_id
-        if (machineData.license_id != licenseId) {
+        // Security check: Verify licenseId
+        if (machineData.licenseId != licenseId) {
             throw IllegalStateException("You do not have permission to access this machine.")
         }
         
@@ -43,12 +43,13 @@ class MachinesApiService(
     suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest) {
         val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
         val data = saveMachineRequest.toMap().toMutableMap()
-        data["license_id"] = licenseId
+        data["licenseId"] = licenseId
+        data["status"] = saveMachineRequest.status
         firestore.setDocument("machines", serialNumber, data)
     }
 
     suspend fun updateMachineStatus(machineId: Int, statusId: Int) {
-        val data = mapOf("status.id" to statusId)
+        val data = mapOf("status" to mapStatusIdToString(statusId))
         firestore.updateDocumentFields("machines", machineId.toString(), data)
     }
 
@@ -58,14 +59,23 @@ class MachinesApiService(
             "name" to machine.name,
             "counter" to machine.counter,
             "barId" to machine.barId,
-            "status.id" to machine.status.id,
-            "license_id" to licenseId
+            "status" to machine.status,
+            "licenseId" to licenseId
         )
         firestore.updateDocument(
             "machines",
             machine.id.toString(),
             data
         )
+    }
+
+    private fun mapStatusIdToString(statusId: Int): String {
+        return when (statusId) {
+            1 -> "active"
+            2 -> "inactive"
+            3 -> "pending repair"
+            else -> "active"
+        }
     }
 
     suspend fun deleteMachine(machineId: Int) {

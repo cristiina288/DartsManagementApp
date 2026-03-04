@@ -14,9 +14,7 @@ class UpdateMachineUseCase(
 
         // 1. Update machine status based on bar assignment
         val machineToUpdate = updatedMachine.copy(
-            status = updatedMachine.status.copy(
-                id = if (newBarId.isNullOrEmpty()) Status.INACTIVE.id else Status.ACTIVE.id
-            )
+            status = if (newBarId.isNullOrEmpty()) "inactive" else "active"
         )
 
         // 2. Perform the machine update

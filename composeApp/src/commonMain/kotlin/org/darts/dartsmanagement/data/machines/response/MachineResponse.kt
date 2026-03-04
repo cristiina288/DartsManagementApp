@@ -12,7 +12,7 @@ data class MachineResponse (
     val name: String?,
     val counter: Int?,
     val barId: String?,
-    val status: StatusResponse
+    val status: String
 ) {
     fun toDomain(): MachineModel {
         return MachineModel(
@@ -20,7 +20,7 @@ data class MachineResponse (
             name = name,
             counter = counter,
             barId = barId,
-            status = status.toDomain()
+            status = status
         )
     }
 }

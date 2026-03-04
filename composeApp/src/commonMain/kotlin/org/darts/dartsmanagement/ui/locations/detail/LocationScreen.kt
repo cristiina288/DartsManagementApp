@@ -120,6 +120,15 @@ fun LocationScreenContent(
                     color = TextSecondaryDark,
                     fontSize = 16.sp
                 )
+                currentLocation.province?.let { province ->
+                    if (province.isNotBlank()) {
+                        Text(
+                            text = "Provincia: $province",
+                            color = TextSecondaryDark,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
 
             item {

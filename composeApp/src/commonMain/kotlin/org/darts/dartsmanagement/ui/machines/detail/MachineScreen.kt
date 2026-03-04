@@ -116,7 +116,7 @@ fun MachineScreenContent(
         onPauseOrDispose { }
     }
 
-    val text = if (currentMachine.status.id == Status.PENDING_REPAIR.id) {
+    val text = if (currentMachine.status == "pending repair") {
         "¿Ya tienes la máquina reparada y la quieres marcar como 'inactiva'?"
     } else {
         "¿Enviar máquina a 'reparación'?"
@@ -228,9 +228,9 @@ fun MachineScreenContent(
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         MachineStatusTag(
-                            status = currentMachine.status.toStatus,
+                            status = currentMachine.status,
                             onClick = {
-                                if (currentMachine.status.id != Status.ACTIVE.id) {
+                                if (currentMachine.status != "active") {
                                     showRepairDialog = true
                                 }
                             }
@@ -291,12 +291,12 @@ fun MachineScreenContent(
 }
 
 @Composable
-fun MachineStatusTag(status: Status, onClick: () -> Unit = {}) {
-    val (statusText, backgroundColor, textColor) = when (status) {
-        Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
-        Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-        Status.INACTIVE -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
-        Status.PENDING_REPAIR -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+fun MachineStatusTag(status: String, onClick: () -> Unit = {}) {
+    val (statusText, backgroundColor, textColor) = when (status.lowercase()) {
+        "active" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+        "inactive" -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
+        "pending repair" -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+        else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
     }
 
     Box(

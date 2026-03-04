@@ -4,11 +4,8 @@ import org.darts.dartsmanagement.data.bars.requests.SaveBarRequest
 import org.darts.dartsmanagement.domain.bars.BarsRepository
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 
-import org.darts.dartsmanagement.domain.machines.MachinesRepository
-
 class BarsRepositoryImpl(
-    private val api: BarsApiService,
-    private val machinesRepository: MachinesRepository
+    private val api: BarsApiService
 ): BarsRepository {
 
     override suspend fun getBars(): List<BarModel> {
@@ -21,7 +18,7 @@ class BarsRepositoryImpl(
         }
     }
 
-    override suspend fun saveBar(saveBarRequest: SaveBarRequest) {
+    override suspend fun saveBar(saveBarRequest: SaveBarRequest): String {
         return api.saveBar(saveBarRequest)
     }
 
@@ -39,20 +36,7 @@ class BarsRepositoryImpl(
 
     override suspend fun deleteBar(barId: String): Result<Unit> {
         return runCatching {
-            // 1. Get bar details to check for assigned machines
-            val bar = api.getBar(barId).toDomain()
-            val machineIds = bar.machines.mapNotNull { it.id }
-
-            // 2. Delete the bar
             api.deleteBar(barId)
-
-            // 3. If it had machines, disassociate them
-            machineIds.forEach { machineId ->
-                machinesRepository.getMachine(machineId).onSuccess { machine ->
-                    val updatedMachine = machine.copy(barId = "")
-                    machinesRepository.updateMachine(updatedMachine)
-                }
-            }
         }
     }
 }

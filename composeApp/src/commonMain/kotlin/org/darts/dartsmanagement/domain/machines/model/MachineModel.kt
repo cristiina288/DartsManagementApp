@@ -8,5 +8,5 @@ data class MachineModel (
     val name: String?,
     val counter: Int?,
     val barId: String?,
-    val status: StatusModel
+    val status: String
 )

@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -81,7 +82,7 @@ private fun LocationsListingScreenContent() {
                 .padding(padding)
         ) {
             // Search Bar
-            SearchBar(
+            LocationSearchBar(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -93,10 +94,11 @@ private fun LocationsListingScreenContent() {
             ) {
                 val filteredLocations = locations?.filter {
                     it?.name?.contains(searchQuery, ignoreCase = true) == true ||
-                            it?.postalCode?.contains(searchQuery, ignoreCase = true) == true
+                            it?.postalCode?.contains(searchQuery, ignoreCase = true) == true ||
+                            it?.province?.contains(searchQuery, ignoreCase = true) == true
                 } ?: emptyList()
 
-                items(filteredLocations, key = { it?.id ?: 0 }) { location ->
+                items(filteredLocations, key = { it?.id ?: "" }) { location ->
                     location?.let {
                         LocationListItem(location = it, onClick = {
                             navigator.push(LocationScreen(location))
@@ -109,7 +111,7 @@ private fun LocationsListingScreenContent() {
 }
 
 @Composable
-fun SearchBar(
+private fun LocationSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -143,9 +145,8 @@ fun SearchBar(
     )
 }
 
-
 @Composable
-fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
+private fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,8 +186,16 @@ fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
                     maxLines = 1
                 )
                 Spacer(Modifier.height(2.dp))
+                val subtitle = buildString {
+                    append(location.postalCode)
+                    location.province?.let {
+                        if (it.isNotBlank()) {
+                            append(", $it")
+                        }
+                    }
+                }
                 Text(
-                    text = "${location.postalCode}",
+                    text = subtitle,
                     color = TextSecondaryDark,
                     fontSize = 14.sp,
                     maxLines = 1
@@ -219,16 +228,12 @@ fun LocationListItem(location: LocationModel, onClick: () -> Unit) {
 private fun TopBar() {
     val navigator = LocalNavigator.currentOrThrow
 
-    // The original HTML has a blank space and then the title,
-    // which is a common pattern when not using a traditional TopAppBar.
-    // Here we'll just use a Column with padding.
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // This spacer mimics the empty area above the title in the HTML design.
         IconButton(onClick = { navigator.pop() }) {
             Icon(
                 imageVector = Icons.Default.ArrowBack,

@@ -16,8 +16,8 @@ class LocationsApiService(
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()
             
-            // Fetch documents from the 'locations' collection filtered by license_id
-            val locationDocs = firestore.getDocuments("locations", "license_id", licenseId)
+            // Fetch documents from the 'locations' collection filtered by licenseId
+            val locationDocs = firestore.getDocuments("locations", "licenseId", licenseId)
             val allLocations = locationDocs.map { doc ->
                 doc.data<LocationFirestoreResponse>().copy(id = doc.id)
             }
@@ -35,7 +35,8 @@ class LocationsApiService(
             val locationData = mapOf(
                 "name" to saveLocationRequest.name,
                 "postalCode" to saveLocationRequest.postalCode,
-                "license_id" to licenseId
+                "province" to saveLocationRequest.province,
+                "licenseId" to licenseId
             )
             firestore.addDocument("locations", locationData)
         } catch (e: Exception) {
@@ -51,7 +52,8 @@ class LocationsApiService(
             val locationData = mapOf(
                 "name" to saveLocationRequest.name,
                 "postalCode" to saveLocationRequest.postalCode,
-                "license_id" to licenseId
+                "province" to saveLocationRequest.province,
+                "licenseId" to licenseId
             )
             firestore.updateDocument("locations", locationId, locationData)
         } catch (e: Exception) {

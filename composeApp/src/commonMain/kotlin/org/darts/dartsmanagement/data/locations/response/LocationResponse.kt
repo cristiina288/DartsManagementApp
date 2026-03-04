@@ -6,15 +6,17 @@ import org.darts.dartsmanagement.domain.locations.model.LocationModel
 
 @Serializable
 data class LocationResponse (
-    val id: Int?,
+    val id: String?,
     val name: String?,
-    val postalCode: String?
+    val postalCode: String?,
+    val province: String? = null
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(
-            id = id.toString(), //todo pending delete this
+            id = id,
             name = name,
             postalCode = postalCode,
+            province = province,
             bars = emptyList()
         )
     }

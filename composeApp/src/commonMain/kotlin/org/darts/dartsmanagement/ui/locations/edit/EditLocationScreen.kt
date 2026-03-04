@@ -164,6 +164,16 @@ fun EditLocationScreenContent(location: LocationModel) {
                 colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
             )
+
+            OutlinedTextField(
+                value = uiState.province,
+                onValueChange = { editLocationViewModel.onEvent(EditLocationEvent.OnProvinceChanged(it)) },
+                label = { Text("Provincia") },
+                placeholder = { Text("Ej. Barcelona") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
+            )
         }
     }
 }

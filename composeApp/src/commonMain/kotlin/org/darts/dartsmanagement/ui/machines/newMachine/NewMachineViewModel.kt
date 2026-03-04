@@ -75,23 +75,26 @@ class NewMachineViewModel(
             try {
                 val currentUiState = _uiState.value
                 if (currentUiState.serialNumber.isBlank()) {
-                    _uiState.update { it.copy(error = "Serial Number cannot be empty", isLoading = false) }
+                    _uiState.update { it.copy(error = "Número de Serie no puede estar vacío", isLoading = false) }
+                    return@launch
+                }
+                if (currentUiState.serialNumber.toIntOrNull() == null) {
+                    _uiState.update { it.copy(error = "El número de serie debe ser numérico", isLoading = false) }
                     return@launch
                 }
                 if (currentUiState.name.isBlank()) {
-                    _uiState.update { it.copy(error = "Machine name cannot be empty", isLoading = false) }
+                    _uiState.update { it.copy(error = "Nombre de máquina no puede estar vacío", isLoading = false) }
                     return@launch
                 }
 
 
-                val statusId = if (currentUiState.selectedBarId != null) 1 else 2
-                val statusMap = mapOf("id" to statusId)
+                val status = if (currentUiState.selectedBarId != null) "active" else "inactive"
 
                 val request = SaveMachineRequest(
                     name = currentUiState.name,
                     counter = currentUiState.counter.toIntOrNull(),
                     barId = currentUiState.selectedBarId,
-                    status = statusMap
+                    status = status
                 )
 
                 withContext(Dispatchers.IO) {

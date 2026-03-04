@@ -220,13 +220,17 @@ private fun BarScreenContent(barId: String) {
 
 @Composable
 private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -> Unit) {
-    val status = machine.status.toStatus // Use the extension property
+    val status = machine.status // Use the extension property
 
     val (statusText, backgroundColor, textColor) = when (status) {
-        Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
-        Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-        Status.INACTIVE -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
-        Status.PENDING_REPAIR -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+        //Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+        //Status.ACTIVE
+             "active" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+        //Status.INACTIVE
+        "inactive" -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
+        //Status.PENDING_REPAIR
+             "pending repair" -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+        else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
     }
 
     Card(

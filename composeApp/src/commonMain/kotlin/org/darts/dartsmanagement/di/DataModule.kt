@@ -25,6 +25,7 @@ import org.darts.dartsmanagement.domain.auth.AuthRepository
 import org.darts.dartsmanagement.domain.bars.BarsRepository
 import org.darts.dartsmanagement.domain.bars.DeleteBarUseCase
 import org.darts.dartsmanagement.domain.bars.GetBars
+import org.darts.dartsmanagement.domain.bars.SaveBar
 import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.characters.Repository
 import org.darts.dartsmanagement.domain.collections.CollectionsRepository
@@ -78,8 +79,9 @@ val dataModule = module {
 
 
     factory { BarsApiService(get(), get()) }
-    factory<BarsRepository> { BarsRepositoryImpl(get(), get()) }
+    factory<BarsRepository> { BarsRepositoryImpl(get()) }
     factoryOf(::GetBars) // Add the GetBars use case here
+    factoryOf(::SaveBar)
     factoryOf(::DeleteBarUseCase)
 
 
@@ -95,7 +97,7 @@ val dataModule = module {
     factoryOf(::UpdateLocation)
 
     factory { MachinesApiService(get(), get()) }
-    factory<MachinesRepository> { MachinesRepositoryImpl(get(), get()) }
+    factory<MachinesRepository> { MachinesRepositoryImpl(get()) }
     factoryOf(::GetMachines) // Add the GetMachines use case here
     factoryOf(::UpdateMachineUseCase)
     factoryOf(::UpdateMachineStatusUseCase)

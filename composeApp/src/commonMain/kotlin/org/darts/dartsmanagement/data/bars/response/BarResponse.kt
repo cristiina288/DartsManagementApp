@@ -14,7 +14,8 @@ data class BarResponse (
     val description: String,
     val machines: List<MachineResponse>,
     val location: BarLocationResponse,
-    val status: StatusResponse
+    val status: String,
+    val licenseId: String = ""
 ) {
     fun toDomain(): BarModel {
         return BarModel(
@@ -23,7 +24,8 @@ data class BarResponse (
             description = description,
             machines = machines.map { it.toDomain() },
             location = location.toDomain(),
-            status = status.toDomain()
+            status = status,
+            licenseId = licenseId
         )
     }
 }

@@ -14,6 +14,7 @@ import org.darts.dartsmanagement.domain.locations.SaveLocation
 sealed interface NewLocationEvent {
     data class OnNameChanged(val name: String) : NewLocationEvent
     data class OnPostalCodeChanged(val postalCode: String) : NewLocationEvent
+    data class OnProvinceChanged(val province: String) : NewLocationEvent
     data object OnSaveTapped : NewLocationEvent
 }
 
@@ -28,6 +29,7 @@ class NewLocationViewModel(
         when (event) {
             is NewLocationEvent.OnNameChanged -> _uiState.update { it.copy(name = event.name) }
             is NewLocationEvent.OnPostalCodeChanged -> _uiState.update { it.copy(postalCode = event.postalCode) }
+            is NewLocationEvent.OnProvinceChanged -> _uiState.update { it.copy(province = event.province) }
             is NewLocationEvent.OnSaveTapped -> saveLocation()
         }
     }
@@ -39,7 +41,8 @@ class NewLocationViewModel(
 
             val request = SaveLocationRequest(
                 name = currentState.name,
-                postalCode = currentState.postalCode
+                postalCode = currentState.postalCode,
+                province = currentState.province
             )
 
             try {

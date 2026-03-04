@@ -160,6 +160,16 @@ fun NewLocationScreenContent() {
                 colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
             )
+
+            OutlinedTextField(
+                value = uiState.province,
+                onValueChange = { newLocationViewModel.onEvent(NewLocationEvent.OnProvinceChanged(it)) },
+                label = { Text("Provincia") },
+                placeholder = { Text("Ej. Barcelona") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors(),
+                shape = RoundedCornerShape(8.dp)
+            )
         }
     }
 }

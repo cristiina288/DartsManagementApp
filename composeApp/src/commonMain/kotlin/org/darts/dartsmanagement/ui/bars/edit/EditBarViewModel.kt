@@ -130,7 +130,7 @@ class EditBarViewModel(
                 longitude = currentState.longitude.toDoubleOrNull() ?: 0.0,
                 locationBarUrl = currentState.locationBarUrl,
                 machineIds = currentState.selectedMachineIds.map { it.toLong() },
-                statusId = 1 // Default or from existing bar if needed
+                status = currentState.bar?.status ?: "active"
             )
 
             updateBarMachinesUseCase(currentBarId, request)

@@ -11,7 +11,8 @@ data class BarModel (
     val description: String,
     val machines: List<MachineModel>,
     val location: BarLocationDetails,
-    val status: StatusModel
+    val status: String,
+    val licenseId: String = ""
 )
 
 data class BarLocationDetails (

@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SaveLocationRequest(
     val name: String,
-    val postalCode: String
+    val postalCode: String,
+    val province: String
 )

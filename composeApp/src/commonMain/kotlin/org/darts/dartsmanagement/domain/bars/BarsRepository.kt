@@ -9,7 +9,7 @@ interface BarsRepository {
 
     suspend fun getBar(barId: String): Result<BarModel>
 
-    suspend fun saveBar(saveBarRequest: SaveBarRequest)
+    suspend fun saveBar(saveBarRequest: SaveBarRequest): String
 
     suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest): Result<Unit>
 

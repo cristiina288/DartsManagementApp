@@ -36,8 +36,6 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
-import org.darts.dartsmanagement.domain.common.models.Status
-import org.darts.dartsmanagement.domain.common.models.toStatus
 import org.darts.dartsmanagement.ui.machines.listing.MachinesUiModel
 
 // New Color Palette
@@ -95,7 +93,7 @@ private fun MachinesListingScreenContent() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            SearchBar(
+            MachineSearchBar(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
@@ -110,7 +108,7 @@ private fun MachinesListingScreenContent() {
                             it.barName?.contains(searchQuery, ignoreCase = true) == true
                 } ?: emptyList()
 
-                items(filteredMachines, key = { it.machine.id ?: 0 }) { machinesUiModel ->
+                items(filteredMachines, key = { it.machine.id?.toString() ?: "" }) { machinesUiModel ->
                     MachineListItem(machineDisplayModel = machinesUiModel, onClick = {
                         navigator.push(MachineScreen(machinesUiModel.machine))
                     })
@@ -121,7 +119,7 @@ private fun MachinesListingScreenContent() {
 }
 
 @Composable
-fun SearchBar(
+private fun MachineSearchBar(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -217,13 +215,13 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
 
             Spacer(Modifier.width(16.dp))
 
-            val status = machineDisplayModel.machine.status.toStatus // Use the extension property
+            val status = machineDisplayModel.machine.status
 
-            val (statusText, backgroundColor, textColor) = when (status) {
-                Status.UNDEFINED -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
-                Status.ACTIVE -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-                Status.INACTIVE -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
-                Status.PENDING_REPAIR -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
+            val (statusText, backgroundColor, textColor) = when (status.lowercase()) {
+                "active" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+                "inactive" -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
+                "pending repair" -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
+                else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
             }
 
             Box(

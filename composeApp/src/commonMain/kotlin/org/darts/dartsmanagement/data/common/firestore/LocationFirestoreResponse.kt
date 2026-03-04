@@ -7,26 +7,28 @@ import org.darts.dartsmanagement.domain.locations.model.LocationModel
 @Serializable
 data class LocationFirestoreResponse(
     val id: String = "", // Firestore document ID
-    val address: String = "",
-    val city: String = "",
     val name: String? = null,
     val postalCode: String? = null,
-    val license_id: String = ""
+    val province: String? = null,
+    val licenseId: String = ""
 ) {
     fun toDomain(): LocationModel {
         return LocationModel(
             id = id,
             name = name,
             postalCode = postalCode,
+            province = province,
+            licenseId = licenseId,
             bars = emptyList()
         )
     }
 
     fun toLocationResponse(): LocationResponse {
         return LocationResponse(
-            id = null,
+            id = id,
             name = name,
-            postalCode = postalCode
+            postalCode = postalCode,
+            province = province
         )
     }
 }

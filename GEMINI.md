@@ -25,7 +25,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
 
 *   **`licenses` Collection:**
     *   Document ID: `license_123`
-    *   Fields: `businessName` (String), `expiredAt` (Timestamp), `status` (String: "active", "inactive")
+    *   Fields: `businessName` (String), `expiredAt` (Timestamp), `status` (String: "ACTIVE", "INACTIVE")
 
 *   **`users` Collection:**
     *   Document ID: Firebase Authentication UID
@@ -35,20 +35,20 @@ This section outlines the strategy and current state of integrating Firebase Fir
     *   Document ID: User-provided (e.g., Machine ID "101")
     *   Fields:
         *   `licenseId`: (String)
-        *   `status`: (String: "active", "inactive", "pending repair")
+        *   `status`: (String: "ACTIVE", "INACTIVE", "PENDING_REPAIR")
         *   `barId`: (String)
         *   `counter`: (Number)
         *   `name`: (String)
 
 *   **`monthStatus` Collection:**
     *   Document ID: `licenseId + "_" + yyyy-MM` (e.g., `license1518_2026-02`)
-    *   Fields: `licenseId` (String), `status` (String: "open" or "closed")
+    *   Fields: `licenseId` (String), `status` (String: "OPEN" or "CLOSED")
 
 *   **`collections` Collection:**
     *   Document ID: Auto-generated
     *   Fields:
         *   `licenseId`: (String)
-        *   `status`: (String: "active", "delete")
+        *   `status`: (String: "ACTIVE", "DELETED")
         *   `barId`: (String)
         *   `barName`: (String)
         *   `totalBarAmount`: (Number)
@@ -76,7 +76,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
     *   Document ID: Auto-generated
     *   Fields:
         *   `licenseId`: (String)
-        *   `status`: (String)
+        *   `status`: (String: "ACTIVE", "INACTIVE")
         *   `name`: (String)
         *   `machineIds`: (Array of Numbers)
         *   `location`: (Map)
@@ -91,9 +91,9 @@ This section outlines the strategy and current state of integrating Firebase Fir
     *   Fields:
         *   `licenseId`: (String)
         *   `name`: (String)
-        *   `ownerPayment`: (String: "BAR" or "TEAM")
+        *   `ownerPayment`: (String: "BAR", "TEAM")
         *   `price`: (Number)
-        *   `priceType`: (String: "fixed", "per_player", etc.)
+        *   `priceType`: (String: "PER_TEAM", "PER_PLAYER")
         *   `bars`: (Array of Maps)
             *   `barId`: (String)
             *   `barFinances`: (Map)
@@ -104,7 +104,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
             *   `teams`: (Array of Maps)
                 *   `teamId`: (String)
                 *   `teamName`: (String)
-                *   `players`: (Number) - Optional, required when priceType = per_player
+                *   `players`: (Number) - Optional, required when priceType = PER_PLAYER
                 *   `teamFinances`: (Map)
                     *   `totalAmountToPay`: (Number)
                     *   `amountPaid`: (Number)
@@ -115,7 +115,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
     *   Document ID: Auto-generated
     *   Fields:
         *   `licenseId`: (String)
-        *   `status`: (String: "active", "delete")
+        *   `status`: (String: "ACTIVE", "DELETED")
         *   `leagueId`: (String)
         *   `amount`: (Number)
         *   `collectionId`: (String)

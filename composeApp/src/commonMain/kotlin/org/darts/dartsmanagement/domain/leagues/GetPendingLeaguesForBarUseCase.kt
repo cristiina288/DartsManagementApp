@@ -8,7 +8,7 @@ class GetPendingLeaguesForBarUseCase(
     suspend operator fun invoke(barId: String): List<LeagueModel> {
         val allLeagues = leaguesRepository.getLeagues()
         return allLeagues.filter { league ->
-            league.paymentType == "BAR" && 
+            league.ownerPayment == "BAR" && 
             league.bars.any { bar -> bar.barId == barId && bar.barFinances.paymentStatus == "PENDING" }
         }
     }

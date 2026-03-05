@@ -8,9 +8,9 @@ class SaveLeagueCollectionUseCase(
     suspend operator fun invoke(leagueCollection: LeagueCollectionModel): String {
         val collectionId = leaguesRepository.saveLeagueCollection(leagueCollection)
         if (collectionId.isNotEmpty()) {
-            leaguesRepository.updateLeagueBarFinances(
+            leaguesRepository.updateLeagueFinances(
                 leagueId = leagueCollection.leagueId,
-                barId = leagueCollection.payeeId,
+                payeeId = leagueCollection.payeeId,
                 amountPaid = leagueCollection.amount
             )
         }

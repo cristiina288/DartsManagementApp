@@ -6,5 +6,5 @@ import org.darts.dartsmanagement.domain.leagues.models.LeagueModel
 interface LeaguesRepository {
     suspend fun getLeagues(): List<LeagueModel>
     suspend fun saveLeagueCollection(leagueCollection: LeagueCollectionModel): String
-    suspend fun updateLeagueBarFinances(leagueId: String, barId: String, amountPaid: Double)
+    suspend fun updateLeagueFinances(leagueId: String, payeeId: String, amountPaid: Double)
 }

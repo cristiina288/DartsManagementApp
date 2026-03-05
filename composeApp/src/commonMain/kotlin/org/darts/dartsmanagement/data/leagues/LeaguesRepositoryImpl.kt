@@ -12,6 +12,6 @@ class LeaguesRepositoryImpl(
     override suspend fun saveLeagueCollection(leagueCollection: LeagueCollectionModel): String = 
         api.saveLeagueCollection(leagueCollection)
 
-    override suspend fun updateLeagueBarFinances(leagueId: String, barId: String, amountPaid: Double) = 
-        api.updateLeagueBarFinances(leagueId, barId, amountPaid)
+    override suspend fun updateLeagueFinances(leagueId: String, payeeId: String, amountPaid: Double) = 
+        api.updateLeagueFinances(leagueId, payeeId, amountPaid)
 }

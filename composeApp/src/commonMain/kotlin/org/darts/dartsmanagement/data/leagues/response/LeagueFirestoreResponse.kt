@@ -12,8 +12,9 @@ data class LeagueFirestoreResponse(
     val id: String = "",
     val licenseId: String = "",
     val name: String = "",
-    val paymentType: String = "",
-    val feePerTeam: Double = 0.0,
+    val ownerPayment: String = "",
+    val price: Double = 0.0,
+    val priceType: String = "",
     val bars: List<LeagueBarFirestoreResponse> = emptyList()
 ) {
     fun toDomain(): LeagueModel {
@@ -21,8 +22,9 @@ data class LeagueFirestoreResponse(
             id = id,
             licenseId = licenseId,
             name = name,
-            paymentType = paymentType,
-            feePerTeam = feePerTeam,
+            ownerPayment = ownerPayment,
+            price = price,
+            priceType = priceType,
             bars = bars.map { it.toDomain() }
         )
     }
@@ -64,12 +66,14 @@ data class LeagueBarFinancesFirestoreResponse(
 data class LeagueTeamFirestoreResponse(
     val teamId: String = "",
     val teamName: String = "",
+    val players: Int? = null,
     val teamFinances: LeagueTeamFinancesFirestoreResponse = LeagueTeamFinancesFirestoreResponse()
 ) {
     fun toDomain(): LeagueTeamModel {
         return LeagueTeamModel(
             teamId = teamId,
             teamName = teamName,
+            players = players,
             teamFinances = teamFinances.toDomain()
         )
     }
@@ -77,12 +81,14 @@ data class LeagueTeamFirestoreResponse(
 
 @Serializable
 data class LeagueTeamFinancesFirestoreResponse(
+    val totalAmountToPay: Double = 0.0,
     val amountPaid: Double = 0.0,
     val amountPending: Double = 0.0,
     val paymentStatus: String = ""
 ) {
     fun toDomain(): LeagueTeamFinancesModel {
         return LeagueTeamFinancesModel(
+            totalAmountToPay = totalAmountToPay,
             amountPaid = amountPaid,
             amountPending = amountPending,
             paymentStatus = paymentStatus

@@ -7,8 +7,9 @@ data class LeagueModel(
     val id: String,
     val licenseId: String,
     val name: String,
-    val paymentType: String,
-    val feePerTeam: Double,
+    val ownerPayment: String,
+    val price: Double,
+    val priceType: String,
     val bars: List<LeagueBarModel>
 )
 
@@ -31,11 +32,13 @@ data class LeagueBarFinancesModel(
 data class LeagueTeamModel(
     val teamId: String,
     val teamName: String,
+    val players: Int? = null,
     val teamFinances: LeagueTeamFinancesModel
 )
 
 @Serializable
 data class LeagueTeamFinancesModel(
+    val totalAmountToPay: Double,
     val amountPaid: Double,
     val amountPending: Double,
     val paymentStatus: String

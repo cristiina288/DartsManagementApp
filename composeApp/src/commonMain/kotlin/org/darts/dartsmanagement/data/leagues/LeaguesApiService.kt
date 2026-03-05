@@ -42,13 +42,15 @@ class LeaguesApiService(
         }
     }
 
-    suspend fun updateLeagueBarFinances(leagueId: String, barId: String, amountPaid: Double) {
+    suspend fun updateLeagueFinances(leagueId: String, payeeId: String, amountPaid: Double) {
         try {
             val doc = firestore.getDocument("leagues", leagueId) ?: return
             val league = doc.data<LeagueFirestoreResponse>()
 
+            var updated = false
             val updatedBars = league.bars.map { bar ->
-                if (bar.barId == barId) {
+                if (bar.barId == payeeId) {
+                    updated = true
                     val newAmountPaid = bar.barFinances.amountPaid + amountPaid
                     val newAmountPending = (bar.barFinances.totalAmountToPay - newAmountPaid).coerceAtLeast(0.0)
 
@@ -59,12 +61,31 @@ class LeaguesApiService(
                             paymentStatus = if (newAmountPending <= 0.0) "PAID" else "PENDING"
                         )
                     )
-                } else bar
+                } else {
+                    val updatedTeams = bar.teams.map { team ->
+                        if (team.teamId == payeeId) {
+                            updated = true
+                            val newAmountPaid = team.teamFinances.amountPaid + amountPaid
+                            val newAmountPending = (team.teamFinances.totalAmountToPay - newAmountPaid).coerceAtLeast(0.0)
+
+                            team.copy(
+                                teamFinances = team.teamFinances.copy(
+                                    amountPaid = newAmountPaid,
+                                    amountPending = newAmountPending,
+                                    paymentStatus = if (newAmountPending <= 0.0) "PAID" else "PENDING"
+                                )
+                            )
+                        } else team
+                    }
+                    bar.copy(teams = updatedTeams)
+                }
             }
 
-            firestore.updateDocumentFields("leagues", leagueId, mapOf("bars" to updatedBars))
+            if (updated) {
+                firestore.updateDocumentFields("leagues", leagueId, mapOf("bars" to updatedBars))
+            }
         } catch (e: Exception) {
-            println("Error updating league bar finances: $e")
+            println("Error updating league finances: $e")
         }
     }
 }

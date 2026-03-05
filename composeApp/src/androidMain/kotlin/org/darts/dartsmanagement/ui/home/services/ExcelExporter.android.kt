@@ -18,12 +18,12 @@ actual class ExcelExporter(private val context: Context) {
     actual suspend fun exportarAExcel(
         headers: List<String>,
         data: List<List<Any>>,
-        nombreArchivo: String
+        fileName: String
     ): ExportResult = withContext(Dispatchers.IO) {
         try {
             val csvContent = crearCSVParaExcel(headers, data)
 
-            val archivo = crearArchivo(nombreArchivo, "csv")
+            val archivo = crearArchivo(fileName, "csv")
             FileWriter(archivo).use { writer ->
                 writer.write(csvContent)
             }
@@ -62,9 +62,9 @@ actual class ExcelExporter(private val context: Context) {
                 "${fecha.year}"
     }
 
-    private fun crearArchivo(nombreArchivo: String, extension: String): File {
+    private fun crearArchivo(fileNamePrefix: String, extension: String): File {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val fileName = "${nombreArchivo}_$timestamp.$extension"
+        val fileName = "${fileNamePrefix}_$timestamp.$extension"
 
         return File(context.cacheDir, fileName)
     }

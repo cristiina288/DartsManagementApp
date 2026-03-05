@@ -89,14 +89,14 @@ This section outlines the strategy and current state of integrating Firebase Fir
 *   **`leagues` Collection:**
     *   Document ID: Auto-generated
     *   Fields:
-        *   `license_id`: (String)
+        *   `licenseId`: (String)
         *   `name`: (String)
         *   `paymentType`: (String: "BAR" or "TEAM")
         *   `feePerTeam`: (Number)
         *   `bars`: (Array of Maps)
             *   `barId`: (String)
             *   `barFinances`: (Map)
-                *   `totalAmountToPay`: (Number)
+                *   `totalAmountToPaid`: (Number)
                 *   `amountPaid`: (Number)
                 *   `amountPending`: (Number)
                 *   `paymentStatus`: (String: "PENDING", "N/A", "PAID")
@@ -126,8 +126,8 @@ This section outlines the strategy and current state of integrating Firebase Fir
 *   The `getBars` function in `BarsApiService` now fetches data from Firestore.
 *   It performs a multi-step query:
     1.  Get current user's UID.
-    2.  Fetch user's `license_id` from the `users` collection.
-    3.  Query `bars` collection for documents matching the `license_id`.
+    2.  Fetch user's `licenseId` from the `users` collection.
+    3.  Query `bars` collection for documents matching the `licenseId`.
     4.  For each bar, fetch its associated `locations` and `machines` documents using their respective IDs.
     5.  Map the aggregated Firestore data to the existing `BarResponse` DTOs.
 

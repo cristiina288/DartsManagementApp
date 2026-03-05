@@ -139,9 +139,8 @@ private fun CollectionScreenContent(barId: String? = null) {
 
                 if (collection.availableLeagues.isNotEmpty()) {
                     item { LeaguePaymentSection(viewModel) }
+                    item { GeneralSummarySection(collection) }
                 }
-
-                item { GeneralSummarySection(collection) }
             }
         }
 

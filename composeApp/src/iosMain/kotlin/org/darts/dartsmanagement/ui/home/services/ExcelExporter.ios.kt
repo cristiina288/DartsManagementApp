@@ -12,13 +12,13 @@ actual class ExcelExporter {
     actual suspend fun exportarAExcel(
         headers: List<String>,
         data: List<List<Any>>,
-        nombreArchivo: String
+        fileName: String
     ): ExportResult = withContext(Dispatchers.Default) {
         try {
             val csvContent = crearCSV(headers, data)
 
-            val fileName = "${nombreArchivo}_${timestamp()}.csv"
-            val filePath = guardarArchivo(csvContent, fileName)
+            val fullFileName = "${fileName}_${timestamp()}.csv"
+            val filePath = guardarArchivo(csvContent, fullFileName)
 
             compartirArchivo(filePath)
 
@@ -59,14 +59,14 @@ actual class ExcelExporter {
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun guardarArchivo(contenido: String, nombreArchivo: String): String {
+    private fun guardarArchivo(contenido: String, fileName: String): String {
         val documentsPath = NSSearchPathForDirectoriesInDomains(
             NSDocumentDirectory,
             NSUserDomainMask,
             true
         ).first() as String
 
-        val filePath = "$documentsPath/$nombreArchivo"
+        val filePath = "$documentsPath/$fileName"
 
         contenido.encodeToByteArray().usePinned { pinned ->
             val nsData = NSData.create(

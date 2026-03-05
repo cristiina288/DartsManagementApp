@@ -26,7 +26,7 @@ import org.darts.dartsmanagement.data.collections.toDomain // Import the extensi
 
 @Serializable
 data class MonthStatus(
-    val license_id: String = "",
+    val licenseId: String = "",
     val status: String = ""
 )
 
@@ -51,6 +51,7 @@ data class CollectionSaveRequest(
     val barName: String,
     val totalBarAmount: Double,
     val totalBusinessAmount: Double,
+    val totalCollection: Double,
     val comments: String,
     val createdAt: Timestamp,
     val billingMonth: String,
@@ -139,7 +140,7 @@ class CollectionsApiService(
 
         // Fallback: query any open status for this license
         val queryResult = firestore.getDocumentsQuery("monthStatus")
-            .whereEqualTo("license_id", licenseId)
+            .whereEqualTo("licenseId", licenseId)
             .whereEqualTo("status", "open")
             .get()
 
@@ -177,7 +178,7 @@ class CollectionsApiService(
                     "totalCollection" to it.totalCollection
                 )
             },
-            "modified_on" to Timestamp.now()
+            "modifiedOn" to Timestamp.now()
         )
         firestore.updateDocument("collections", collectionId, updateMap)
     }

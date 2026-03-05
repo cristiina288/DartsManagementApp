@@ -12,7 +12,7 @@ expect class ExcelExporter {
     suspend fun exportarAExcel(
         headers: List<String>,
         data: List<List<Any>>,
-        nombreArchivo: String = "datos_exportados"
+        fileName: String = "exportedData"
     ): ExportResult
 }
 

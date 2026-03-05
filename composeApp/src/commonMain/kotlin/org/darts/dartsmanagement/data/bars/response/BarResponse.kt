@@ -32,7 +32,7 @@ data class BarResponse (
 
 @Serializable
 data class BarLocationResponse(
-    val id: String?, // This will be the location_id linking to the locations collection
+    val id: String?, // This will be the locationId linking to the locations collection
     val address: String?,
     val latitude: Double?,
     val longitude: Double?,

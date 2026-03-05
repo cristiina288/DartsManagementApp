@@ -70,12 +70,12 @@ class AuthViewModel(
         val user = userResult.getOrNull() ?: return false
         
         // 2. Buscar licencia por ID
-        val licenseResult = authRepository.getLicense(user.license_id)
+        val licenseResult = authRepository.getLicense(user.licenseId)
         val license = licenseResult.getOrNull() ?: return false
         
         // 3. Verificar estado (asumiendo que "active" es el estado correcto)
         if (license.status.lowercase() == "active") {
-            sessionManager.updateSession(user.id, user.name, user.license_id)
+            sessionManager.updateSession(user.id, user.name, user.licenseId)
             return true
         }
         

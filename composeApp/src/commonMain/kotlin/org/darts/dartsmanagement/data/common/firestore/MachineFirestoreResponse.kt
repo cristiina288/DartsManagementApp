@@ -11,7 +11,7 @@ data class MachineFirestoreResponse(
     val id: String = "", // Firestore document ID
     val name: String = "",
     val type: String = "",
-    val last_collection: Timestamp? = null,
+    val lastCollection: Timestamp? = null,
     val counter: Int? = null,
     val barId: String? = null, // Assuming barId will be a String (document ID) in Firestore
     val status: String = "active",

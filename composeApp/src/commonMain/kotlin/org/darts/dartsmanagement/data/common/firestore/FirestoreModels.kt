@@ -9,7 +9,7 @@ data class UserFirestore(
     val id: String = "",
     val email: String = "",
     val name: String = "",
-    val license_id: String = ""
+    val licenseId: String = ""
 )
 
 @Serializable
@@ -17,10 +17,10 @@ data class BarFirestore(
     val id: Long = 0,
     val name: String = "",
     val description: String = "",
-    val license_id: String = "",
-    val location_id: String = "",
-    val status_id: Long = 0,
-    val machine_ids: List<Long> = emptyList()
+    val licenseId: String = "",
+    val locationId: String = "",
+    val statusId: Long = 0,
+    val machineIds: List<Long> = emptyList()
 )
 
 @Serializable
@@ -35,12 +35,12 @@ data class LocationFirestore(
 data class MachineFirestore(
     val name: String = "",
     val type: String = "",
-    val last_collection: Timestamp? = null
+    val lastCollection: Timestamp? = null
 )
 
 @Serializable
 data class LicenseFirestore(
-    val company_name: String = "",
-    val expires_at: Timestamp? = null,
+    val companyName: String = "",
+    val expiresAt: Timestamp? = null,
     val status: String = "" // "active", "inactive", etc.
 )

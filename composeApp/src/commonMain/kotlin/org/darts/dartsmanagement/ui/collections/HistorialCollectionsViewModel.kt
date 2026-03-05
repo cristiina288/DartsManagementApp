@@ -30,7 +30,7 @@ class HistorialCollectionsViewModel(
     private val _uiState = MutableStateFlow(HistorialCollectionsUiState())
     val uiState: StateFlow<HistorialCollectionsUiState> = _uiState.asStateFlow()
 
-    private val PAGE_SIZE = 10
+    private val pageSize = 10
 
     init {
         loadCollections(isInitialLoad = true)
@@ -71,13 +71,13 @@ class HistorialCollectionsViewModel(
                 val lastCollection = _uiState.value.collections.lastOrNull()
                 val lastCollectionCreatedAt = lastCollection?.createdAt
                 val lastCollectionDocumentId = lastCollection?.id
-                val newCollections = getPaginatedCollectionsUseCase(lastCollectionCreatedAt, lastCollectionDocumentId, PAGE_SIZE)
+                val newCollections = getPaginatedCollectionsUseCase(lastCollectionCreatedAt, lastCollectionDocumentId, pageSize)
 
                 _uiState.update {
                     it.copy(
                         collections = if (isInitialLoad) newCollections else it.collections + newCollections,
                         isLoading = false,
-                        canLoadMore = newCollections.size == PAGE_SIZE
+                        canLoadMore = newCollections.size == pageSize
                     )
                 }
             } catch (e: Exception) {
@@ -184,7 +184,7 @@ class HistorialCollectionsViewModel(
                 }
             }
 
-            when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
+            when (val result = excelExporter.exportarAExcel(headers, dataRows, fileName = "reporteRecaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
                 is ExportResult.Success -> {
                     println("Excel exportado correctamente")
                 }

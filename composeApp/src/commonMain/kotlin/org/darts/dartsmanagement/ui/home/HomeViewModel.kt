@@ -169,7 +169,7 @@ class HomeViewModel(
                 }
             }
 
-            when (val result = excelExporter.exportarAExcel(headers, dataRows, "reporte_recaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
+            when (val result = excelExporter.exportarAExcel(headers, dataRows, fileName = "reporteRecaudaciones_${fromDate.year}-${fromDate.monthNumber}_${endDate.year}-${endDate.monthNumber}")) {
                 is ExportResult.Success -> {
                     println("Excel exportado correctamente")
                 }

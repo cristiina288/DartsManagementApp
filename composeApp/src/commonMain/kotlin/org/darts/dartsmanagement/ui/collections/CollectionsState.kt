@@ -20,7 +20,8 @@ data class LeaguePaymentEntry(
     val leagueId: String = "",
     val leagueName: String = "",
     val amount: String = "",
-    val isPending: Boolean = true
+    val isPending: Boolean = true,
+    val error: String? = null
 )
 
 data class CollectionsState (

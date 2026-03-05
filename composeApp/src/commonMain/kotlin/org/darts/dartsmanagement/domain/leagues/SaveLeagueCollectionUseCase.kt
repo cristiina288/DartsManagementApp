@@ -11,8 +11,7 @@ class SaveLeagueCollectionUseCase(
             leaguesRepository.updateLeagueBarFinances(
                 leagueId = leagueCollection.leagueId,
                 barId = leagueCollection.payeeId,
-                amountPaid = leagueCollection.amount,
-                paymentStatus = "PAID" // Or logically calculate if fully paid, currently simplistic
+                amountPaid = leagueCollection.amount
             )
         }
         return collectionId

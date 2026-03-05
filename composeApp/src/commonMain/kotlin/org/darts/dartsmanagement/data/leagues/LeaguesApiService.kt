@@ -32,7 +32,6 @@ class LeaguesApiService(
                 "collectionId" to leagueCollection.collectionId,
                 "payeeId" to leagueCollection.payeeId,
                 "method" to leagueCollection.method,
-                "userId" to leagueCollection.userId,
                 "createdAt" to Timestamp.now(),
                 "recordedBy" to leagueCollection.recordedBy
             )
@@ -43,26 +42,26 @@ class LeaguesApiService(
         }
     }
 
-    suspend fun updateLeagueBarFinances(leagueId: String, barId: String, amountPaid: Double, paymentStatus: String) {
+    suspend fun updateLeagueBarFinances(leagueId: String, barId: String, amountPaid: Double) {
         try {
             val doc = firestore.getDocument("leagues", leagueId) ?: return
             val league = doc.data<LeagueFirestoreResponse>()
-            
+
             val updatedBars = league.bars.map { bar ->
                 if (bar.barId == barId) {
                     val newAmountPaid = bar.barFinances.amountPaid + amountPaid
                     val newAmountPending = (bar.barFinances.totalAmountToPay - newAmountPaid).coerceAtLeast(0.0)
-                    
+
                     bar.copy(
                         barFinances = bar.barFinances.copy(
                             amountPaid = newAmountPaid,
                             amountPending = newAmountPending,
-                            paymentStatus = if (newAmountPending <= 0) "PAID" else paymentStatus
+                            paymentStatus = if (newAmountPending <= 0.0) "PAID" else "PENDING"
                         )
                     )
                 } else bar
             }
-            
+
             firestore.updateDocumentFields("leagues", leagueId, mapOf("bars" to updatedBars))
         } catch (e: Exception) {
             println("Error updating league bar finances: $e")

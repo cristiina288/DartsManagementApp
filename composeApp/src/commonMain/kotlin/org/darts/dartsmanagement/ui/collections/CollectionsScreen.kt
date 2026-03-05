@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
@@ -74,7 +75,8 @@ private fun CollectionScreenContent(barId: String? = null) {
 
     val isSaveButtonEnabled = collection.barId != null &&
             collection.machineEntries.isNotEmpty() &&
-            collection.machineEntries.all { it.machineId != null && (it.collectionAmounts?.totalCollection ?: 0.0) > 0.0 }
+            collection.machineEntries.all { it.machineId != null && (it.collectionAmounts?.totalCollection ?: 0.0) > 0.0 } &&
+            collection.leaguePayments.all { it.error == null }
 
     Scaffold(
         containerColor = BackgroundDark,
@@ -194,6 +196,8 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
                     value = entry.amount,
                     onValueChange = { viewModel.onLeagueAmountChanged(index, it) },
                     placeholder = "0.00",
+                    isError = entry.error != null,
+                    helperText = entry.error,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     trailingIcon = { Text("€", color = TextPlaceholder) }
                 )
@@ -639,6 +643,8 @@ private fun AppTextField(
     readOnly: Boolean = false,
     singleLine: Boolean = true,
     enabled: Boolean = true,
+    isError: Boolean = false,
+    helperText: String? = null,
     containerColor: Color = InputBackground,
     textStyle: androidx.compose.ui.text.TextStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -648,7 +654,7 @@ private fun AppTextField(
         if (label != null) {
             Text(
                 text = label,
-                color = TextSecondaryDark,
+                color = if (isError) Color.Red.copy(alpha = 0.8f) else TextSecondaryDark,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -661,17 +667,28 @@ private fun AppTextField(
             readOnly = readOnly,
             singleLine = singleLine,
             enabled = enabled,
+            isError = isError,
             textStyle = textStyle.copy(color = TextPrimaryDark),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = containerColor,
                 focusedContainerColor = containerColor,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = Color.Transparent,
+                unfocusedBorderColor = if (isError) Color.Red.copy(alpha = 0.5f) else Color.Transparent,
+                focusedBorderColor = if (isError) Color.Red else Color.Transparent,
+                errorContainerColor = containerColor,
+                errorBorderColor = Color.Red.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(12.dp),
             trailingIcon = trailingIcon,
             keyboardOptions = keyboardOptions
         )
+        if (helperText != null) {
+            Text(
+                text = helperText,
+                color = Color.Red.copy(alpha = 0.8f),
+                fontSize = 12.sp,
+                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+            )
+        }
     }
 }
 

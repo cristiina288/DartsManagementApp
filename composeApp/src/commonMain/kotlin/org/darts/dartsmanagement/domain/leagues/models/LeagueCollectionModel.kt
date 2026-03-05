@@ -12,7 +12,6 @@ data class LeagueCollectionModel(
     val collectionId: String,
     val payeeId: String,
     val method: String,
-    val userId: String,
     val createdAt: Long = 0,
     val recordedBy: String
 )

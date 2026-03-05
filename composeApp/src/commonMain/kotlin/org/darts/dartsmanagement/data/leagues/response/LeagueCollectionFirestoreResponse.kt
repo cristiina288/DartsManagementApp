@@ -14,7 +14,6 @@ data class LeagueCollectionFirestoreResponse(
     val collectionId: String = "",
     val payeeId: String = "",
     val method: String = "",
-    val userId: String = "",
     val createdAt: FirestoreTimestamp? = null,
     val recordedBy: String = ""
 ) {
@@ -28,7 +27,6 @@ data class LeagueCollectionFirestoreResponse(
             collectionId = collectionId,
             payeeId = payeeId,
             method = method,
-            userId = userId,
             createdAt = createdAt?.seconds?.times(1000L) ?: 0L,
             recordedBy = recordedBy
         )

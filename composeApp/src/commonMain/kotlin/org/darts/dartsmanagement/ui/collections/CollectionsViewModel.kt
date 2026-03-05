@@ -134,16 +134,45 @@ class CollectionsViewModel(
     fun onLeagueSelected(index: Int, leagueId: String) {
         _collection.update { collection ->
             val newPayments = collection.leaguePayments.toMutableList()
-            val leagueName = collection.availableLeagues.find { it.id == leagueId }?.name ?: ""
-            newPayments[index] = newPayments[index].copy(leagueId = leagueId, leagueName = leagueName)
+            val league = collection.availableLeagues.find { it.id == leagueId }
+            val leagueName = league?.name ?: ""
+            
+            newPayments[index] = newPayments[index].copy(
+                leagueId = leagueId, 
+                leagueName = leagueName,
+                error = null // Clear error on change
+            )
+            
+            // Re-validate amount with new league context
+            val currentAmount = newPayments[index].amount.toDoubleOrNull() ?: 0.0
+            if (currentAmount > 0) {
+                val pendingAmount = league?.bars?.find { it.barId == collection.barId }?.barFinances?.amountPending ?: 0.0
+                if (currentAmount > pendingAmount) {
+                    newPayments[index] = newPayments[index].copy(
+                        error = "El precio no puede superar lo que le queda por pagar que es: $pendingAmount €"
+                    )
+                }
+            }
+            
             collection.copy(leaguePayments = newPayments)
         }
     }
 
-    fun onLeagueAmountChanged(index: Int, amount: String) {
+    fun onLeagueAmountChanged(index: Int, amountStr: String) {
         _collection.update { collection ->
             val newPayments = collection.leaguePayments.toMutableList()
-            newPayments[index] = newPayments[index].copy(amount = amount)
+            val entry = newPayments[index]
+            val amount = amountStr.toDoubleOrNull() ?: 0.0
+            val pendingAmount = collection.availableLeagues
+                .find { it.id == entry.leagueId }
+                ?.bars?.find { it.barId == collection.barId }
+                ?.barFinances?.amountPending ?: 0.0
+
+            val error = if (amount > pendingAmount) {
+                "El precio no puede superar lo que le queda por pagar que es: $pendingAmount €"
+            } else null
+
+            newPayments[index] = entry.copy(amount = amountStr, error = error)
             collection.copy(leaguePayments = newPayments)
         }
     }
@@ -244,7 +273,6 @@ class CollectionsViewModel(
                     collectionId = collectionId, // Link to collection
                     payeeId = barId,
                     method = "CASH_COLLECTION",
-                    userId = userId,
                     recordedBy = userId
                 )
                 withContext(Dispatchers.IO) {

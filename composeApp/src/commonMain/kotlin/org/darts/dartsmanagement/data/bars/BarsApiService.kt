@@ -146,24 +146,6 @@ class BarsApiService(
         }
     }
 
-    private fun mapStatusStringToId(status: String): Int {
-        return when (status.lowercase()) {
-            "active" -> 1
-            "inactive" -> 2
-            "pending repair" -> 3
-            else -> 0
-        }
-    }
-
-    private fun mapStatusIdToString(statusId: Int): String {
-        return when (statusId) {
-            1 -> "active"
-            2 -> "inactive"
-            3 -> "pending repair"
-            else -> "active"
-        }
-    }
-
     suspend fun deleteBar(barId: String) {
         firestore.deleteDocument("bars", barId)
     }

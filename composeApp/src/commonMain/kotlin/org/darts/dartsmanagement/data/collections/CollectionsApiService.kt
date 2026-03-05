@@ -81,7 +81,7 @@ class CollectionsApiService(
 
             val collectionMap = mapOf<String, Any?>(
                 "licenseId" to licenseId,
-                "status" to "active",
+                "status" to "ACTIVE",
                 "barId" to barId,
                 "barName" to barName,
                 "totalBarAmount" to totalBarAmount,

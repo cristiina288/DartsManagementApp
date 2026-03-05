@@ -42,5 +42,5 @@ data class MachineFirestore(
 data class LicenseFirestore(
     val companyName: String = "",
     val expiresAt: Timestamp? = null,
-    val status: String = "" // "active", "inactive", etc.
+    val status: String = "" // "ACTIVE", "INACTIVE", etc.
 )

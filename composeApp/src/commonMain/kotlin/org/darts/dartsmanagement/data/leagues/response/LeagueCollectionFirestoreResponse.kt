@@ -8,7 +8,7 @@ import org.darts.dartsmanagement.domain.leagues.models.LeagueCollectionModel
 data class LeagueCollectionFirestoreResponse(
     val id: String = "",
     val licenseId: String = "",
-    val status: String = "active",
+    val status: String = "ACTIVE",
     val leagueId: String = "",
     val amount: Double = 0.0,
     val collectionId: String = "",

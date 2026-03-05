@@ -101,7 +101,7 @@ class NewBarViewModel(
                 longitude = currentState.longitude.toDoubleOrNull() ?: 0.0,
                 locationBarUrl = currentState.locationBarUrl,
                 machineIds = currentState.selectedMachineIds.map { it.toLong() },
-                status = "active"
+                status = "ACTIVE"
             )
 
             try {

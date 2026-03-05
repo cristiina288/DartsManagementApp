@@ -9,7 +9,7 @@ data class BarFirestoreResponse(
     val description: String = "",
     val licenseId: String = "",
     val location: BarLocationFirestoreDetails = BarLocationFirestoreDetails(),
-    val status: String = "active",
+    val status: String = "ACTIVE",
     val machineIds: List<Long> = emptyList()
 )
 

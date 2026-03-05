@@ -34,13 +34,13 @@ class UpdateBarMachinesUseCase(
                 coroutineScope {
                     machinesToRemoveBarId.forEach { machineId ->
                         launch {
-                            val data = mapOf("barId" to "", "status" to "inactive")
+                            val data = mapOf("barId" to "", "status" to "INACTIVE")
                             firestore.updateDocumentFields("machines", machineId.toString(), data)
                         }
                     }
                     machinesToAddBarId.forEach { machineId ->
                         launch {
-                            val data = mapOf("barId" to barId, "status" to "active")
+                            val data = mapOf("barId" to barId, "status" to "ACTIVE")
                             firestore.updateDocumentFields("machines", machineId.toString(), data)
                         }
                     }

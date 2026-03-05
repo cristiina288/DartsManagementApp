@@ -88,8 +88,7 @@ class NewMachineViewModel(
                 }
 
 
-                val status = if (currentUiState.selectedBarId != null) "active" else "inactive"
-
+                val status = if (currentUiState.selectedBarId != null) "ACTIVE" else "INACTIVE"
                 val request = SaveMachineRequest(
                     name = currentUiState.name,
                     counter = currentUiState.counter.toIntOrNull(),

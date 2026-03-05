@@ -71,10 +71,10 @@ class MachinesApiService(
 
     private fun mapStatusIdToString(statusId: Int): String {
         return when (statusId) {
-            1 -> "active"
-            2 -> "inactive"
-            3 -> "pending repair"
-            else -> "active"
+            1 -> "ACTIVE"
+            2 -> "INACTIVE"
+            3 -> "PENDING_REPAIR"
+            else -> "ACTIVE"
         }
     }
 

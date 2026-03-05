@@ -41,8 +41,8 @@ class MachineViewModel(
             MachineEvent.ToggleRepairStatus -> {
                 viewModelScope.launch {
                     val currentStatus = _uiState.value.machine?.status ?: return@launch
-                    val newStatusId = if (currentStatus == "inactive") Status.PENDING_REPAIR.id else Status.INACTIVE.id
-                    val newStatusStr = if (currentStatus == "inactive") "pending repair" else "inactive"
+                    val newStatusId = if (currentStatus == "INACTIVE") Status.PENDING_REPAIR.id else Status.INACTIVE.id
+                    val newStatusStr = if (currentStatus == "INACTIVE") "PENDING_REPAIR" else "INACTIVE"
                     val machineId = _uiState.value.machine?.id?.toInt() ?: return@launch
 
                     _uiState.update { it.copy(isLoading = true) }

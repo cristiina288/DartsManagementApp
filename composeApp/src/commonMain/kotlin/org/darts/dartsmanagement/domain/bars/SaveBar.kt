@@ -18,7 +18,7 @@ class SaveBar(
                 coroutineScope {
                     saveBarRequest.machineIds.forEach { machineId ->
                         launch {
-                            val data = mapOf("barId" to barId, "status" to "active")
+                            val data = mapOf("barId" to barId, "status" to "ACTIVE")
                             firestore.updateDocumentFields("machines", machineId.toString(), data)
                         }
                     }

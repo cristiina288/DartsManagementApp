@@ -8,7 +8,7 @@ import kotlinx.serialization.json.JsonObject
 data class CollectionFirestoreResponse(
     val id: String = "",
     val licenseId: String = "",
-    val status: String = "active",
+    val status: String = "ACTIVE",
     val barId: String = "",
     val barName: String = "",
     val totalBarAmount: Double = 0.0,

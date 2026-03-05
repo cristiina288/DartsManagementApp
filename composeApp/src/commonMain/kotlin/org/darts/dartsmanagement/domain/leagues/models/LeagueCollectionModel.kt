@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class LeagueCollectionModel(
     val id: String = "",
     val licenseId: String,
-    val status: String = "active",
+    val status: String = "ACTIVE",
     val leagueId: String,
     val amount: Double,
     val collectionId: String,

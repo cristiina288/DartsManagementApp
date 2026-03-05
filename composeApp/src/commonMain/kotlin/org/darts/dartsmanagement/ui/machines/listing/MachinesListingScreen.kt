@@ -218,9 +218,9 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
             val status = machineDisplayModel.machine.status
 
             val (statusText, backgroundColor, textColor) = when (status.lowercase()) {
-                "active" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-                "inactive" -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
-                "pending repair" -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
+                "ACTIVE" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+                "INACTIVE" -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
+                "PENDING_REPAIR" -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
                 else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
             }
 

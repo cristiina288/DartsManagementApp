@@ -7,5 +7,5 @@ data class SaveMachineRequest(
     val name: String,
     val counter: Int? = null,
     val barId: String? = null,
-    val status: String = "inactive" // Default status 'inactive' if no barId is provided
+    val status: String = "INACTIVE" // Default status 'INACTIVE' if no barId is provided
 )

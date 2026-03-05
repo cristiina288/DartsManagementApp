@@ -116,7 +116,7 @@ fun MachineScreenContent(
         onPauseOrDispose { }
     }
 
-    val text = if (currentMachine.status == "pending repair") {
+    val text = if (currentMachine.status == "PENDING_REPAIR") {
         "¿Ya tienes la máquina reparada y la quieres marcar como 'inactiva'?"
     } else {
         "¿Enviar máquina a 'reparación'?"
@@ -230,7 +230,7 @@ fun MachineScreenContent(
                         MachineStatusTag(
                             status = currentMachine.status,
                             onClick = {
-                                if (currentMachine.status != "active") {
+                                if (currentMachine.status != "ACTIVE") {
                                     showRepairDialog = true
                                 }
                             }
@@ -292,10 +292,10 @@ fun MachineScreenContent(
 
 @Composable
 fun MachineStatusTag(status: String, onClick: () -> Unit = {}) {
-    val (statusText, backgroundColor, textColor) = when (status.lowercase()) {
-        "active" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-        "inactive" -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
-        "pending repair" -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
+    val (statusText, backgroundColor, textColor) = when (status.uppercase()) {
+        "ACTIVE" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+        "INACTIVE" -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
+        "PENDING_REPAIR" -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
         else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
     }
 

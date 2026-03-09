@@ -120,7 +120,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
         *   `amount`: (Number)
         *   `collectionId`: (String)
         *   `payeeId`: (String) - ID of the Bar or Team that made the payment.
-        *   `method`: (String: "CASH", "TRANSFER", "CARD", "CASH_COLLECTION")
+        *   `method`: (String: "CASH", "TRANSFER", "PAYPAL", "BIZUM", "CASH_COLLECTION")
         *   `createdAt`: (Timestamp)
         *   `recordedBy`: (String) - User ID of the person who recorded the transaction.
 

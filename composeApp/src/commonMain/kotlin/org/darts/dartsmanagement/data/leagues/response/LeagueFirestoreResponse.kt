@@ -15,6 +15,7 @@ data class LeagueFirestoreResponse(
     val ownerPayment: String = "",
     val price: Double = 0.0,
     val priceType: String = "",
+    val status: String = "",
     val bars: List<LeagueBarFirestoreResponse> = emptyList()
 ) {
     fun toDomain(): LeagueModel {
@@ -25,6 +26,7 @@ data class LeagueFirestoreResponse(
             ownerPayment = ownerPayment,
             price = price,
             priceType = priceType,
+            status = status,
             bars = bars.map { it.toDomain() }
         )
     }

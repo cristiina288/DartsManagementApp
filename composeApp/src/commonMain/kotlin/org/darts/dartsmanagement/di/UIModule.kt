@@ -10,6 +10,7 @@ import org.darts.dartsmanagement.ui.collections.CollectionsViewModel
 import org.darts.dartsmanagement.ui.collections.HistorialCollectionsViewModel
 import org.darts.dartsmanagement.ui.collections.edit.EditCollectionViewModel
 import org.darts.dartsmanagement.ui.home.HomeViewModel
+import org.darts.dartsmanagement.ui.leagues.payment.LeaguePaymentViewModel
 import org.darts.dartsmanagement.ui.locations.detail.LocationViewModel
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingViewModel
 import org.darts.dartsmanagement.ui.locations.newLocation.NewLocationViewModel
@@ -37,6 +38,7 @@ val uiModule = module {
     viewModelOf(::HistorialCollectionsViewModel)
     viewModel { parameters -> EditCollectionViewModel(parameters.get(), get()) }
     viewModelOf(::NewLocationViewModel)
+    viewModelOf(::LeaguePaymentViewModel)
     //    viewModelOf(::CollectionsHistoryListingViewModel)
 
 }

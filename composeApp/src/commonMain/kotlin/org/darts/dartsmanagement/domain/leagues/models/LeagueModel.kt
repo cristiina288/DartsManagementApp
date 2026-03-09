@@ -10,6 +10,7 @@ data class LeagueModel(
     val ownerPayment: String,
     val price: Double,
     val priceType: String,
+    val status: String,
     val bars: List<LeagueBarModel>
 )
 

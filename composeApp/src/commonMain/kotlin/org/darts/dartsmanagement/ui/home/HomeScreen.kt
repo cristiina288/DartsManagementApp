@@ -42,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -55,11 +56,13 @@ import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_beer
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import dartsmanagement.composeapp.generated.resources.ico_documents
+import dartsmanagement.composeapp.generated.resources.ico_upload
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
 import org.darts.dartsmanagement.ui.bars.listing.BorderDark
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.collections.HistorialCollectionsScreen
+import org.darts.dartsmanagement.ui.leagues.payment.LeaguePaymentScreen
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingScreen
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingScreen
 import org.jetbrains.compose.resources.painterResource
@@ -92,7 +95,8 @@ private fun HomeScreenContent() {
         MenuItem("Bares", icoPainter = painterResource(Res.drawable.ico_beer)) { navigator.push(BarsListingScreen) },
         MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
-        MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { navigator.push(HistorialCollectionsScreen) }
+        MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { navigator.push(HistorialCollectionsScreen) },
+        MenuItem("Pago ligas",  icoPainter = painterResource(Res.drawable.ico_upload)) { navigator.push(LeaguePaymentScreen) }
     )
 
     Scaffold(
@@ -120,7 +124,8 @@ private fun HomeScreenContent() {
                 columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(top = 8.dp)
+                contentPadding = PaddingValues(top = 8.dp),
+                modifier = Modifier.weight(1f)
             ) {
                 items(menuItems) { item ->
                     MenuCard(item = item)
@@ -132,11 +137,12 @@ private fun HomeScreenContent() {
 
 
 @Composable
-private fun ActionCard(title: String, icon: ImageVector, onClick: () -> Unit) {
+private fun ActionCard(title: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(128.dp)
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))
@@ -184,6 +190,7 @@ private fun MenuCard(item: MenuItem) {
         modifier = Modifier
             .height(128.dp)
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = item.onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))

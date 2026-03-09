@@ -12,6 +12,7 @@ import org.darts.dartsmanagement.domain.collections.GetCollectionsInDateRangeUse
 import org.darts.dartsmanagement.domain.collections.GetPaginatedCollectionsUseCase
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.collections.UpdateCollectionUseCase
+import org.darts.dartsmanagement.domain.leagues.GetActiveLeaguesUseCase
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.SaveLocation
 import org.darts.dartsmanagement.domain.machines.GetMachines
@@ -44,4 +45,5 @@ val domainModule = module {
     factoryOf(::GetPaginatedCollectionsUseCase)
     factoryOf(::SaveLocation)
     factory { UpdateBarWithNewMachine(get()) }
+    factoryOf(::GetActiveLeaguesUseCase)
 }

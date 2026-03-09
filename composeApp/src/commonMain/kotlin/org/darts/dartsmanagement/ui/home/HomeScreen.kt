@@ -56,6 +56,7 @@ import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_beer
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import dartsmanagement.composeapp.generated.resources.ico_documents
+import dartsmanagement.composeapp.generated.resources.ico_league_collection
 import dartsmanagement.composeapp.generated.resources.ico_upload
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
@@ -96,7 +97,7 @@ private fun HomeScreenContent() {
         MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
         MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { navigator.push(HistorialCollectionsScreen) },
-        MenuItem("Pago ligas",  icoPainter = painterResource(Res.drawable.ico_upload)) { navigator.push(LeaguePaymentScreen) }
+        MenuItem("Pago ligas",  icoPainter = painterResource(Res.drawable.ico_league_collection)) { navigator.push(LeaguePaymentScreen) }
     )
 
     Scaffold(

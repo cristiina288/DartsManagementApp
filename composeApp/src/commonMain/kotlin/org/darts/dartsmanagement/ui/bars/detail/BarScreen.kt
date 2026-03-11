@@ -24,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -51,6 +52,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dartsmanagement.composeapp.generated.resources.Res
+import dartsmanagement.composeapp.generated.resources.ico_collections
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
 import org.darts.dartsmanagement.domain.leagues.models.LeagueModel
 import org.darts.dartsmanagement.domain.leagues.models.LeagueTeamModel
@@ -106,9 +108,24 @@ private fun BarScreenContent(barId: String) {
                 TopBar(
                     title = "Detalles del Bar",
                     onBackClick = { navigator.pop() },
-                    onEditClick = { navigator.push(EditBarScreen(bar)) },
-                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) }
+                    onEditClick = { navigator.push(EditBarScreen(bar)) }
                 )
+            }
+        },
+        floatingActionButton = {
+            uiState.bar?.let { bar ->
+                FloatingActionButton(
+                    onClick = { navigator.push(CollectionScreen(bar.id)) },
+                    containerColor = Primary,
+                    contentColor = BackgroundDark,
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        painter = painterResource(Res.drawable.ico_collections),
+                        contentDescription = "Recaudar",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -482,8 +499,7 @@ private fun NotesSection(description: String?) {
 private fun TopBar(
     title: String,
     onBackClick: () -> Unit,
-    onEditClick: () -> Unit,
-    onCollectClick: () -> Unit
+    onEditClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -508,14 +524,6 @@ private fun TopBar(
             textAlign = TextAlign.Start,
             maxLines = 1
         )
-        TextButton(onClick = onCollectClick) {
-            Text(
-                text = "Recaudar",
-                color = Primary,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold
-            )
-        }
         TextButton(onClick = onEditClick) {
             Text(
                 text = "Editar",

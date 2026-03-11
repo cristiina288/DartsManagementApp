@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.data.bars.response.BarResponse
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.domain.machines.DeleteMachineUseCase
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.domain.machines.usecases.UpdateMachineUseCase
 
@@ -18,7 +19,8 @@ import org.darts.dartsmanagement.domain.machines.usecases.UpdateMachineUseCase
 class EditMachineViewModel(
     private val machine: MachineModel,
     private val getBars: GetBars,
-    private val updateMachineUseCase: UpdateMachineUseCase
+    private val updateMachineUseCase: UpdateMachineUseCase,
+    private val deleteMachineUseCase: DeleteMachineUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditMachineUiState())
@@ -83,7 +85,22 @@ class EditMachineViewModel(
             }
 
             is EditMachineEvent.OnSaveMachineClick -> saveMachine()
+            is EditMachineEvent.OnDeleteMachineClick -> deleteMachine()
             is EditMachineEvent.ClearError -> _uiState.update { it.copy(error = null) }
+        }
+    }
+
+    private fun deleteMachine() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            val machineId = machine.id ?: return@launch
+            deleteMachineUseCase(machineId)
+                .onSuccess {
+                    _effect.send(Effect.MachineDeleted)
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, error = error.message) }
+                }
         }
     }
 
@@ -110,6 +127,7 @@ class EditMachineViewModel(
 
     sealed class Effect {
         data object MachineSaved : Effect()
+        data object MachineDeleted : Effect()
     }
 }
 
@@ -133,5 +151,6 @@ sealed interface EditMachineEvent {
     data class OnBarSelected(val barId: String, val barName: String) : EditMachineEvent
     data object OnClearBarSelection : EditMachineEvent
     data object OnSaveMachineClick : EditMachineEvent
+    data object OnDeleteMachineClick : EditMachineEvent
     data object ClearError : EditMachineEvent
 }

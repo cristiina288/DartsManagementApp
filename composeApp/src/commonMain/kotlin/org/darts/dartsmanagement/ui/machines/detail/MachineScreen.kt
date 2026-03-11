@@ -97,7 +97,6 @@ fun MachineScreenContent(
 ) {
     val navigator = LocalNavigator.currentOrThrow
     var showRepairDialog by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val machineViewModel = koinViewModel<MachineViewModel>(
         parameters = { parametersOf(machine) }
@@ -135,19 +134,6 @@ fun MachineScreenContent(
         )
     }
 
-    if (showDeleteDialog) {
-        RepairConfirmationDialog(
-            text = "¿Estás seguro de que deseas eliminar esta máquina? Se desvinculará del bar si está asignada.",
-            onConfirm = {
-                machineViewModel.onEvent(MachineEvent.DeleteMachine)
-                showDeleteDialog = false
-            },
-            onDismiss = {
-                showDeleteDialog = false
-            }
-        )
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -180,26 +166,14 @@ fun MachineScreenContent(
                 fontWeight = FontWeight.Medium
             )
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconButton(
-                    onClick = { showDeleteDialog = true }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete",
-                        tint = Color.Red.copy(alpha = 0.7f)
-                    )
-                }
-
-                TextButton(
-                    onClick = { navigator.push(EditMachineScreen(currentMachine)) }
-                ) {
-                    Text(
-                        text = "Editar",
-                        color = Primary,
-                        fontSize = 16.sp
-                    )
-                }
+            TextButton(
+                onClick = { navigator.push(EditMachineScreen(currentMachine)) }
+            ) {
+                Text(
+                    text = "Editar",
+                    color = Primary,
+                    fontSize = 16.sp
+                )
             }
         }
         if (uiState.isLoading) {

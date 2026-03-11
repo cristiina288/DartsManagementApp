@@ -39,13 +39,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -63,6 +67,8 @@ data class EditMachineScreen(val machine: MachineModel) : Screen {
 }
 
 private val BackgroundDark = Color(0xFF121212)
+private val Primary = Color(0xFF00BFA6)
+private val DialogCardBackground = Color(0xFF1C1C1E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,11 +78,16 @@ fun EditMachineScreenContent(machine: MachineModel) {
     val uiState by editMachineViewModel.uiState.collectAsState()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val snackbarHostState = remember { SnackbarHostState() }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         editMachineViewModel.effect.collect { effect ->
             when (effect) {
                 EditMachineViewModel.Effect.MachineSaved -> navigator.pop()
+                EditMachineViewModel.Effect.MachineDeleted -> {
+                    navigator.pop() // Pop Edit Screen
+                    navigator.pop() // Pop Detail Screen
+                }
             }
         }
     }
@@ -88,6 +99,18 @@ fun EditMachineScreenContent(machine: MachineModel) {
         }
     }
 
+    if (showDeleteDialog) {
+        DeleteConfirmationDialog(
+            onConfirm = {
+                editMachineViewModel.onEvent(EditMachineEvent.OnDeleteMachineClick)
+                showDeleteDialog = false
+            },
+            onDismiss = {
+                showDeleteDialog = false
+            }
+        )
+    }
+
     Scaffold(
         containerColor = BackgroundDark,
         topBar = {
@@ -95,8 +118,6 @@ fun EditMachineScreenContent(machine: MachineModel) {
                 title = {
                     Text(
                         "Editar Máquina",
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
@@ -114,7 +135,13 @@ fun EditMachineScreenContent(machine: MachineModel) {
                     containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
                 ),
                 actions = {
-                    Spacer(modifier = Modifier.width(48.dp)) // To balance the title
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
+                            tint = Color.Red.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             )
         },
@@ -262,3 +289,70 @@ private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.color
     focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
     unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
 )
+
+@Composable
+fun DeleteConfirmationDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        androidx.compose.material3.Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = DialogCardBackground)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "¿Estás seguro de que deseas eliminar esta máquina? Se desvinculará del bar si está asignada.",
+                    color = Color(0xFFF2F2F7),
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Medium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
+                )
+
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Primary
+                    )
+                ) {
+                    Text(
+                        text = "Sí",
+                        color = Color(0xFF101817),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = Primary
+                    )
+                ) {
+                    Text(
+                        text = "Cancelar",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+        }
+    }
+}

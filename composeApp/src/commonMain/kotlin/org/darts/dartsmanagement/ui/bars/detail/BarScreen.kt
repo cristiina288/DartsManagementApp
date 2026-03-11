@@ -153,6 +153,16 @@ private fun BarScreenContent(barId: String) {
                                     .padding(top = 4.dp)
                                     .clickable { uriHandler.openUri(bar.location.locationBarUrl) }
                             )
+                        } else if (bar.location.latitude != null && bar.location.longitude != null) {
+                            Text(
+                                text = "Ver en Google Maps",
+                                color = TextSecondaryDark,
+                                fontSize = 14.sp,
+                                textDecoration = TextDecoration.Underline,
+                                modifier = Modifier
+                                    .padding(top = 4.dp)
+                                    .clickable { uriHandler.openUri("https://www.google.com/maps/dir/?api=1&destination=${bar.location.latitude},${bar.location.longitude}") }
+                            )
                         }
                     }
 

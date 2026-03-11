@@ -26,7 +26,8 @@ data class LeagueBarFinancesModel(
     val totalAmountToPay: Double,
     val amountPaid: Double,
     val amountPending: Double,
-    val paymentStatus: String
+    val paymentStatus: String,
+    val quota: Double
 )
 
 @Serializable

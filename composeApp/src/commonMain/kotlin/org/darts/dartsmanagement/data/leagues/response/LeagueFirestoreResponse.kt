@@ -52,14 +52,16 @@ data class LeagueBarFinancesFirestoreResponse(
     val totalAmountToPay: Double = 0.0,
     val amountPaid: Double = 0.0,
     val amountPending: Double = 0.0,
-    val paymentStatus: String = ""
+    val paymentStatus: String = "",
+    val quota: Double = 0.0
 ) {
     fun toDomain(): LeagueBarFinancesModel {
         return LeagueBarFinancesModel(
             totalAmountToPay = totalAmountToPay,
             amountPaid = amountPaid,
             amountPending = amountPending,
-            paymentStatus = paymentStatus
+            paymentStatus = paymentStatus,
+            quota = quota
         )
     }
 }

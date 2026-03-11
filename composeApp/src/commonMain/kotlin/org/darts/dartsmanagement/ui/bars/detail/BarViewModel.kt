@@ -73,4 +73,3 @@ sealed interface BarEvent {
     data object DeleteBar : BarEvent
     data object Refresh : BarEvent
 }
-

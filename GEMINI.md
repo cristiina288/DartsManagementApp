@@ -101,6 +101,7 @@ This section outlines the strategy and current state of integrating Firebase Fir
                 *   `amountPaid`: (Number)
                 *   `amountPending`: (Number)
                 *   `paymentStatus`: (String: "PENDING", "N/A", "PAID")
+                *   `quota`: (Number)
             *   `teams`: (Array of Maps)
                 *   `teamId`: (String)
                 *   `teamName`: (String)

@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.darts.dartsmanagement.data.bars.requests.SaveBarRequest
+import org.darts.dartsmanagement.domain.bars.DeleteBarUseCase
 import org.darts.dartsmanagement.domain.bars.UpdateBarMachinesUseCase
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.locations.GetLocations
@@ -23,7 +24,8 @@ class EditBarViewModel(
     private val initialBarModel: BarModel,
     private val getMachines: GetMachines,
     private val getLocations: GetLocations,
-    private val updateBarMachinesUseCase: UpdateBarMachinesUseCase
+    private val updateBarMachinesUseCase: UpdateBarMachinesUseCase,
+    private val deleteBarUseCase: DeleteBarUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -102,6 +104,28 @@ class EditBarViewModel(
             EditBarEvent.OnSaveTapped -> {
                 saveBar()
             }
+            EditBarEvent.DeleteBar -> {
+                deleteBar()
+            }
+        }
+    }
+
+    private fun deleteBar() {
+        _uiState.update { it.copy(isSaving = true, error = null) }
+        viewModelScope.launch {
+            val currentBarId = _uiState.value.bar?.id
+            if (currentBarId == null) {
+                _uiState.update { it.copy(isSaving = false, error = "Bar ID not found") }
+                return@launch
+            }
+
+            deleteBarUseCase(currentBarId)
+                .onSuccess {
+                    _uiState.update { it.copy(isSaving = false, isDeleted = true) }
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isSaving = false, error = error.message) }
+                }
         }
     }
 
@@ -129,7 +153,7 @@ class EditBarViewModel(
                 latitude = currentState.latitude.toDoubleOrNull() ?: 0.0,
                 longitude = currentState.longitude.toDoubleOrNull() ?: 0.0,
                 locationBarUrl = currentState.locationBarUrl,
-                machineIds = currentState.selectedMachineIds.map { it.toLong() },
+                machineIds = currentState.selectedMachineIds.map { it },
                 status = currentState.bar?.status ?: "ACTIVE"
             )
 
@@ -157,9 +181,10 @@ data class EditBarUiState(
     val isLoading: Boolean = false,
     val bar: BarModel? = null,
     val allMachines: List<MachineModel> = emptyList(),
-    val selectedMachineIds: Set<Int> = emptySet(),
+    val selectedMachineIds: Set<String> = emptySet(),
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false,
+    val isDeleted: Boolean = false,
     val error: String? = null,
     val name: String = "",
     val description: String = "",
@@ -179,7 +204,9 @@ sealed interface EditBarEvent {
     data class OnLongitudeChanged(val longitude: String) : EditBarEvent
     data class OnLocationBarUrlChanged(val url: String) : EditBarEvent
     data class OnLocationSelected(val locationId: String) : EditBarEvent
-    data class ToggleMachineSelection(val machineId: Int) : EditBarEvent
-    data class RemoveMachineFromBar(val machineId: Int) : EditBarEvent
+    data class ToggleMachineSelection(val machineId: String) : EditBarEvent
+    data class RemoveMachineFromBar(val machineId: String) : EditBarEvent
     data object OnSaveTapped : EditBarEvent
+    data object DeleteBar : EditBarEvent
 }
+

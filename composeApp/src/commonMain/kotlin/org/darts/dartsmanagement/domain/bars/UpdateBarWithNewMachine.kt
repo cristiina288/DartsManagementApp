@@ -13,9 +13,8 @@ class UpdateBarWithNewMachine(
 
             // Add the new machineId if it's not already present
             // Convert String machineId to Int for the machineIds list (as per Firestore model)
-            val newMachineIdInt = newMachineId.toIntOrNull()
-            if (newMachineIdInt != null && !currentMachineIds.contains(newMachineIdInt)) {
-                currentMachineIds.add(newMachineIdInt)
+            if (newMachineId != null && !currentMachineIds.contains(newMachineId)) {
+                currentMachineIds.add(newMachineId)
                 barsRepository.updateBarMachines(barId, currentMachineIds)
             }
         }

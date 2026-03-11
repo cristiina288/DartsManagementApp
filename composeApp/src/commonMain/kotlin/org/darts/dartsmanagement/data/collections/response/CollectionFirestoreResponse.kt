@@ -23,7 +23,7 @@ data class CollectionFirestoreResponse(
 
 @Serializable
 data class MachineCollectionFirestoreResponse(
-    val machineId: Int = 0,
+    val machineId: String = "",
     val barAmount: Double = 0.0,
     val businessAmount: Double = 0.0,
     val totalCollection: Double = 0.0

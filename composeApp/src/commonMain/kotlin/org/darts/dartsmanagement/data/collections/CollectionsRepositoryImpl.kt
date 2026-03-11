@@ -32,7 +32,7 @@ class CollectionsRepositoryImpl(private val api: CollectionsApiService): Collect
 
 
     override suspend fun getCollectionsById(
-        machineId: Int
+        machineId: String
     ) : List<CollectionModel> {
         return api.getCollectionsByMachineId(machineId)
     }

@@ -17,5 +17,5 @@ data class NewBarUiState(
     val isLoading: Boolean = false,
     val saveSuccess: Boolean = false,
     val error: String? = null,
-    val selectedMachineIds: MutableSet<Int> = mutableSetOf()
+    val selectedMachineIds: MutableSet<String> = mutableSetOf()
 )

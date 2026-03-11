@@ -10,11 +10,14 @@ import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.bars.DeleteBarUseCase
 import org.darts.dartsmanagement.domain.bars.GetBar
 import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.domain.leagues.GetLeaguesForBarUseCase
+import org.darts.dartsmanagement.domain.leagues.models.LeagueModel
 
 class BarViewModel(
     private val barId: String,
     private val getBar: GetBar,
-    private val deleteBarUseCase: DeleteBarUseCase
+    private val deleteBarUseCase: DeleteBarUseCase,
+    private val getLeaguesForBarUseCase: GetLeaguesForBarUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BarScreenUiState())
@@ -50,8 +53,9 @@ class BarViewModel(
             getBar(barId)
                 .onSuccess { bar ->
                     _uiState.update {
-                        it.copy(isLoading = false, bar = bar)
+                        it.copy(bar = bar)
                     }
+                    loadLeagues()
                 }
                 .onFailure { error ->
                     _uiState.update {
@@ -60,11 +64,27 @@ class BarViewModel(
                 }
         }
     }
+
+    private fun loadLeagues() {
+        viewModelScope.launch {
+            try {
+                val leagues = getLeaguesForBarUseCase(barId)
+                _uiState.update {
+                    it.copy(isLoading = false, leagues = leagues)
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(isLoading = false, error = e.message)
+                }
+            }
+        }
+    }
 }
 
 data class BarScreenUiState(
     val isLoading: Boolean = false,
     val bar: BarModel? = null,
+    val leagues: List<LeagueModel> = emptyList(),
     val error: String? = null,
     val isDeleted: Boolean = false
 )

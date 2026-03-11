@@ -8,7 +8,7 @@ enum class CollectionInputMode {
 }
 
 data class MachineCollectionEntry(
-    val machineId: Int? = null,
+    val machineId: String? = null,
     val counter: Int? = null, // Old counter
     val collectionAmounts: CollectionAmountsModel? = null,
     val inputMode: CollectionInputMode = CollectionInputMode.COLLECTION,
@@ -38,5 +38,5 @@ data class CollectionsState (
     // but better to move everything to machineEntries
     val collectionAmounts: CollectionAmountsModel? = null,
     val counter: Int? = null,
-    val machineId: Int? = null
+    val machineId: String? = null
 )

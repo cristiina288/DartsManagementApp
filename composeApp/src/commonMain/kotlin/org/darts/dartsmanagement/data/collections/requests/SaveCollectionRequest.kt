@@ -13,7 +13,7 @@ class SaveCollectionRequest(
 @Serializable
 class CollectionRequest(
     val id: Int,
-    val machineId: Int,
+    val machineId: String,
     val collectionAmounts: CollectionAmountsRequest,
     val comments: String? = null,
     val status: StatusResponse? = null

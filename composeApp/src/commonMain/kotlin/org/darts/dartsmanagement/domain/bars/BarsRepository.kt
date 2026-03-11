@@ -13,7 +13,7 @@ interface BarsRepository {
 
     suspend fun updateBar(barId: String, saveBarRequest: SaveBarRequest): Result<Unit>
 
-    suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit>
+    suspend fun updateBarMachines(barId: String, machineIds: List<String>): Result<Unit>
 
     suspend fun deleteBar(barId: String): Result<Unit>
 

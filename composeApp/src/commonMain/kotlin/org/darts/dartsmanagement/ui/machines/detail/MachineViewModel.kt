@@ -43,7 +43,7 @@ class MachineViewModel(
                     val currentStatus = _uiState.value.machine?.status ?: return@launch
                     val newStatusId = if (currentStatus == "INACTIVE") Status.PENDING_REPAIR.id else Status.INACTIVE.id
                     val newStatusStr = if (currentStatus == "INACTIVE") "PENDING_REPAIR" else "INACTIVE"
-                    val machineId = _uiState.value.machine?.id?.toInt() ?: return@launch
+                    val machineId = _uiState.value.machine?.id ?: return@launch
 
                     _uiState.update { it.copy(isLoading = true) }
 
@@ -63,7 +63,7 @@ class MachineViewModel(
             MachineEvent.OnRefresh -> refresh()
             MachineEvent.DeleteMachine -> {
                 viewModelScope.launch {
-                    val machineId = _uiState.value.machine?.id?.toInt() ?: return@launch
+                    val machineId = _uiState.value.machine?.id ?: return@launch
                     _uiState.update { it.copy(isLoading = true) }
                     deleteMachineUseCase(machineId)
                         .onSuccess {
@@ -78,7 +78,7 @@ class MachineViewModel(
     }
 
     private fun refresh() {
-        val machineId = initialMachine.id?.toInt() ?: return
+        val machineId = initialMachine.id ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             

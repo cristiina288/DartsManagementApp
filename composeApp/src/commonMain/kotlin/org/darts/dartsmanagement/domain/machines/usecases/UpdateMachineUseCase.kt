@@ -27,7 +27,7 @@ class UpdateMachineUseCase(
             // Remove from old bar
             if (!oldBarId.isNullOrEmpty()) {
                 barsRepository.getBar(oldBarId).onSuccess { oldBar ->
-                    val updatedMachineIds = oldBar.machines.mapNotNull { it.id?.toInt() }.filter { it != machineIdInt }
+                    val updatedMachineIds = oldBar.machines.mapNotNull { it.id }.filter { it != machineIdInt }
                     barsRepository.updateBarMachines(oldBarId, updatedMachineIds)
                 }
             }
@@ -35,7 +35,7 @@ class UpdateMachineUseCase(
             // Add to new bar
             if (!newBarId.isNullOrEmpty()) {
                 barsRepository.getBar(newBarId).onSuccess { newBar ->
-                    val currentMachineIds = newBar.machines.mapNotNull { it.id?.toInt() }.toMutableList()
+                    val currentMachineIds = newBar.machines.mapNotNull { it.id }.toMutableList()
                     if (!currentMachineIds.contains(machineIdInt)) {
                         currentMachineIds.add(machineIdInt)
                         barsRepository.updateBarMachines(newBarId, currentMachineIds)

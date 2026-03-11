@@ -22,7 +22,7 @@ data class CollectionModel(
 
 @Serializable
 data class MachineCollectionModel(
-    val machineId: Int,
+    val machineId: String,
     val barAmount: Double,
     val businessAmount: Double,
     val totalCollection: Double

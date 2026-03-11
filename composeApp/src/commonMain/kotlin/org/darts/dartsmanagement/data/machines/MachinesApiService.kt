@@ -26,7 +26,7 @@ class MachinesApiService(
         }
     }
 
-    suspend fun getMachine(machineId: Int): MachineResponse {
+    suspend fun getMachine(machineId: String): MachineResponse {
         val licenseId = sessionManager.licenseId.value ?: throw IllegalStateException("License not found in session")
         val doc = firestore.getDocument("machines", machineId.toString()) ?: throw NoSuchElementException("Machine with ID $machineId not found.")
         val machineData = doc.data<MachineFirestoreResponse>().copy(id = doc.id)
@@ -48,7 +48,7 @@ class MachinesApiService(
         firestore.setDocument("machines", serialNumber, data)
     }
 
-    suspend fun updateMachineStatus(machineId: Int, statusId: Int) {
+    suspend fun updateMachineStatus(machineId: String, statusId: Int) {
         val data = mapOf("status" to mapStatusIdToString(statusId))
         firestore.updateDocumentFields("machines", machineId.toString(), data)
     }
@@ -78,7 +78,7 @@ class MachinesApiService(
         }
     }
 
-    suspend fun deleteMachine(machineId: Int) {
+    suspend fun deleteMachine(machineId: String) {
         firestore.deleteDocument("machines", machineId.toString())
     }
 }

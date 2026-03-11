@@ -7,14 +7,14 @@ interface MachinesRepository {
 
     suspend fun getMachines(): List<MachineModel>
 
-    suspend fun getMachine(machineId: Int): Result<MachineModel>
+    suspend fun getMachine(machineId: String): Result<MachineModel>
 
     suspend fun saveMachine(serialNumber: String, saveMachineRequest: SaveMachineRequest)
 
-    suspend fun updateMachineStatus(machineId: Int, statusId: Int): Result<Unit>
+    suspend fun updateMachineStatus(machineId: String, statusId: Int): Result<Unit>
 
     suspend fun updateMachine(machine: MachineModel)
 
-    suspend fun deleteMachine(machineId: Int): Result<Unit>
+    suspend fun deleteMachine(machineId: String): Result<Unit>
 
 }

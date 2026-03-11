@@ -6,7 +6,7 @@ class DeleteMachineUseCase(
     private val machinesRepository: MachinesRepository,
     private val barsRepository: BarsRepository
 ) {
-    suspend operator fun invoke(machineId: Int): Result<Unit> {
+    suspend operator fun invoke(machineId: String): Result<Unit> {
         return runCatching {
             // 1. Get machine details to check for assigned bar
             val machineResult = machinesRepository.getMachine(machineId)

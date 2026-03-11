@@ -34,6 +34,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -69,6 +70,8 @@ import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.darts.dartsmanagement.ui.machines.detail.RepairConfirmationDialog
+import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
@@ -107,6 +110,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
     val navigator = LocalNavigator.currentOrThrow
     val sheetState = rememberModalBottomSheetState()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     val filteredMachines = uiState.allMachines.filter {
@@ -119,10 +123,30 @@ private fun EditBarScreenContent(initialBar: BarModel) {
         }
     }
 
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            // Pop EditBarScreen and BarScreen to go back to Listing
+            navigator.popUntil { it == BarsListingScreen }
+        }
+    }
+
     LaunchedEffect(uiState.error) {
         uiState.error?.let { errorMessage ->
             snackbarHostState.showSnackbar(errorMessage)
         }
+    }
+
+    if (showDeleteDialog) {
+        RepairConfirmationDialog(
+            text = "¿Estás seguro de que deseas eliminar este bar? Las máquinas asociadas quedarán sin bar asignado.",
+            onConfirm = {
+                editBarViewModel.onEvent(EditBarEvent.DeleteBar)
+                showDeleteDialog = false
+            },
+            onDismiss = {
+                showDeleteDialog = false
+            }
+        )
     }
 
     Scaffold(
@@ -131,6 +155,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
             TopBar(
                 title = "Editar Bar",
                 onBackClick = { navigator.pop() },
+                onDeleteClick = { showDeleteDialog = true }
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -171,6 +196,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
             }
         }
     ) { paddingValues ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -233,7 +259,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                 machines = uiState.bar?.machines ?: emptyList(),
                 onAddMachineClick = { showBottomSheet = true },
                 onDeleteMachineClick = { machineToDelete ->
-                    editBarViewModel.onEvent(EditBarEvent.RemoveMachineFromBar(machineToDelete.id ?: 0))
+                    editBarViewModel.onEvent(EditBarEvent.RemoveMachineFromBar(machineToDelete.id ?: ""))
                 }
             )
         }
@@ -386,12 +412,12 @@ private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TopBar(title: String, onBackClick: () -> Unit) {
+private fun TopBar(title: String, onBackClick: () -> Unit, onDeleteClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(BackgroundDark)
-            .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = onBackClick) {
@@ -404,10 +430,18 @@ private fun TopBar(title: String, onBackClick: () -> Unit) {
         Text(
             text = title,
             color = TextPrimaryDark,
-            fontSize = 22.sp,
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Start,
+            maxLines = 1
         )
+        IconButton(onClick = onDeleteClick) {
+            Icon(
+                imageVector = Icons.Default.Delete,
+                contentDescription = "Eliminar",
+                tint = Color.Red.copy(alpha = 0.7f)
+            )
+        }
     }
 }

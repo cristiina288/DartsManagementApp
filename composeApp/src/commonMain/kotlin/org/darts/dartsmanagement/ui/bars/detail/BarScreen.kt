@@ -29,7 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,19 +52,17 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_dartboard
-import org.darts.dartsmanagement.domain.bars.models.BarModel
-import org.darts.dartsmanagement.domain.common.models.Status
-import org.darts.dartsmanagement.domain.common.models.toStatus
+import org.darts.dartsmanagement.domain.leagues.models.LeagueModel
+import org.darts.dartsmanagement.domain.leagues.models.LeagueTeamModel
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
 import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
-import org.darts.dartsmanagement.ui.bars.listing.TextPrimaryDark
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-// --- Color Palette (from MachinesListingScreen.kt) ---
+// --- Color Palette ---
 private val BackgroundDark = Color(0xFF121212)
 private val SurfaceDark = Color(0xFF1E1E1E)
 private val Primary = Color(0xFF00BDA4)
@@ -73,9 +70,9 @@ private val TextPrimaryDark = Color(0xFFE0E0E0)
 private val TextSecondaryDark = Color(0xFFB0B0B0)
 private val BorderDark = Color.White.copy(alpha = 0.1f)
 
-// Specific tones for status tags (from GEMINI.md)
-private val InactiveStatusColor = Color(0xFF8BE9FD) // Secondary Accent
-private val PendingRepairStatusColor = Color(0xFFFFB86B) // Warm Accent
+// Specific tones for status tags
+private val InactiveStatusColor = Color(0xFF8BE9FD)
+private val PendingRepairStatusColor = Color(0xFFFFB86B)
 
 class BarScreen (val barId: String) : Screen {
     @Composable
@@ -91,7 +88,6 @@ private fun BarScreenContent(barId: String) {
     val uriHandler = LocalUriHandler.current
     val viewModel = koinViewModel<BarViewModel>(parameters = { parametersOf(barId) })
     val uiState by viewModel.uiState.collectAsState()
-    var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isDeleted) {
         if (uiState.isDeleted) {
@@ -103,19 +99,6 @@ private fun BarScreenContent(barId: String) {
         viewModel.loadBarDetails()
     }
 
-    if (showDeleteDialog) {
-        org.darts.dartsmanagement.ui.machines.detail.RepairConfirmationDialog(
-            text = "¿Estás seguro de que deseas eliminar este bar? Las máquinas asociadas quedarán sin bar asignado.",
-            onConfirm = {
-                viewModel.onEvent(BarEvent.DeleteBar)
-                showDeleteDialog = false
-            },
-            onDismiss = {
-                showDeleteDialog = false
-            }
-        )
-    }
-
     Scaffold(
         containerColor = BackgroundDark,
         topBar = {
@@ -124,8 +107,7 @@ private fun BarScreenContent(barId: String) {
                     title = "Detalles del Bar",
                     onBackClick = { navigator.pop() },
                     onEditClick = { navigator.push(EditBarScreen(bar)) },
-                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) },
-                    onDeleteClick = { showDeleteDialog = true }
+                    onCollectClick = { navigator.push(CollectionScreen(bar.id)) }
                 )
             }
         }
@@ -149,7 +131,7 @@ private fun BarScreenContent(barId: String) {
                         Text(
                             text = bar.name,
                             color = TextPrimaryDark,
-                            fontSize = 32.sp, // Matching HTML
+                            fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             lineHeight = 38.sp
                         )
@@ -204,6 +186,32 @@ private fun BarScreenContent(barId: String) {
 
                     item {
                         Text(
+                            text = "Ligas",
+                            color = TextPrimaryDark,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+
+                        if (uiState.leagues.isNotEmpty()) {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                uiState.leagues.forEach { league ->
+                                    LeagueItem(league = league, barId = barId)
+                                }
+                            }
+                        } else {
+                            Text(
+                                text = "Sin ligas asignadas",
+                                color = TextSecondaryDark,
+                                fontSize = 14.sp,
+                                fontStyle = FontStyle.Italic,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            )
+                        }
+                    }
+
+                    item {
+                        Text(
                             text = "Notas",
                             color = TextPrimaryDark,
                             fontSize = 18.sp,
@@ -220,7 +228,7 @@ private fun BarScreenContent(barId: String) {
 
 @Composable
 private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -> Unit) {
-    val status = machine.status // Use the extension property
+    val status = machine.status
 
     val (statusText, backgroundColor, textColor) = when (status.uppercase()) {
         "ACTIVE" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
@@ -238,7 +246,7 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
         colors = CardDefaults.cardColors(
             containerColor = Primary.copy(alpha = 0.1f)
         ),
-        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f)) // No visible border for machine items
+        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f))
     ) {
         Row(
             modifier = Modifier
@@ -246,7 +254,6 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icon
             Icon(
                 painter = painterResource(Res.drawable.ico_dartboard),
                 contentDescription = machine.name,
@@ -254,10 +261,8 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
                 modifier = Modifier.size(40.dp)
             )
 
-
             Spacer(Modifier.width(16.dp))
 
-            // Machine details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = machine.name ?: "Máquina no disponible",
@@ -267,20 +272,16 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
                     maxLines = 1
                 )
 
-                // Counter/Amount
                 Text(
                     text = "Contador: ${machine.counter ?: 0}",
                     color = TextPrimaryDark,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.End,
                 )
             }
 
-            // Status Tag
             Box(
                 modifier = Modifier
-                    .padding(top = 4.dp)
                     .background(backgroundColor, CircleShape)
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
@@ -290,6 +291,145 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LeagueItem(league: LeagueModel, barId: String) {
+    val leagueBar = league.bars.find { it.barId == barId } ?: return
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp)),
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = SurfaceDark
+        ),
+        border = BorderStroke(1.dp, BorderDark)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = league.name,
+                color = Primary,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (leagueBar.barFinances.paymentStatus != "N/A") {
+                Spacer(modifier = Modifier.size(8.dp))
+                FinanceSection(
+                    title = "Finanzas del Bar",
+                    total = leagueBar.barFinances.totalAmountToPay,
+                    pending = leagueBar.barFinances.amountPending,
+                    quota = leagueBar.barFinances.quota
+                )
+            }
+
+            if (leagueBar.teams.isNotEmpty()) {
+                Spacer(modifier = Modifier.size(12.dp))
+                Text(
+                    text = "Equipos",
+                    color = TextPrimaryDark,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.size(4.dp))
+                leagueBar.teams.forEach { team ->
+                    TeamItem(team = team, priceType = league.priceType)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TeamItem(team: LeagueTeamModel, priceType: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .background(Primary.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+            .padding(8.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = team.teamName,
+                color = TextPrimaryDark,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
+            )
+            if (priceType == "PER_PLAYER" && team.players != null) {
+                Text(
+                    text = "${team.players} jugadores",
+                    color = TextSecondaryDark,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
+        if (team.teamFinances.paymentStatus != "N/A") {
+            Spacer(modifier = Modifier.size(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Total: ${team.teamFinances.totalAmountToPay}€",
+                    color = TextSecondaryDark,
+                    fontSize = 12.sp
+                )
+                Text(
+                    text = "Pendiente: ${team.teamFinances.amountPending}€",
+                    color = if (team.teamFinances.amountPending > 0) PendingRepairStatusColor else Primary,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FinanceSection(title: String, total: Double, pending: Double, quota: Double? = null) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Primary.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+            .padding(8.dp)
+    ) {
+        Text(
+            text = title,
+            color = TextPrimaryDark,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.size(4.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(text = "Total a pagar", color = TextSecondaryDark, fontSize = 12.sp)
+                Text(text = "${total}€", color = TextPrimaryDark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = "Pendiente", color = TextSecondaryDark, fontSize = 12.sp)
+                Text(
+                    text = "${pending}€",
+                    color = if (pending > 0) PendingRepairStatusColor else Primary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            if (quota != null && quota > 0) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(text = "Cuota", color = TextSecondaryDark, fontSize = 12.sp)
+                    Text(text = "${quota}€", color = TextPrimaryDark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -333,13 +473,12 @@ private fun TopBar(
     title: String,
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
-    onCollectClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onCollectClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BackgroundDark) // Use same BackgroundDark as screen
+            .background(BackgroundDark)
             .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -353,19 +492,12 @@ private fun TopBar(
         Text(
             text = title,
             color = TextPrimaryDark,
-            fontSize = 18.sp, // Reduced to fit more
+            fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
             textAlign = TextAlign.Start,
             maxLines = 1
         )
-        IconButton(onClick = onDeleteClick) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = "Eliminar",
-                tint = Color.Red.copy(alpha = 0.7f)
-            )
-        }
         TextButton(onClick = onCollectClick) {
             Text(
                 text = "Recaudar",

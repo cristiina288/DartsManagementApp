@@ -76,10 +76,10 @@ private val ConfirmButtonShadow = Primary.copy(alpha = 0.2f) // From HTML shadow
 fun SelectMachinesBottomSheet(
     sheetState: SheetState,
     allMachines: List<MachineModel>,
-    selectedMachineIds: List<Int>,
-    onConfirmButton: (List<Int>) -> Unit,
+    selectedMachineIds: List<String>,
+    onConfirmButton: (List<String>) -> Unit,
     onDismissRequest: () -> Unit,
-    onToggleMachineSelection: (Int) -> Unit
+    onToggleMachineSelection: (String) -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -103,11 +103,11 @@ fun SelectMachinesBottomSheet(
 @Composable
 fun SelectMachinesBottomSheetContent(
     allMachines: List<MachineModel>,
-    selectedMachineIds: List<Int>,
-    onConfirm: (List<Int>) -> Unit,
+    selectedMachineIds: List<String>,
+    onConfirm: (List<String>) -> Unit,
     onDismiss: () -> Unit,
     onSearchQueryChange: (String) -> Unit,
-    onToggleMachineSelection: (Int) -> Unit
+    onToggleMachineSelection: (String) -> Unit
 ) {
     var searchQuery by remember { mutableStateOf("") }
 

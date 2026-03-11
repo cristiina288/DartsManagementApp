@@ -136,7 +136,7 @@ class BarsApiService(
         )
     }
 
-    suspend fun updateBarMachines(barId: String, machineIds: List<Int>) {
+    suspend fun updateBarMachines(barId: String, machineIds: List<String>) {
         try {
             val dataToUpdate = mapOf("machineIds" to machineIds)
             firestore.updateDocumentFields("bars", barId, dataToUpdate)

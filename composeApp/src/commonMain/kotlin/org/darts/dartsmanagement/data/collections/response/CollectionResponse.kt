@@ -11,7 +11,7 @@ import org.darts.dartsmanagement.domain.collections.models.CollectionModel
 @Serializable
 data class CollectionResponse (
     val id: Int,
-    val machineId: Int,
+    val machineId: String,
     val collectionAmounts: CollectionAmountsResponse,
     val comments: String? = null,
     val status: StatusResponse
@@ -33,7 +33,7 @@ data class CollectionResponse (
 
 @Serializable
 data class CollectionFirestoreResponse(
-    val machineId: Int,
+    val machineId: String,
     val comments: String? = null,
     val totalCollection: Double,
     val barAmount: Double,

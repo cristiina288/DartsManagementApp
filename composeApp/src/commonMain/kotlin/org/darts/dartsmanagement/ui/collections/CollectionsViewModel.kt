@@ -320,12 +320,12 @@ class CollectionsViewModel(
     }
 
 
-    fun saveCounterAndMachineIdCollection(counterCollection: Int?, machineId: Int?, index: Int) {
+    fun saveCounterAndMachineIdCollection(counterCollection: Int?, machineId: String?, index: Int) {
         _collection.update { collections ->
             val newEntries = collections.machineEntries.toMutableList()
             newEntries[index] = newEntries[index].copy(
                 counter = counterCollection ?: 0,
-                machineId = machineId ?: 0,
+                machineId = machineId ?: "",
                 contadorInput = counterCollection?.toString() ?: ""
             )
             collections.copy(machineEntries = newEntries)

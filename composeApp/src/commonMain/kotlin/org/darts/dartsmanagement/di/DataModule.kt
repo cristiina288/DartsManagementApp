@@ -120,7 +120,7 @@ val dataModule = module {
     viewModel { parameters -> CollectionsViewModel(parameters.getOrNull(), get(), get(), get(), get(), get(), get()) }
     viewModel { parameters -> MachineViewModel(parameters.get(), get(), get(), get(), get(), get()) }
     viewModel { parameters -> EditMachineViewModel(parameters.get(), get(), get()) }
-    viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get()) }
+    viewModel { parameters -> EditBarViewModel(parameters.get(), get(), get(), get(), get()) }
     viewModel { parameters -> LocationViewModel(parameters.get(), get(), get()) }
     viewModel { parameters -> EditLocationViewModel(parameters.get(), get()) }
 }

@@ -96,8 +96,8 @@ private fun HomeScreenContent() {
         MenuItem("Bares", icoPainter = painterResource(Res.drawable.ico_beer)) { navigator.push(BarsListingScreen) },
         MenuItem("Máquinas", icoPainter = painterResource(Res.drawable.ico_dartboard)) { navigator.push(MachinesListingScreen) },
         MenuItem("Localizaciones", Icons.Default.LocationOn) { navigator.push(LocationsListingScreen) },
+        MenuItem("Pago ligas",  icoPainter = painterResource(Res.drawable.ico_league_collection)) { navigator.push(LeaguePaymentScreen) },
         MenuItem("Historial",  icoPainter = painterResource(Res.drawable.ico_documents)) { navigator.push(HistorialCollectionsScreen) },
-        MenuItem("Pago ligas",  icoPainter = painterResource(Res.drawable.ico_league_collection)) { navigator.push(LeaguePaymentScreen) }
     )
 
     Scaffold(

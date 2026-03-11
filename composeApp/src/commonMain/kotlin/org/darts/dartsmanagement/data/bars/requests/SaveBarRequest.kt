@@ -13,6 +13,6 @@ class SaveBarRequest(
     val longitude: Double,
     val locationBarUrl: String?,
     val status: String,
-    val machineIds: List<Long>,
+    val machineIds: List<String>,
     val licenseId: String = ""
 )

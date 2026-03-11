@@ -10,7 +10,7 @@ data class BarFirestoreResponse(
     val licenseId: String = "",
     val location: BarLocationFirestoreDetails = BarLocationFirestoreDetails(),
     val status: String = "ACTIVE",
-    val machineIds: List<Long> = emptyList()
+    val machineIds: List<String> = emptyList()
 )
 
 @Serializable

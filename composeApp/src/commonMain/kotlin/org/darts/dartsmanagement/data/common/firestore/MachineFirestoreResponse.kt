@@ -19,7 +19,7 @@ data class MachineFirestoreResponse(
 ) {
     fun toDomain(): MachineModel {
         return MachineModel(
-            id = id.toIntOrNull(), 
+            id = id,
             name = name,
             counter = counter,
             barId = barId, 
@@ -29,7 +29,7 @@ data class MachineFirestoreResponse(
 
     fun toMachineResponse(): MachineResponse {
         return MachineResponse(
-            id = id.toIntOrNull(), // MachineResponse expects Int?, we have String id
+            id = id,
             name = name,
             counter = counter,
             barId = barId, // Convert String barId to Int?

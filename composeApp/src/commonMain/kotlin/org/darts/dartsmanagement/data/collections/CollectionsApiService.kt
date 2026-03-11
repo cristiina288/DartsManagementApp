@@ -37,7 +37,7 @@ fun Instant.toFirebaseTimestamp(): Timestamp {
 
 @Serializable
 data class CollectionMachineFirestore(
-    val machineId: Int,
+    val machineId: String,
     val barAmount: Double,
     val businessAmount: Double,
     val totalCollection: Double
@@ -208,7 +208,7 @@ class CollectionsApiService(
 
 
     suspend fun getCollectionsByMachineId(
-        machineId: Int
+        machineId: String
     ): List<CollectionModel> {
         return try {
             val licenseId = sessionManager.licenseId.value ?: return emptyList()

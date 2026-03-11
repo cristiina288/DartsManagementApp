@@ -161,6 +161,25 @@ private fun LeaguePaymentScreenContent() {
                                 searchQuery = state.barSearchQuery,
                                 onSearchQueryChanged = { viewModel.onEvent(LeaguePaymentEvent.OnBarSearchQueryChanged(it)) }
                             )
+
+                            if (state.selectedBar != null) {
+                                val leagueBar = state.selectedLeague?.bars?.find { it.barId == state.selectedBar?.id }
+                                leagueBar?.let { lb ->
+                                    Column(modifier = Modifier.padding(top = 8.dp, start = 4.dp)) {
+                                        Text(
+                                            text = "Cuota del Bar: ${lb.barFinances.quota} €",
+                                            color = Primary,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Text(
+                                            text = "Total Pendiente: ${lb.barFinances.amountPending} €",
+                                            color = TextSecondaryDark,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(8.dp))

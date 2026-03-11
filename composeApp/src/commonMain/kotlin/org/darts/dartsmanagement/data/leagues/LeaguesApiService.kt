@@ -53,12 +53,19 @@ class LeaguesApiService(
                     updated = true
                     val newAmountPaid = bar.barFinances.amountPaid + amountPaid
                     val newAmountPending = (bar.barFinances.totalAmountToPay - newAmountPaid).coerceAtLeast(0.0)
+                    
+                    val newQuota = if (league.ownerPayment == "BAR") {
+                        (bar.barFinances.quota - amountPaid).coerceAtLeast(0.0)
+                    } else {
+                        bar.barFinances.quota
+                    }
 
                     bar.copy(
                         barFinances = bar.barFinances.copy(
                             amountPaid = newAmountPaid,
                             amountPending = newAmountPending,
-                            paymentStatus = if (newAmountPending <= 0.0) "PAID" else "PENDING"
+                            paymentStatus = if (newAmountPending <= 0.0) "PAID" else "PENDING",
+                            quota = newQuota
                         )
                     )
                 } else {

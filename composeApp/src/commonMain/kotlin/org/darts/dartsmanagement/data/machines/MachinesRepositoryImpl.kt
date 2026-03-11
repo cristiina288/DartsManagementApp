@@ -12,7 +12,7 @@ class MachinesRepositoryImpl(
         return api.getMachines().map { m -> m.toDomain() }
     }
 
-    override suspend fun getMachine(machineId: Int): Result<MachineModel> {
+    override suspend fun getMachine(machineId: String): Result<MachineModel> {
         return runCatching {
             api.getMachine(machineId).toDomain()
         }
@@ -23,7 +23,7 @@ class MachinesRepositoryImpl(
         return api.saveMachine(serialNumber, saveMachineRequest)
     }
 
-    override suspend fun updateMachineStatus(machineId: Int, statusId: Int): Result<Unit> {
+    override suspend fun updateMachineStatus(machineId: String, statusId: Int): Result<Unit> {
         return runCatching {
             api.updateMachineStatus(machineId, statusId)
         }
@@ -33,7 +33,7 @@ class MachinesRepositoryImpl(
         return api.updateMachine(machine)
     }
 
-    override suspend fun deleteMachine(machineId: Int): Result<Unit> {
+    override suspend fun deleteMachine(machineId: String): Result<Unit> {
         return runCatching {
             api.deleteMachine(machineId)
         }

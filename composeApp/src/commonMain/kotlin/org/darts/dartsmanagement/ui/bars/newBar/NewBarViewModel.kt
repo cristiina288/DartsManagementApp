@@ -21,7 +21,7 @@ sealed interface NewBarEvent {
     data class OnLongitudeChanged(val longitude: String) : NewBarEvent
     data class OnLocationBarUrlChanged(val url: String) : NewBarEvent
     data class OnLocationSelected(val locationId: String) : NewBarEvent
-    data class ToggleMachineSelection(val machineId: Int) : NewBarEvent
+    data class ToggleMachineSelection(val machineId: String) : NewBarEvent
     data object OnSaveTapped : NewBarEvent
 }
 
@@ -100,7 +100,7 @@ class NewBarViewModel(
                 latitude = currentState.latitude.toDoubleOrNull() ?: 0.0,
                 longitude = currentState.longitude.toDoubleOrNull() ?: 0.0,
                 locationBarUrl = currentState.locationBarUrl,
-                machineIds = currentState.selectedMachineIds.map { it.toLong() },
+                machineIds = currentState.selectedMachineIds.map { it },
                 status = "ACTIVE"
             )
 

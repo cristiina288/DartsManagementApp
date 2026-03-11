@@ -161,13 +161,13 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
                 }
                 
+                val selectedLeague = collection.availableLeagues.find { it.id == entry.leagueId }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    val selectedLeague = collection.availableLeagues.find { it.id == entry.leagueId }
-                    
                     Box(modifier = Modifier.weight(1f)) {
                         AppDropdown(
                             label = "Liga",
@@ -186,6 +186,27 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
                             modifier = Modifier.padding(top = 24.dp)
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red.copy(alpha = 0.6f))
+                        }
+                    }
+                }
+
+                selectedLeague?.let { league ->
+                    if (league.ownerPayment == "BAR") {
+                        val leagueBar = league.bars.find { it.barId == collection.barId }
+                        leagueBar?.let { lb ->
+                            Column(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp, start = 4.dp)) {
+                                Text(
+                                    text = "Cuota del Bar: ${lb.barFinances.quota} €",
+                                    color = Primary,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "Total Pendiente: ${lb.barFinances.amountPending} €",
+                                    color = TextSecondaryDark,
+                                    fontSize = 12.sp
+                                )
+                            }
                         }
                     }
                 }

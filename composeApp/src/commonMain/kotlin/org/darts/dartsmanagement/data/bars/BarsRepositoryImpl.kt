@@ -28,7 +28,7 @@ class BarsRepositoryImpl(
         }
     }
 
-    override suspend fun updateBarMachines(barId: String, machineIds: List<Int>): Result<Unit> {
+    override suspend fun updateBarMachines(barId: String, machineIds: List<String>): Result<Unit> {
         return runCatching {
             api.updateBarMachines(barId, machineIds)
         }

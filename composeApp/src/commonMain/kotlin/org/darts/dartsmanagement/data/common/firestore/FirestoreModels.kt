@@ -20,7 +20,7 @@ data class BarFirestore(
     val licenseId: String = "",
     val locationId: String = "",
     val statusId: Long = 0,
-    val machineIds: List<Long> = emptyList()
+    val machineIds: List<String> = emptyList()
 )
 
 @Serializable

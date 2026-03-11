@@ -8,7 +8,7 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 
 @Serializable
 data class MachineResponse (
-    val id: Int?,
+    val id: String?,
     val name: String?,
     val counter: Int?,
     val barId: String?,

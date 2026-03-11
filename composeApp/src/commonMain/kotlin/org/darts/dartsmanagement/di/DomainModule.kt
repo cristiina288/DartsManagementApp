@@ -1,6 +1,7 @@
 package org.darts.dartsmanagement.di
 
 import org.darts.dartsmanagement.domain.auth.GetCurrentUser
+import org.darts.dartsmanagement.domain.bars.DeleteBarUseCase
 import org.darts.dartsmanagement.domain.bars.GetBar
 import org.darts.dartsmanagement.domain.bars.GetBars
 import org.darts.dartsmanagement.domain.bars.SaveBar
@@ -13,6 +14,7 @@ import org.darts.dartsmanagement.domain.collections.GetPaginatedCollectionsUseCa
 import org.darts.dartsmanagement.domain.collections.SaveCollection
 import org.darts.dartsmanagement.domain.collections.UpdateCollectionUseCase
 import org.darts.dartsmanagement.domain.leagues.GetActiveLeaguesUseCase
+import org.darts.dartsmanagement.domain.leagues.GetLeaguesForBarUseCase
 import org.darts.dartsmanagement.domain.locations.GetLocations
 import org.darts.dartsmanagement.domain.locations.SaveLocation
 import org.darts.dartsmanagement.domain.machines.GetMachines
@@ -46,4 +48,6 @@ val domainModule = module {
     factoryOf(::SaveLocation)
     factory { UpdateBarWithNewMachine(get()) }
     factoryOf(::GetActiveLeaguesUseCase)
+    factoryOf(::GetLeaguesForBarUseCase)
+    factoryOf(::DeleteBarUseCase)
 }

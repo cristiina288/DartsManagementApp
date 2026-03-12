@@ -36,6 +36,7 @@ class EditMachineViewModel(
                 name = machine.name.orEmpty(),
                 counter = machine.counter.toString(),
                 selectedBarId = machine.barId,
+                status = machine.status
             )
         }
         loadBars()
@@ -84,6 +85,20 @@ class EditMachineViewModel(
                 )
             }
 
+            is EditMachineEvent.OnToggleRepairStatus -> {
+                _uiState.update { state ->
+                    if (state.status != "PENDING_REPAIR") {
+                        state.copy(
+                            status = "PENDING_REPAIR",
+                            selectedBarId = "",
+                            selectedBarName = null
+                        )
+                    } else {
+                        state.copy(status = "INACTIVE")
+                    }
+                }
+            }
+
             is EditMachineEvent.OnSaveMachineClick -> saveMachine()
             is EditMachineEvent.OnDeleteMachineClick -> deleteMachine()
             is EditMachineEvent.ClearError -> _uiState.update { it.copy(error = null) }
@@ -112,7 +127,8 @@ class EditMachineViewModel(
                 val updatedMachine = machine.copy(
                     name = currentState.name,
                     counter = currentState.counter.toIntOrNull() ?: 0,
-                    barId = currentState.selectedBarId ?: ""
+                    barId = currentState.selectedBarId ?: "",
+                    status = currentState.status
                 )
                 updateMachineUseCase(updatedMachine, machine.barId)
                 _effect.send(Effect.MachineSaved)
@@ -137,6 +153,7 @@ data class EditMachineUiState(
     val counter: String = "",
     val selectedBarId: String? = null,
     val selectedBarName: String? = null,
+    val status: String = "INACTIVE",
     val allBars: List<BarModel> = emptyList(),
     val showBarSelectionDialog: Boolean = false,
     val isLoading: Boolean = false,
@@ -150,6 +167,7 @@ sealed interface EditMachineEvent {
     data object OnDismissBarSelectionDialog : EditMachineEvent
     data class OnBarSelected(val barId: String, val barName: String) : EditMachineEvent
     data object OnClearBarSelection : EditMachineEvent
+    data object OnToggleRepairStatus : EditMachineEvent
     data object OnSaveMachineClick : EditMachineEvent
     data object OnDeleteMachineClick : EditMachineEvent
     data object ClearError : EditMachineEvent

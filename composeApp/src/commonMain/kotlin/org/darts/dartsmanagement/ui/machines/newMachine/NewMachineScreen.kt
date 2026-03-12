@@ -49,6 +49,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.ui.components.SelectBarBottomSheet
+import org.darts.dartsmanagement.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 
 
@@ -58,8 +59,6 @@ object NewMachineScreen : Screen {
         NewMachineScreenContent()
     }
 }
-
-private val BackgroundDark = Color(0xFF121212)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,7 +85,7 @@ fun NewMachineScreenContent() {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -94,7 +93,7 @@ fun NewMachineScreenContent() {
                         "Crear Máquina",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -103,12 +102,12 @@ fun NewMachineScreenContent() {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = TextPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                    containerColor = Background.copy(alpha = 0.8f)
                 ),
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp)) // To balance the title
@@ -167,12 +166,12 @@ fun NewMachineScreenContent() {
                     .fillMaxWidth()
                     .height(56.dp), // Similar height to OutlinedTextField
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.1f) // Match TextField's container color
+                    containerColor = Border // Match TextField's container color
                 ),
                 shape = RoundedCornerShape(8.dp), // Match TextField's shape
                 contentPadding = PaddingValues(horizontal = 16.dp), // Match TextField's horizontal padding
                 // Add border if needed, similar to OutlinedTextField
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)) // Match TextField's unfocused border color
+                border = BorderStroke(1.dp, Border.copy(alpha = 0.2f)) // Match TextField's unfocused border color
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -181,7 +180,7 @@ fun NewMachineScreenContent() {
                 ) {
                     Text(
                         text = uiState.selectedBarName ?: "Seleccionar bar",
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Start,
                         modifier = Modifier.weight(1f)
@@ -189,7 +188,7 @@ fun NewMachineScreenContent() {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Seleccionar Bar",
-                        tint = Color.White
+                        tint = TextPrimary
                     )
                 }
             }
@@ -202,14 +201,14 @@ fun NewMachineScreenContent() {
                     .height(56.dp)
                     .padding(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00BFA6)
+                    containerColor = PrimaryAccent
                 ),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !uiState.isLoading
             ) {
                 Text(
                     text = "Crear Máquina",
-                    color = Color.White,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -232,15 +231,15 @@ fun NewMachineScreenContent() {
 
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-    cursorColor = Color(0xFF00BFA6),
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+    unfocusedBorderColor = Border.copy(alpha = 0.2f),
+    focusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    unfocusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = Border,
+    unfocusedContainerColor = Border,
+    cursorColor = PrimaryAccent,
+    focusedPlaceholderColor = TextPlaceholder,
+    unfocusedPlaceholderColor = TextPlaceholder,
 )

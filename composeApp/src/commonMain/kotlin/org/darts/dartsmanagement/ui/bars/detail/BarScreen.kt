@@ -60,21 +60,10 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.machines.detail.MachineScreen
 import org.darts.dartsmanagement.ui.bars.edit.EditBarScreen
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
+import org.darts.dartsmanagement.ui.theme.*
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-
-// --- Color Palette ---
-private val BackgroundDark = Color(0xFF121212)
-private val SurfaceDark = Color(0xFF1E1E1E)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color(0xFFE0E0E0)
-private val TextSecondaryDark = Color(0xFFB0B0B0)
-private val BorderDark = Color.White.copy(alpha = 0.1f)
-
-// Specific tones for status tags
-private val InactiveStatusColor = Color(0xFF8BE9FD)
-private val PendingRepairStatusColor = Color(0xFFFFB86B)
 
 class BarScreen (val barId: String) : Screen {
     @Composable
@@ -102,7 +91,7 @@ private fun BarScreenContent(barId: String) {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             uiState.bar?.let { bar ->
                 TopBar(
@@ -116,8 +105,8 @@ private fun BarScreenContent(barId: String) {
             uiState.bar?.let { bar ->
                 FloatingActionButton(
                     onClick = { navigator.push(CollectionScreen(bar.id)) },
-                    containerColor = Primary,
-                    contentColor = BackgroundDark,
+                    containerColor = PrimaryAccent,
+                    contentColor = Color.Black,
                     shape = CircleShape
                 ) {
                     Icon(
@@ -131,7 +120,7 @@ private fun BarScreenContent(barId: String) {
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = PrimaryAccent)
             }
         } else {
             uiState.bar?.let { bar ->
@@ -147,7 +136,7 @@ private fun BarScreenContent(barId: String) {
                         // Bar Title
                         Text(
                             text = bar.name,
-                            color = TextPrimaryDark,
+                            color = TextPrimary,
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold,
                             lineHeight = 38.sp
@@ -155,7 +144,7 @@ private fun BarScreenContent(barId: String) {
                         // Address
                         Text(
                             text = bar.location.address ?: "Dirección no disponible",
-                            color = TextSecondaryDark,
+                            color = TextSecondary,
                             fontSize = 16.sp
                         )
 
@@ -163,7 +152,7 @@ private fun BarScreenContent(barId: String) {
                         if (bar.location.locationBarUrl?.isNotEmpty() == true) {
                             Text(
                                 text = "Ver en Google Maps",
-                                color = TextSecondaryDark,
+                                color = TextSecondary,
                                 fontSize = 14.sp,
                                 textDecoration = TextDecoration.Underline,
                                 modifier = Modifier
@@ -173,7 +162,7 @@ private fun BarScreenContent(barId: String) {
                         } else if (bar.location.latitude != null && bar.location.longitude != null) {
                             Text(
                                 text = "Ver en Google Maps",
-                                color = TextSecondaryDark,
+                                color = TextSecondary,
                                 fontSize = 14.sp,
                                 textDecoration = TextDecoration.Underline,
                                 modifier = Modifier
@@ -186,7 +175,7 @@ private fun BarScreenContent(barId: String) {
                     item {
                         Text(
                             text = "Máquinas Asignadas",
-                            color = TextPrimaryDark,
+                            color = TextPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -203,7 +192,7 @@ private fun BarScreenContent(barId: String) {
                         } else {
                             Text(
                                 text = "Sin máquinas asignadas",
-                                color = TextSecondaryDark,
+                                color = TextSecondary,
                                 fontSize = 14.sp,
                                 fontStyle = FontStyle.Italic,
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -214,7 +203,7 @@ private fun BarScreenContent(barId: String) {
                     item {
                         Text(
                             text = "Ligas",
-                            color = TextPrimaryDark,
+                            color = TextPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -229,7 +218,7 @@ private fun BarScreenContent(barId: String) {
                         } else {
                             Text(
                                 text = "Sin ligas asignadas",
-                                color = TextSecondaryDark,
+                                color = TextSecondary,
                                 fontSize = 14.sp,
                                 fontStyle = FontStyle.Italic,
                                 modifier = Modifier.padding(vertical = 4.dp)
@@ -240,7 +229,7 @@ private fun BarScreenContent(barId: String) {
                     item {
                         Text(
                             text = "Notas",
-                            color = TextPrimaryDark,
+                            color = TextPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -258,10 +247,10 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
     val status = machine.status
 
     val (statusText, backgroundColor, textColor) = when (status.uppercase()) {
-        "ACTIVE" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
-        "INACTIVE" -> Triple("Inactiva", InactiveStatusColor.copy(alpha = 0.2f), InactiveStatusColor)
-        "PENDING_REPAIR" -> Triple("Reparación", PendingRepairStatusColor.copy(alpha = 0.2f), PendingRepairStatusColor)
-        else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+        "ACTIVE" -> Triple("Activa", PrimaryAccent.copy(alpha = 0.2f), PrimaryAccent)
+        "INACTIVE" -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
+        "PENDING_REPAIR" -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
+        else -> Triple("Indefinido", Surface.copy(alpha = 0.4f), TextSecondary)
     }
 
     Card(
@@ -271,9 +260,9 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
             .clickable { onClick(machine) },
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Primary.copy(alpha = 0.1f)
+            containerColor = PrimaryAccent.copy(alpha = 0.1f)
         ),
-        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f))
+        border = BorderStroke(1.dp, Border.copy(alpha = 0.0f))
     ) {
         Row(
             modifier = Modifier
@@ -284,7 +273,7 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
             Icon(
                 painter = painterResource(Res.drawable.ico_dartboard),
                 contentDescription = machine.name,
-                tint = Primary,
+                tint = PrimaryAccent,
                 modifier = Modifier.size(40.dp)
             )
 
@@ -293,7 +282,7 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = machine.name ?: "Máquina no disponible",
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1
@@ -301,7 +290,7 @@ private fun MachineAssignedItem(machine: MachineModel, onClick: (MachineModel) -
 
                 Text(
                     text = "Contador: ${machine.counter ?: 0}",
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                 )
@@ -333,14 +322,14 @@ private fun LeagueItem(league: LeagueModel, barId: String) {
             .clip(RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfaceDark
+            containerColor = Surface
         ),
-        border = BorderStroke(1.dp, BorderDark)
+        border = BorderStroke(1.dp, Border)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = league.name,
-                color = Primary,
+                color = PrimaryAccent,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -359,7 +348,7 @@ private fun LeagueItem(league: LeagueModel, barId: String) {
                 Spacer(modifier = Modifier.size(12.dp))
                 Text(
                     text = "Equipos",
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -378,13 +367,13 @@ private fun TeamItem(team: LeagueTeamModel, priceType: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
-            .background(Primary.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
+            .background(PrimaryAccent.copy(alpha = 0.05f), RoundedCornerShape(4.dp))
             .padding(8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = team.teamName,
-                color = TextPrimaryDark,
+                color = TextPrimary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.weight(1f)
@@ -392,7 +381,7 @@ private fun TeamItem(team: LeagueTeamModel, priceType: String) {
             if (priceType == "PER_PLAYER" && team.players != null) {
                 Text(
                     text = "${team.players} jugadores",
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 12.sp
                 )
             }
@@ -406,12 +395,12 @@ private fun TeamItem(team: LeagueTeamModel, priceType: String) {
             ) {
                 Text(
                     text = "Total: ${team.teamFinances.totalAmountToPay}€",
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 12.sp
                 )
                 Text(
                     text = "Pendiente: ${team.teamFinances.amountPending}€",
-                    color = if (team.teamFinances.amountPending > 0) PendingRepairStatusColor else Primary,
+                    color = if (team.teamFinances.amountPending > 0) WarmAccent else PrimaryAccent,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -425,12 +414,12 @@ private fun FinanceSection(title: String, total: Double, pending: Double, quota:
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Primary.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
+            .background(PrimaryAccent.copy(alpha = 0.1f), RoundedCornerShape(4.dp))
             .padding(8.dp)
     ) {
         Text(
             text = title,
-            color = TextPrimaryDark,
+            color = TextPrimary,
             fontSize = 14.sp,
             fontWeight = FontWeight.SemiBold
         )
@@ -440,22 +429,22 @@ private fun FinanceSection(title: String, total: Double, pending: Double, quota:
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Column {
-                Text(text = "Total a pagar", color = TextSecondaryDark, fontSize = 12.sp)
-                Text(text = "${total}€", color = TextPrimaryDark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(text = "Total a pagar", color = TextSecondary, fontSize = 12.sp)
+                Text(text = "${total}€", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(text = "Pendiente", color = TextSecondaryDark, fontSize = 12.sp)
+                Text(text = "Pendiente", color = TextSecondary, fontSize = 12.sp)
                 Text(
                     text = "${pending}€",
-                    color = if (pending > 0) PendingRepairStatusColor else Primary,
+                    color = if (pending > 0) WarmAccent else PrimaryAccent,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
             if (quota != null && quota > 0) {
                 Column(horizontalAlignment = Alignment.End) {
-                    Text(text = "Cuota", color = TextSecondaryDark, fontSize = 12.sp)
-                    Text(text = "${quota}€", color = TextPrimaryDark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text(text = "Cuota", color = TextSecondary, fontSize = 12.sp)
+                    Text(text = "${quota}€", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -470,22 +459,22 @@ private fun NotesSection(description: String?) {
             .clip(RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Primary.copy(alpha = 0.1f)
+            containerColor = PrimaryAccent.copy(alpha = 0.1f)
         ),
-        border = BorderStroke(1.dp, BorderDark.copy(alpha = 0.0f))
+        border = BorderStroke(1.dp, Border.copy(alpha = 0.0f))
     ) {
         Box(modifier = Modifier.padding(16.dp)) {
             if (description.isNullOrEmpty()) {
                 Text(
                     text = "Sin notas",
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 16.sp,
                     fontStyle = FontStyle.Italic
                 )
             } else {
                 Text(
                     text = description,
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 16.sp,
                     lineHeight = 24.sp
                 )
@@ -494,7 +483,6 @@ private fun NotesSection(description: String?) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
     title: String,
@@ -504,7 +492,7 @@ private fun TopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BackgroundDark)
+            .background(Background)
             .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -512,12 +500,12 @@ private fun TopBar(
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Volver",
-                tint = TextPrimaryDark
+                tint = TextPrimary
             )
         }
         Text(
             text = title,
-            color = TextPrimaryDark,
+            color = TextPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -527,7 +515,7 @@ private fun TopBar(
         TextButton(onClick = onEditClick) {
             Text(
                 text = "Editar",
-                color = TextSecondaryDark,
+                color = TextSecondary,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -60,12 +60,12 @@ import dartsmanagement.composeapp.generated.resources.ico_league_collection
 import dartsmanagement.composeapp.generated.resources.ico_upload
 import org.darts.dartsmanagement.ui.auth.AuthScreen
 import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
-import org.darts.dartsmanagement.ui.bars.listing.BorderDark
 import org.darts.dartsmanagement.ui.collections.CollectionScreen
 import org.darts.dartsmanagement.ui.collections.HistorialCollectionsScreen
 import org.darts.dartsmanagement.ui.leagues.payment.LeaguePaymentScreen
 import org.darts.dartsmanagement.ui.locations.listing.LocationsListingScreen
 import org.darts.dartsmanagement.ui.machines.listing.MachinesListingScreen
+import org.darts.dartsmanagement.ui.theme.*
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
@@ -101,7 +101,7 @@ private fun HomeScreenContent() {
     )
 
     Scaffold(
-        containerColor = Color(0xFF0B0F13),
+        containerColor = Background,
         topBar = {
             AppToolbar(
                 title = "Darts Management",
@@ -146,7 +146,7 @@ private fun ActionCard(title: String, icon: ImageVector, modifier: Modifier = Mo
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))
+        colors = CardDefaults.cardColors(containerColor = Surface)
     ) {
         Row(
             modifier = Modifier
@@ -159,25 +159,25 @@ private fun ActionCard(title: String, icon: ImageVector, modifier: Modifier = Mo
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(Color(0x1A00BFA6), RoundedCornerShape(9999.dp)),
+                        .background(PrimaryAccent.copy(alpha = 0.1f), RoundedCornerShape(9999.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = icon,
                         contentDescription = title,
-                        tint = Color(0xFF00BFA6),
+                        tint = PrimaryAccent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
                 Spacer(modifier = Modifier.height(12.dp))
-                Text(text = title, color = Color(0xFFE6EEF3), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(text = title, color = TextPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Comenzar", color = Color(0xFF00BFA6), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                Text(text = "Comenzar", color = PrimaryAccent, fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
                     contentDescription = null,
-                    tint = Color(0xFF00BFA6),
+                    tint = PrimaryAccent,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -194,7 +194,7 @@ private fun MenuCard(item: MenuItem) {
             .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = item.onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = BorderDark)//Color(0xFF111417))
+        colors = CardDefaults.cardColors(containerColor = Surface)
     ) {
         Column(
             modifier = Modifier
@@ -206,21 +206,21 @@ private fun MenuCard(item: MenuItem) {
                 Icon(
                     imageVector = item.icon ?: Icons.Default.Star,
                     contentDescription = item.title,
-                    tint = Color(0xFF00BFA6),
+                    tint = PrimaryAccent,
                     modifier = Modifier.size(32.dp)
                 )
             } else {
                 Icon(
                     painter = item.icoPainter,
                     contentDescription = item.title,
-                    tint = Color(0xFF00BFA6),
+                    tint = PrimaryAccent,
                     modifier = Modifier.size(32.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(text = item.title, color = Color(0xFFE6EEF3), fontWeight = FontWeight.Bold)
+            Text(text = item.title, color = TextPrimary, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -232,7 +232,7 @@ private fun AppToolbar(title: String, onLogout: () -> Unit) {
         title = {
             Text(
                 text = title,
-                color = Color(0xFFE6EEF3),
+                color = TextPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -242,7 +242,7 @@ private fun AppToolbar(title: String, onLogout: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.ExitToApp,
                     contentDescription = "Logout",
-                    tint = Color(0xFFA0AEC0)
+                    tint = TextSecondary
                 )
             }
         },

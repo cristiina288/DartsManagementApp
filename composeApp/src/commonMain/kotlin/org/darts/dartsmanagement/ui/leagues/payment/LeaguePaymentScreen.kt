@@ -26,15 +26,7 @@ import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.darts.dartsmanagement.domain.bars.models.BarModel
-
-// --- Reuse color palette and basic components structure from CollectionsScreen ---
-private val BackgroundDark = Color(0xFF0B0F13)
-private val SurfaceDark = Color.White.copy(alpha = 0.1f)
-private val InputBackground = Color(0xFF273A38)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color.White
-private val TextSecondaryDark = Color.White.copy(alpha = 0.8f)
-private val TextPlaceholder = Color.White.copy(alpha = 0.5f)
+import org.darts.dartsmanagement.ui.theme.*
 
 object LeaguePaymentScreen : Screen {
     @Composable
@@ -66,7 +58,7 @@ private fun LeaguePaymentScreenContent() {
         state.amount.isNotEmpty() && (state.amount.toDoubleOrNull() ?: 0.0) > 0 && state.error == null
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = { TopBar(onBack = { navigator.pop() }) },
         bottomBar = {
             BottomBar(
@@ -104,7 +96,7 @@ private fun LeaguePaymentScreenContent() {
                         if (ownerPayment == "TEAM") {
                             Text(
                                 text = "Buscar por:",
-                                color = TextSecondaryDark,
+                                color = TextSecondary,
                                 fontSize = 16.sp,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
@@ -168,13 +160,13 @@ private fun LeaguePaymentScreenContent() {
                                     Column(modifier = Modifier.padding(top = 8.dp, start = 4.dp)) {
                                         Text(
                                             text = "Cuota del Bar: ${lb.barFinances.quota} €",
-                                            color = Primary,
+                                            color = PrimaryAccent,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold
                                         )
                                         Text(
                                             text = "Total Pendiente: ${lb.barFinances.amountPending} €",
-                                            color = TextSecondaryDark,
+                                            color = TextSecondary,
                                             fontSize = 12.sp
                                         )
                                     }
@@ -221,7 +213,7 @@ private fun LeaguePaymentScreenContent() {
 
         if (state.isSaving || state.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = Primary)
+                CircularProgressIndicator(color = PrimaryAccent)
             }
         }
     }
@@ -234,11 +226,11 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SurfaceDark, RoundedCornerShape(16.dp))
+            .background(Surface, RoundedCornerShape(16.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(text = title, color = TextPrimaryDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(text = title, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         content()
     }
 }
@@ -257,7 +249,7 @@ private fun <T> AppDropdown(
     Column {
         Text(
             text = label,
-            color = TextSecondaryDark,
+            color = TextSecondary,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -275,8 +267,8 @@ private fun <T> AppDropdown(
                     focusedContainerColor = InputBackground,
                     unfocusedBorderColor = Color.Transparent,
                     focusedBorderColor = Color.Transparent,
-                    unfocusedTextColor = TextPrimaryDark,
-                    focusedTextColor = TextPrimaryDark
+                    unfocusedTextColor = TextPrimary,
+                    focusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TextPlaceholder) },
@@ -285,11 +277,11 @@ private fun <T> AppDropdown(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(SurfaceDark)
+                modifier = Modifier.background(Surface)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(optionToString(option), color = TextPrimaryDark) },
+                        text = { Text(optionToString(option), color = TextPrimary) },
                         onClick = {
                             onOptionSelected(option)
                             expanded = false
@@ -328,7 +320,7 @@ private fun <T> SearchableAppSuggestedDropdown(
     Column {
         Text(
             text = label,
-            color = TextSecondaryDark,
+            color = TextSecondary,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -349,8 +341,8 @@ private fun <T> SearchableAppSuggestedDropdown(
                     focusedContainerColor = InputBackground,
                     unfocusedBorderColor = Color.Transparent,
                     focusedBorderColor = Color.Transparent,
-                    unfocusedTextColor = TextPrimaryDark,
-                    focusedTextColor = TextPrimaryDark
+                    unfocusedTextColor = TextPrimary,
+                    focusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 enabled = enabled
@@ -360,11 +352,11 @@ private fun <T> SearchableAppSuggestedDropdown(
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(SurfaceDark)
+                    modifier = Modifier.background(Surface)
                 ) {
                     filteredOptions.forEach { option ->
                         DropdownMenuItem(
-                            text = { Text(optionToString(option), color = TextPrimaryDark) },
+                            text = { Text(optionToString(option), color = TextPrimary) },
                             onClick = {
                                 onOptionSelected(option)
                                 onSearchQueryChanged("")
@@ -398,7 +390,7 @@ private fun AppTextField(
         if (label != null) {
             Text(
                 text = label,
-                color = if (isError) Color.Red.copy(alpha = 0.8f) else TextSecondaryDark,
+                color = if (isError) Error.copy(alpha = 0.8f) else TextSecondary,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -412,14 +404,14 @@ private fun AppTextField(
             singleLine = singleLine,
             enabled = enabled,
             isError = isError,
-            textStyle = androidx.compose.ui.text.TextStyle(color = TextPrimaryDark, fontSize = 16.sp),
+            textStyle = androidx.compose.ui.text.TextStyle(color = TextPrimary, fontSize = 16.sp),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = containerColor,
                 focusedContainerColor = containerColor,
-                unfocusedBorderColor = if (isError) Color.Red.copy(alpha = 0.5f) else Color.Transparent,
-                focusedBorderColor = if (isError) Color.Red else Color.Transparent,
+                unfocusedBorderColor = if (isError) Error.copy(alpha = 0.5f) else Color.Transparent,
+                focusedBorderColor = if (isError) Error else Color.Transparent,
                 errorContainerColor = containerColor,
-                errorBorderColor = Color.Red.copy(alpha = 0.5f)
+                errorBorderColor = Error.copy(alpha = 0.5f)
             ),
             shape = RoundedCornerShape(12.dp),
             trailingIcon = trailingIcon,
@@ -428,7 +420,7 @@ private fun AppTextField(
         if (helperText != null) {
             Text(
                 text = helperText,
-                color = Color.Red.copy(alpha = 0.8f),
+                color = Error.copy(alpha = 0.8f),
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 4.dp, start = 4.dp)
             )
@@ -455,14 +447,14 @@ private fun SegmentedToggle(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(if (isSelected) Primary else Color.Transparent)
+                    .background(if (isSelected) PrimaryAccent else Color.Transparent)
                     .clickable { onOptionSelected(index) }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = text,
-                    color = if (isSelected) Color.Black else TextSecondaryDark,
+                    color = if (isSelected) Color.Black else TextSecondary,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 14.sp
                 )
@@ -478,24 +470,24 @@ private fun TopBar(onBack: () -> Unit) {
         title = {
             Text(
                 "Pago de Ligas",
-                color = TextPrimaryDark,
+                color = TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Volver", tint = TextPrimaryDark)
+                Icon(Icons.Default.ArrowBack, "Volver", tint = TextPrimary)
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
     )
 }
 
 @Composable
 private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
     BottomAppBar(
-        containerColor = BackgroundDark.copy(alpha = 0.8f),
+        containerColor = Background.copy(alpha = 0.8f),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Button(
@@ -503,7 +495,7 @@ private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Primary,
+                containerColor = PrimaryAccent,
                 contentColor = Color.Black
             ),
             enabled = enabled

@@ -55,6 +55,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.ui.components.SelectBarBottomSheet
+import org.darts.dartsmanagement.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -65,10 +66,6 @@ data class EditMachineScreen(val machine: MachineModel) : Screen {
         EditMachineScreenContent(machine)
     }
 }
-
-private val BackgroundDark = Color(0xFF121212)
-private val Primary = Color(0xFF00BFA6)
-private val DialogCardBackground = Color(0xFF1C1C1E)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,13 +109,13 @@ fun EditMachineScreenContent(machine: MachineModel) {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Editar Máquina",
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -127,19 +124,19 @@ fun EditMachineScreenContent(machine: MachineModel) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = TextPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                    containerColor = Background.copy(alpha = 0.8f)
                 ),
                 actions = {
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete",
-                            tint = Color.Red.copy(alpha = 0.7f)
+                            tint = Error.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -198,12 +195,12 @@ fun EditMachineScreenContent(machine: MachineModel) {
                     .fillMaxWidth()
                     .height(56.dp), // Similar height to OutlinedTextField
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White.copy(alpha = 0.1f) // Match TextField's container color
+                    containerColor = Border // Match TextField's container color
                 ),
                 shape = RoundedCornerShape(8.dp), // Match TextField's shape
                 contentPadding = PaddingValues(horizontal = 16.dp), // Match TextField's horizontal padding
                 // Add border if needed, similar to OutlinedTextField
-                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f)) // Match TextField's unfocused border color
+                border = BorderStroke(1.dp, Border.copy(alpha = 0.2f)) // Match TextField's unfocused border color
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -212,7 +209,7 @@ fun EditMachineScreenContent(machine: MachineModel) {
                 ) {
                     Text(
                         text = uiState.selectedBarName ?: "Seleccionar bar",
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Normal,
                         textAlign = TextAlign.Start,
                         modifier = Modifier.weight(1f)
@@ -222,7 +219,7 @@ fun EditMachineScreenContent(machine: MachineModel) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Quitar Bar",
-                            tint = Color.Red.copy(alpha = 0.7f),
+                            tint = Error.copy(alpha = 0.7f),
                             modifier = Modifier
                                 .padding(end = 8.dp)
                                 .clickable {
@@ -234,7 +231,7 @@ fun EditMachineScreenContent(machine: MachineModel) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Seleccionar Bar",
-                        tint = Color.White
+                        tint = TextPrimary
                     )
                 }
             }
@@ -247,14 +244,14 @@ fun EditMachineScreenContent(machine: MachineModel) {
                     .height(56.dp)
                     .padding(vertical = 8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF00BFA6)
+                    containerColor = PrimaryAccent
                 ),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !uiState.isLoading
             ) {
                 Text(
                     text = "Guardar Cambios",
-                    color = Color.White,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -277,17 +274,17 @@ fun EditMachineScreenContent(machine: MachineModel) {
 
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-    cursorColor = Color(0xFF00BFA6),
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+    unfocusedBorderColor = Border.copy(alpha = 0.2f),
+    focusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    unfocusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = Border,
+    unfocusedContainerColor = Border,
+    cursorColor = PrimaryAccent,
+    focusedPlaceholderColor = TextPlaceholder,
+    unfocusedPlaceholderColor = TextPlaceholder,
 )
 
 @Composable
@@ -301,7 +298,7 @@ fun DeleteConfirmationDialog(
                 .fillMaxWidth()
                 .padding(16.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = DialogCardBackground)
+            colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = Surface)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -310,7 +307,7 @@ fun DeleteConfirmationDialog(
             ) {
                 Text(
                     text = "¿Estás seguro de que deseas eliminar esta máquina? Se desvinculará del bar si está asignada.",
-                    color = Color(0xFFF2F2F7),
+                    color = TextPrimary,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
@@ -324,12 +321,12 @@ fun DeleteConfirmationDialog(
                         .height(48.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Primary
+                        containerColor = PrimaryAccent
                     )
                 ) {
                     Text(
                         text = "Sí",
-                        color = Color(0xFF101817),
+                        color = Background,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
@@ -343,7 +340,7 @@ fun DeleteConfirmationDialog(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
-                        contentColor = Primary
+                        contentColor = PrimaryAccent
                     )
                 ) {
                     Text(

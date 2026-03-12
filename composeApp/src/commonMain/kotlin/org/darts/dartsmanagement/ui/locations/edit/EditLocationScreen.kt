@@ -44,6 +44,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
+import org.darts.dartsmanagement.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -53,9 +54,6 @@ data class EditLocationScreen(val location: LocationModel) : Screen {
         EditLocationScreenContent(location)
     }
 }
-
-private val BackgroundDark = Color(0xFF121212)
-private val Primary = Color(0xFF00BFA6)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +78,7 @@ fun EditLocationScreenContent(location: LocationModel) {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -88,7 +86,7 @@ fun EditLocationScreenContent(location: LocationModel) {
                         "Editar Ubicación",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -97,12 +95,12 @@ fun EditLocationScreenContent(location: LocationModel) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.White
+                            tint = TextPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                    containerColor = Background.copy(alpha = 0.8f)
                 ),
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp)) // To balance the title
@@ -111,7 +109,7 @@ fun EditLocationScreenContent(location: LocationModel) {
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                containerColor = Background.copy(alpha = 0.8f)
             ) {
                 if (uiState.isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -122,7 +120,7 @@ fun EditLocationScreenContent(location: LocationModel) {
                         .fillMaxWidth()
                         .padding(16.dp)
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !uiState.isLoading
                 ) {
@@ -180,15 +178,15 @@ fun EditLocationScreenContent(location: LocationModel) {
 
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Primary.copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-    cursorColor = Primary,
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+    unfocusedBorderColor = Border.copy(alpha = 0.2f),
+    focusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    unfocusedLabelColor = TextPrimary.copy(alpha = 0.8f),
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = Border,
+    unfocusedContainerColor = Border,
+    cursorColor = PrimaryAccent,
+    focusedPlaceholderColor = TextPlaceholder,
+    unfocusedPlaceholderColor = TextPlaceholder,
 )

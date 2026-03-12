@@ -36,17 +36,7 @@ import org.darts.dartsmanagement.ui.home.HomeScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
-
-
-// Colores temáticos para la aplicación
-object AuthColors {
-    val Background = Color(0xFF0B0F13)
-    val Surface = Color(0xFF111417)
-    val Primary = Color(0xFF00BFA6)
-    val TextPrimary = Color(0xFFE6EEF3)
-    val TextSecondary = Color(0xFF9AA6AD)
-    val Error = Color(0xFFFF6B6B)
-}
+import org.darts.dartsmanagement.ui.theme.*
 
 
 object AuthScreen : Screen {
@@ -94,7 +84,7 @@ fun AuthScreenContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AuthColors.Background),
+            .background(Background),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -142,14 +132,14 @@ private fun AppHeader() {
         Icon(
             painter = painterResource(Res.drawable.ico_dartboard),
             contentDescription = null,
-            tint = AuthColors.Primary,
+            tint = PrimaryAccent,
             modifier = Modifier.size(80.dp)
         )
         Text(
             text = "Darts Management",
             style = MaterialTheme.typography.headlineLarge.copy(
                 fontWeight = FontWeight.Bold,
-                color = AuthColors.TextPrimary
+                color = TextPrimary
             )
         )
     }
@@ -176,7 +166,7 @@ private fun AuthCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp)),
         colors = CardDefaults.cardColors(
-            containerColor = AuthColors.Surface
+            containerColor = Surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -191,7 +181,7 @@ private fun AuthCard(
                 text = if (isLoginMode) "Iniciar Sesión" else "Crear Cuenta",
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = AuthColors.TextPrimary
+                    color = TextPrimary
                 )
             )
 
@@ -225,15 +215,15 @@ private fun AuthCard(
                     .height(56.dp),
                 enabled = !isLoading,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AuthColors.Primary,
-                    contentColor = Color(0xFF0B0F13)
+                    containerColor = PrimaryAccent,
+                    contentColor = Background
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color(0xFF0B0F13),
+                        color = Background,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -270,22 +260,22 @@ private fun AuthTextField(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = AuthColors.Primary.copy(alpha = 0.8f)
+                tint = PrimaryAccent.copy(alpha = 0.8f)
             )
         },
         modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AuthColors.Primary.copy(alpha = 0.5f),
-            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-            focusedLabelColor = AuthColors.Primary,
-            unfocusedLabelColor = AuthColors.TextSecondary,
-            focusedTextColor = AuthColors.TextPrimary,
-            unfocusedTextColor = AuthColors.TextPrimary,
-            focusedContainerColor = Color.White.copy(alpha = 0.05f),
-            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
-            cursorColor = AuthColors.Primary
+            focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+            unfocusedBorderColor = Border.copy(alpha = 2f),
+            focusedLabelColor = PrimaryAccent,
+            unfocusedLabelColor = TextSecondary,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            focusedContainerColor = Border.copy(alpha = 0.5f),
+            unfocusedContainerColor = Border.copy(alpha = 0.5f),
+            cursorColor = PrimaryAccent
         ),
         shape = RoundedCornerShape(12.dp)
     )
@@ -308,7 +298,7 @@ private fun AuthPasswordField(
             Icon(
                 imageVector = Icons.Default.Lock,
                 contentDescription = null,
-                tint = AuthColors.Primary.copy(alpha = 0.8f)
+                tint = PrimaryAccent.copy(alpha = 0.8f)
             )
         },
         trailingIcon = {
@@ -326,7 +316,7 @@ private fun AuthPasswordField(
                         "Ocultar contraseña"
                     else
                         "Mostrar contraseña",
-                    tint = AuthColors.TextSecondary,
+                    tint = TextSecondary,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -339,15 +329,15 @@ private fun AuthPasswordField(
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AuthColors.Primary.copy(alpha = 0.5f),
-            unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-            focusedLabelColor = AuthColors.Primary,
-            unfocusedLabelColor = AuthColors.TextSecondary,
-            focusedTextColor = AuthColors.TextPrimary,
-            unfocusedTextColor = AuthColors.TextPrimary,
-            focusedContainerColor = Color.White.copy(alpha = 0.05f),
-            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
-            cursorColor = AuthColors.Primary
+            focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+            unfocusedBorderColor = Border.copy(alpha = 2f),
+            focusedLabelColor = PrimaryAccent,
+            unfocusedLabelColor = TextSecondary,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
+            focusedContainerColor = Border.copy(alpha = 0.5f),
+            unfocusedContainerColor = Border.copy(alpha = 0.5f),
+            cursorColor = PrimaryAccent
         ),
         shape = RoundedCornerShape(12.dp)
     )

@@ -59,6 +59,7 @@ import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.ui.bars.components.AssignedMachinesSection
 import org.darts.dartsmanagement.ui.bars.edit.SelectMachinesBottomSheet
 import org.koin.compose.viewmodel.koinViewModel
+import org.darts.dartsmanagement.ui.theme.*
 
 object NewBarScreen : Screen {
     @Composable
@@ -66,8 +67,6 @@ object NewBarScreen : Screen {
         NewBarScreenContent()
     }
 }
-
-val BackgroundDark = Color(0xFF121212)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,7 +93,7 @@ fun NewBarScreenContent() {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopAppBar(
                 title = {
@@ -102,7 +101,7 @@ fun NewBarScreenContent() {
                         "Crear Bar",
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),
-                        color = Color.White,
+                        color = TextPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -111,12 +110,12 @@ fun NewBarScreenContent() {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = TextPrimary
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                    containerColor = Background.copy(alpha = 0.8f)
                 ),
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp)) // To balance the title
@@ -125,7 +124,7 @@ fun NewBarScreenContent() {
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                containerColor = Background.copy(alpha = 0.8f)
             ) {
                 if (uiState.isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -136,13 +135,14 @@ fun NewBarScreenContent() {
                         .fillMaxWidth()
                         .padding(16.dp)
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00BFA6)),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !uiState.isLoading
                 ) {
                     Text(
                         text = "Crear Bar",
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Background
                     )
                 }
             }
@@ -185,7 +185,7 @@ fun NewBarScreenContent() {
                 onDescriptionChange = { newBarViewModel.onEvent(NewBarEvent.OnDescriptionChanged(it)) }
             )
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Border)
 
             LocationSection(
                 uiState = uiState,
@@ -206,7 +206,7 @@ fun NewBarScreenContent() {
                 }
             )
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Border)
 
             AssignedMachinesSection(
                 machines = uiState.assignedMachines,
@@ -270,7 +270,7 @@ private fun LocationSection(
         Text(
             text = "Localización",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
+            color = TextPrimary,
             fontWeight = FontWeight.Bold
         )
         ExposedDropdownMenuBox(
@@ -297,11 +297,11 @@ private fun LocationSection(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color(0xFF15181B))
+                modifier = Modifier.background(ElevatedSurface)
             ) {
                 locations.forEach { location ->
                     DropdownMenuItem(
-                        text = { Text(location.name ?: "", color = Color.White) },
+                        text = { Text(location.name ?: "", color = TextPrimary) },
                         onClick = {
                             location.id?.let { onLocationSelected(it) }
                             expanded = false
@@ -355,7 +355,7 @@ private fun ReadOnlyField(label: String, value: String?, modifier: Modifier = Mo
     Column(modifier = modifier) {
         Text(
             text = label,
-            color = Color.White.copy(alpha = 0.6f),
+            color = TextSecondary,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(bottom = 4.dp)
         )
@@ -363,13 +363,13 @@ private fun ReadOnlyField(label: String, value: String?, modifier: Modifier = Mo
             modifier = Modifier
                 .fillMaxWidth()
                 .height(40.dp)
-                .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                .background(Border.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
                 .padding(horizontal = 12.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
                 text = value ?: "N/A",
-                color = Color.White,
+                color = TextPrimary,
                 style = MaterialTheme.typography.bodyMedium,
                 maxLines = 1
             )
@@ -380,15 +380,15 @@ private fun ReadOnlyField(label: String, value: String?, modifier: Modifier = Mo
 
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-    cursorColor = Color(0xFF00BFA6),
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+    unfocusedBorderColor = Border.copy(alpha = 2f),
+    focusedLabelColor = TextSecondary,
+    unfocusedLabelColor = TextSecondary,
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = Border.copy(alpha = 0.5f),
+    unfocusedContainerColor = Border.copy(alpha = 0.5f),
+    cursorColor = PrimaryAccent,
+    focusedPlaceholderColor = TextPlaceholder,
+    unfocusedPlaceholderColor = TextPlaceholder,
 )

@@ -26,9 +26,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.darts.dartsmanagement.domain.collections.models.CollectionModel
-import org.darts.dartsmanagement.ui.theme.Background
-import org.darts.dartsmanagement.ui.theme.PrimaryAccent
-import org.darts.dartsmanagement.ui.theme.TextPrimary
+import org.darts.dartsmanagement.ui.theme.*
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
@@ -82,7 +80,7 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                    containerColor = Background.copy(alpha = 0.8f)
                 ),
                 actions = {
                     Spacer(modifier = Modifier.width(48.dp))
@@ -91,7 +89,7 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
         },
         bottomBar = {
             BottomAppBar(
-                containerColor = Color(0xFF0B0F13).copy(alpha = 0.8f)
+                containerColor = Background.copy(alpha = 0.8f)
             ) {
                 if (uiState.isLoading) {
                     LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
@@ -139,12 +137,12 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
                 fontSize = 16.sp
             )
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Border)
 
             OutlinedTextField(
                 value = uiState.totalCollection,
                 onValueChange = { viewModel.onTotalCollectionChange(it) },
-                label = { Text("Recaudación Total Bruta (€)") },
+                label = { Text("Recaudación Total Bruta (€)", color = TextSecondary) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 colors = textFieldColors(),
@@ -155,7 +153,7 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
                 OutlinedTextField(
                     value = uiState.totalBarAmount,
                     onValueChange = { viewModel.onTotalBarAmountChange(it) },
-                    label = { Text("Total Bar (€)") },
+                    label = { Text("Total Bar (€)", color = TextSecondary) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = textFieldColors(),
@@ -165,7 +163,7 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
                 OutlinedTextField(
                     value = uiState.totalBusinessAmount,
                     onValueChange = { viewModel.onTotalBusinessAmountChange(it) },
-                    label = { Text("Total Empresa (€)") },
+                    label = { Text("Total Empresa (€)", color = TextSecondary) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = textFieldColors(),
@@ -176,7 +174,7 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
             OutlinedTextField(
                 value = uiState.comments,
                 onValueChange = { viewModel.onCommentsChange(it) },
-                label = { Text("Comentarios") },
+                label = { Text("Comentarios", color = TextSecondary) },
                 modifier = Modifier.fillMaxWidth().height(120.dp),
                 colors = textFieldColors(),
                 shape = RoundedCornerShape(8.dp)
@@ -188,12 +186,12 @@ fun EditCollectionScreenContent(collection: CollectionModel) {
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
+    unfocusedBorderColor = Border,
+    focusedLabelColor = TextSecondary,
+    unfocusedLabelColor = TextSecondary,
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = InputBackground,
+    unfocusedContainerColor = InputBackground,
     cursorColor = PrimaryAccent,
 )

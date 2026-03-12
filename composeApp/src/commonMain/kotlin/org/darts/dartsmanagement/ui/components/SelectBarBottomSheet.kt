@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.darts.dartsmanagement.data.bars.response.BarResponse
 import org.darts.dartsmanagement.domain.bars.models.BarModel
+import org.darts.dartsmanagement.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +48,7 @@ fun SelectBarBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         modifier = modifier,
-        containerColor = ModalBackground
+        containerColor = Surface
     ) {
         var searchQuery by remember { mutableStateOf("") }
 
@@ -62,11 +63,11 @@ fun SelectBarBottomSheet(
             ) {
                 Text(
                     text = "Seleccionar Bar",
-                    style = MaterialTheme.typography.headlineSmall.copy(color = TextPrimaryDark),
+                    style = MaterialTheme.typography.headlineSmall.copy(color = TextPrimary),
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = TextPrimaryDark)
+                    Icon(Icons.Default.Close, contentDescription = "Close", tint = TextPrimary)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -75,22 +76,22 @@ fun SelectBarBottomSheet(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text("Buscar por nombre...", color = SearchInputPlaceholder) },
+                placeholder = { Text("Buscar por nombre...", color = TextPlaceholder) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
-                        tint = SearchInputPlaceholder
+                        tint = TextPlaceholder
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = SearchInputBackground,
-                    unfocusedContainerColor = SearchInputBackground,
-                    focusedTextColor = TextPrimaryDark,
-                    unfocusedTextColor = TextPrimaryDark
+                    focusedContainerColor = InputBackground,
+                    unfocusedContainerColor = InputBackground,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(8.dp),
                 singleLine = true
@@ -106,7 +107,7 @@ fun SelectBarBottomSheet(
                 Text(
                     "No se encontraron bares.",
                     modifier = Modifier.padding(vertical = 16.dp),
-                    color = TextPrimaryDark
+                    color = TextPrimary
                 )
             } else {
                 LazyColumn {
@@ -121,7 +122,7 @@ fun SelectBarBottomSheet(
                                 .padding(vertical = 12.dp, horizontal = 8.dp), // Adjusted padding
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(bar.name, style = MaterialTheme.typography.bodyLarge.copy(color = TextPrimaryDark))
+                            Text(bar.name, style = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary))
                         }
                     }
                 }
@@ -129,11 +130,4 @@ fun SelectBarBottomSheet(
         }
     }
 }
-
-// --- Color Palette from SelectMachinesBottomSheet.kt ---
-private val BackgroundDark = Color(0xFF121212)
-private val ModalBackground = Color(0xFF1a2e2c) // From HTML
-private val TextPrimaryDark = Color(0xFFE0E0E0)
-private val SearchInputBackground = BackgroundDark
-private val SearchInputPlaceholder = Color.White.copy(alpha = 0.5f)
 

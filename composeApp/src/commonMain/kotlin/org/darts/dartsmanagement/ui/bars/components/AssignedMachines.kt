@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import dartsmanagement.composeapp.generated.resources.Res
 import dartsmanagement.composeapp.generated.resources.ico_delete
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
+import org.darts.dartsmanagement.ui.theme.*
 import org.jetbrains.compose.resources.painterResource
 
 
@@ -47,7 +48,7 @@ fun AssignedMachinesSection(
         Text(
             text = "Máquinas asignadas",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
+            color = TextPrimary,
             modifier = Modifier.padding(bottom = 4.dp),
             fontWeight = FontWeight.Bold
         )
@@ -72,7 +73,7 @@ fun MachineItem(machine: MachineModel, onDeleteClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1A1A))
+        colors = CardDefaults.cardColors(containerColor = Surface)
     ) {
         Row(
             modifier = Modifier
@@ -83,13 +84,13 @@ fun MachineItem(machine: MachineModel, onDeleteClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = machine.name ?: "N/A",
-                    color = Color.White,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
                 Text(
                     text = "ID: ${machine.id}",
-                    color = Color.Gray,
+                    color = TextSecondary,
                     fontSize = 14.sp
                 )
             }
@@ -98,7 +99,7 @@ fun MachineItem(machine: MachineModel, onDeleteClick: () -> Unit) {
                     painter = painterResource(Res.drawable.ico_delete),
                     contentDescription = "Delete Machine",
                     modifier = Modifier.size(24.dp),
-                    tint = Color(0xFFf87171)
+                    tint = Error
                 )
             }
         }
@@ -114,19 +115,19 @@ fun AddMachineButton(onClick: () -> Unit) {
             .height(48.dp),
         shape = RoundedCornerShape(8.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+            containerColor = PrimaryAccent.copy(alpha = 0.2f)
         )
     ) {
         Icon(
             imageVector = Icons.Default.Add,
             contentDescription = "Add Machine",
-            tint = MaterialTheme.colorScheme.primary,
+            tint = PrimaryAccent,
             modifier = Modifier.size(20.dp)
         )
         Spacer(Modifier.width(8.dp))
         Text(
             text = "Añadir máquina",
-            color = MaterialTheme.colorScheme.primary,
+            color = PrimaryAccent,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp
         )

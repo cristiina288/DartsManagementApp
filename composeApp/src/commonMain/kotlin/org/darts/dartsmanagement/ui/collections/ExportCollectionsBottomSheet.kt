@@ -41,6 +41,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
+import org.darts.dartsmanagement.ui.theme.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,13 +62,13 @@ fun ExportCollectionsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF1C1C1E),
+        containerColor = ElevatedSurface,
         dragHandle = {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(modifier = Modifier.size(width = 36.dp, height = 4.dp).background(Color(0xFF3a5551), shape = RoundedCornerShape(99.dp)))
+                Box(modifier = Modifier.size(width = 36.dp, height = 4.dp).background(PrimaryAccent.copy(alpha = 0.5f), shape = RoundedCornerShape(99.dp)))
             }
         }
     ) {
@@ -77,7 +78,7 @@ fun ExportCollectionsBottomSheet(
         ) {
             Text(
                 text = "Exportar recaudaciones",
-                color = Color.White,
+                color = TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
@@ -86,7 +87,7 @@ fun ExportCollectionsBottomSheet(
 
             Text(
                 text = "Desde cuándo exportar",
-                color = Color.LightGray,
+                color = TextSecondary,
                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
             )
 
@@ -94,12 +95,12 @@ fun ExportCollectionsBottomSheet(
                 value = selectedDate?.let { "${it.dayOfMonth.toString().padStart(2, '0')}/${it.monthNumber.toString().padStart(2, '0')}/${it.year}" } ?: "",
                 onValueChange = {},
                 readOnly = true,
-                placeholder = { Text("Seleccionar fecha", color = Color.Gray) },
+                placeholder = { Text("Seleccionar fecha", color = TextPlaceholder) },
                 trailingIcon = {
                     Icon(
                         modifier = Modifier.size(32.dp),
                         painter = painterResource(Res.drawable.ico_calendar),
-                        contentDescription = "Select date", tint = Color.Gray
+                        contentDescription = "Select date", tint = TextPlaceholder
                     ) },
                 modifier = Modifier.fillMaxWidth(),
                 interactionSource = interactionSource
@@ -111,9 +112,9 @@ fun ExportCollectionsBottomSheet(
                 onClick = { selectedDate?.let(onExport) },
                 enabled = selectedDate != null,
                 modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF05b8a0))
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryAccent)
             ) {
-                Text("Exportar", fontWeight = FontWeight.Bold)
+                Text("Exportar", fontWeight = FontWeight.Bold, color = Background)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

@@ -55,14 +55,7 @@ import org.darts.dartsmanagement.ui.locations.edit.EditLocationScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-
-private val BackgroundDark = Color(0xFF121212)
-private val SurfaceDark = Color(0xFF1E1E1E)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color(0xFFE0E0E0)
-private val TextSecondaryDark = Color(0xFFB0B0B0)
-private val BorderDark = Color.White.copy(alpha = 0.1f)
-
+import org.darts.dartsmanagement.ui.theme.*
 
 class LocationScreen (val location: LocationModel) : Screen {
     @Composable
@@ -90,7 +83,7 @@ fun LocationScreenContent(
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopBar(
                 title = "Detalles de la Ubicación",
@@ -110,21 +103,21 @@ fun LocationScreenContent(
             item {
                 Text(
                     text = currentLocation.name.orEmpty(),
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 38.sp
                 )
                 Text(
                     text = "Código Postal: ${currentLocation.postalCode}",
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 16.sp
                 )
                 currentLocation.province?.let { province ->
                     if (province.isNotBlank()) {
                         Text(
                             text = "Provincia: $province",
-                            color = TextSecondaryDark,
+                            color = TextSecondary,
                             fontSize = 16.sp
                         )
                     }
@@ -134,7 +127,7 @@ fun LocationScreenContent(
             item {
                 Text(
                     text = "Bares Asignados",
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -150,7 +143,7 @@ fun LocationScreenContent(
                     if (!uiState.isLoading) {
                         Text(
                             text = "Sin bares asignados",
-                            color = TextSecondaryDark,
+                            color = TextSecondary,
                             fontSize = 14.sp,
                             fontStyle = FontStyle.Italic,
                             modifier = Modifier.padding(vertical = 4.dp)
@@ -174,9 +167,9 @@ fun BarListItem(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfaceDark
+            containerColor = Surface
         ),
-        border = BorderStroke(1.dp, BorderDark)
+        border = BorderStroke(1.dp, Border)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -187,7 +180,7 @@ fun BarListItem(
             Icon(
                 painter = painterResource(Res.drawable.ico_beer),
                 contentDescription = bar.name,
-                tint = Primary,
+                tint = PrimaryAccent,
                 modifier = Modifier
                     .size(42.dp)
                     .padding(start = 16.dp)
@@ -201,7 +194,7 @@ fun BarListItem(
             ) {
                 Text(
                     text = bar.name,
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
                     maxLines = 1
@@ -209,7 +202,7 @@ fun BarListItem(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = bar.location.address ?: "Ubicación no disponible",
-                    color = TextSecondaryDark,
+                    color = TextSecondary,
                     fontSize = 14.sp,
                     maxLines = 1
                 )
@@ -221,12 +214,12 @@ fun BarListItem(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .padding(end = 16.dp)
-                    .background(Primary.copy(alpha = 0.2f), CircleShape)
+                    .background(PrimaryAccent.copy(alpha = 0.2f), CircleShape)
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
                     text = (bar.machines.count()).toString(),
-                    color = Primary,
+                    color = PrimaryAccent,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 14.sp
                 )
@@ -242,7 +235,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BackgroundDark) // Use same BackgroundDark as screen
+            .background(Background) // Use same BackgroundDark as screen
             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -250,12 +243,12 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Volver",
-                tint = TextPrimaryDark
+                tint = TextPrimary
             )
         }
         Text(
             text = title,
-            color = TextPrimaryDark,
+            color = TextPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -264,7 +257,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onEditClick: () -> Un
         TextButton(onClick = onEditClick) {
             Text(
                 text = "Editar",
-                color = Primary,
+                color = PrimaryAccent,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )

@@ -51,24 +51,7 @@ import org.darts.dartsmanagement.domain.machines.model.MachineModel
 import org.darts.dartsmanagement.domain.common.model.StatusModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
-
-// --- Color Palette from BarScreen.kt ---
-private val BackgroundDark = Color(0xFF121212)
-private val SurfaceDark = Color(0xFF1E1E1E)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color(0xFFE0E0E0)
-private val TextSecondaryDark = Color(0xFFB0B0B0)
-private val CardBackground = Color(0xFF1a2e2c) // From HTML
-
-// New colors from HTML design
-private val ModalBackground = CardBackground // Reusing for consistency
-private val ModalBorder = Color.White.copy(alpha = 0.1f) // From HTML border-white/10
-private val CloseButtonTint = Color.White.copy(alpha = 0.7f) // From HTML text-white/70
-private val SearchInputBackground = BackgroundDark // From HTML bg-background-dark
-private val SearchInputPlaceholder = Color.White.copy(alpha = 0.5f) // From HTML placeholder:text-white/50
-private val HoverColor = Color.White.copy(alpha = 0.05f) // From HTML hover:bg-white/5
-private val CheckboxBorder = Color.White.copy(alpha = 0.3f) // From HTML border-white/30
-private val ConfirmButtonShadow = Primary.copy(alpha = 0.2f) // From HTML shadow-primary/20
+import org.darts.dartsmanagement.ui.theme.*
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -84,7 +67,7 @@ fun SelectMachinesBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = ModalBackground
+        containerColor = ElevatedSurface
     ) {
         SelectMachinesBottomSheetContent(
             allMachines = allMachines,
@@ -127,7 +110,7 @@ fun SelectMachinesBottomSheetContent(
         ) {
             Text(
                 text = "Seleccionar máquinas",
-                color = TextPrimaryDark,
+                color = TextPrimary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -141,22 +124,22 @@ fun SelectMachinesBottomSheetContent(
                     searchQuery = it
                     onSearchQueryChange(it)
                 },
-                placeholder = { Text("Buscar por nombre o ID...", color = SearchInputPlaceholder) },
+                placeholder = { Text("Buscar por nombre o ID...", color = TextPlaceholder) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search",
-                        tint = SearchInputPlaceholder
+                        tint = TextPlaceholder
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = SearchInputBackground,
-                    unfocusedContainerColor = SearchInputBackground,
-                    focusedTextColor = TextPrimaryDark,
-                    unfocusedTextColor = TextPrimaryDark
+                    focusedContainerColor = InputBackground,
+                    unfocusedContainerColor = InputBackground,
+                    focusedTextColor = TextPrimary,
+                    unfocusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(8.dp),
                 singleLine = true
@@ -170,7 +153,7 @@ fun SelectMachinesBottomSheetContent(
                 .fillMaxWidth()
                 .height(240.dp)
                 .padding(horizontal = 16.dp)
-                .background(ModalBackground),
+                .background(ElevatedSurface),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             val filteredMachines = allMachines.filter {
@@ -184,7 +167,7 @@ fun SelectMachinesBottomSheetContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(8.dp))
-                        .background(if (isSelected) HoverColor else Color.Transparent)
+                        .background(if (isSelected) Border.copy(alpha = 0.5f) else Color.Transparent)
                         .clickable {
                             if (machine.id != null) {
                                 onToggleMachineSelection(machine.id)
@@ -197,13 +180,13 @@ fun SelectMachinesBottomSheetContent(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = machine.name ?: "Máquina sin nombre",
-                            color = TextPrimaryDark, // text-white
+                            color = TextPrimary, // text-white
                             fontSize = 16.sp, // text-base
                             fontWeight = FontWeight.Medium
                         )
                         Text(
                             text = "ID: ${machine.id}",
-                            color = TextSecondaryDark,
+                            color = TextSecondary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Normal
                         )
@@ -216,10 +199,10 @@ fun SelectMachinesBottomSheetContent(
                             }
                         },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = Primary,
-                            uncheckedColor = CheckboxBorder,
-                            disabledCheckedColor = Primary,
-                            disabledUncheckedColor = CheckboxBorder
+                            checkedColor = PrimaryAccent,
+                            uncheckedColor = Border.copy(alpha = 3f),
+                            disabledCheckedColor = PrimaryAccent,
+                            disabledUncheckedColor = Border.copy(alpha = 3f)
                         ),
                         modifier = Modifier.size(20.dp)
                     )
@@ -231,7 +214,7 @@ fun SelectMachinesBottomSheetContent(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(ModalBackground)
+                .background(ElevatedSurface)
                 .padding(16.dp)
                 .padding(bottom = 42.dp)
         ) {
@@ -243,13 +226,13 @@ fun SelectMachinesBottomSheetContent(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary
+                    containerColor = PrimaryAccent
                 ),
                 shape = RoundedCornerShape(8.dp),
             ) {
                 Text(
                     text = "Confirmar selección",
-                    color = BackgroundDark,
+                    color = Background,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -29,21 +29,11 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.collections.models.CollectionAmountsModel
-import org.darts.dartsmanagement.ui.theme.SecondaryAccent
+import org.darts.dartsmanagement.ui.theme.*
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
-
-// --- Color Palette ---
-private val BackgroundDark = Color(0xFF0B0F13)
-val BorderDark = Color.White.copy(alpha = 0.1f)
-private val SurfaceDark = Color.White.copy(alpha = 0.1f)//Color(0xFF111417)
-private val InputBackground = Color(0xFF273A38)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color.White
-private val TextSecondaryDark = Color.White.copy(alpha = 0.8f)
-private val TextPlaceholder = Color.White.copy(alpha = 0.5f)
 
 data class CollectionScreen(val barId: String? = null) : Screen {
     @Composable
@@ -79,7 +69,7 @@ private fun CollectionScreenContent(barId: String? = null) {
             collection.leaguePayments.all { it.error == null }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = { TopBar() },
         bottomBar = {
             BottomBar(
@@ -119,7 +109,7 @@ private fun CollectionScreenContent(barId: String? = null) {
                     item {
                         if (index > 0) {
                             HorizontalDivider(
-                                color = Color.White.copy(alpha = 0.1f),
+                                color = Border,
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
                             Spacer (modifier = Modifier.height(24.dp))
@@ -132,12 +122,11 @@ private fun CollectionScreenContent(barId: String? = null) {
                     AddMachineButton(viewModel)
                 }
 
-                item { GlobalExtraPaymentSection(viewModel) }
-
                 item { TotalDistributionSection(collection) }
                 item { ObservationsSection(viewModel) }
 
                 if (collection.availableLeagues.isNotEmpty()) {
+                    item { HorizontalDivider(color = Color.White.copy(alpha = 0.05f)) }
                     item { LeaguePaymentSection(viewModel) }
                     item { GeneralSummarySection(collection) }
                 }
@@ -153,14 +142,14 @@ private fun CollectionScreenContent(barId: String? = null) {
 @Composable
 private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
     val collection by viewModel.collection.collectAsState()
-    
+
     Section(title = "Pagos pendientes de ligas") {
         collection.leaguePayments.forEachIndexed { index, entry ->
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (index > 0) {
                     HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
                 }
-                
+
                 val selectedLeague = collection.availableLeagues.find { it.id == entry.leagueId }
 
                 Row(
@@ -197,13 +186,13 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
                             Column(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp, start = 4.dp)) {
                                 Text(
                                     text = "Cuota del Bar: ${lb.barFinances.quota} €",
-                                    color = Primary,
+                                    color = PrimaryAccent,
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Text(
                                     text = "Total Pendiente: ${lb.barFinances.amountPending} €",
-                                    color = TextSecondaryDark,
+                                    color = TextSecondary,
                                     fontSize = 12.sp
                                 )
                             }
@@ -231,7 +220,7 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Añadir otro pago de liga", fontSize = 14.sp, color = Primary)
+                Text("Añadir otro pago de liga", fontSize = 14.sp, color = PrimaryAccent)
             }
         }
     }
@@ -241,11 +230,10 @@ private fun LeaguePaymentSection(viewModel: CollectionsViewModel) {
 private fun GeneralSummarySection(collection: CollectionsState) {
     val totalInitialBusinessAmount = collection.machineEntries.sumOf { it.collectionAmounts?.businessAmount ?: 0.0 }
     val totalInitialBarAmount = collection.machineEntries.sumOf { it.collectionAmounts?.barAmount ?: 0.0 }
-    val globalExtraAmount = collection.globalExtraPayment
     val leagueTotalAmount = collection.leaguePayments.sumOf { it.amount.toDoubleOrNull() ?: 0.0 }
 
-    val totalBusinessAmount = totalInitialBusinessAmount + globalExtraAmount + leagueTotalAmount
-    val totalBarAmount = totalInitialBarAmount - globalExtraAmount - leagueTotalAmount
+    val totalBusinessAmount = totalInitialBusinessAmount + leagueTotalAmount
+    val totalBarAmount = totalInitialBarAmount - leagueTotalAmount
 
     fun formatCurrency(amount: Double): String {
         val rounded = (amount * 100).toLong()
@@ -259,7 +247,7 @@ private fun GeneralSummarySection(collection: CollectionsState) {
             SummaryBox(
                 label = "Total Empresa",
                 amount = formatCurrency(totalBusinessAmount),
-                color = Primary,
+                color = PrimaryAccent,
                 modifier = Modifier.weight(1f)
             )
             SummaryBox(
@@ -284,7 +272,7 @@ private fun SummaryBox(
             .background(color.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
             .padding(12.dp)
     ) {
-        Text(text = label, color = TextSecondaryDark, fontSize = 12.sp)
+        Text(text = label, color = TextSecondary, fontSize = 12.sp)
         Spacer(Modifier.height(4.dp))
         Text(text = amount, color = color, fontSize = 20.sp, fontWeight = FontWeight.Bold)
     }
@@ -306,9 +294,9 @@ private fun LeagueValidationDialog(viewModel: CollectionsViewModel) {
                 Text("Rellenar el dato")
             }
         },
-        containerColor = SurfaceDark,
-        titleContentColor = TextPrimaryDark,
-        textContentColor = TextSecondaryDark
+        containerColor = Surface,
+        titleContentColor = TextPrimary,
+        textContentColor = TextSecondary
     )
 }
 
@@ -373,7 +361,7 @@ private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 28.sp, 
                 fontWeight = FontWeight.Bold,
-                color = if (entry.inputMode == CollectionInputMode.COLLECTION) Primary else TextPrimaryDark
+                color = if (entry.inputMode == CollectionInputMode.COLLECTION) PrimaryAccent else TextPrimary
             ),
             trailingIcon = {
                 Text(
@@ -395,7 +383,7 @@ private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
                 value = (entry.counter ?: 0).toString(),
                 modifier = Modifier.weight(1f)
             )
-            
+
             val isCounterMode = entry.inputMode == CollectionInputMode.COUNTER
 
             AppTextField(
@@ -412,7 +400,7 @@ private fun MachineDataSection(viewModel: CollectionsViewModel, index: Int) {
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (isCounterMode) Primary else TextPrimaryDark
+                    color = if (isCounterMode) PrimaryAccent else TextPrimary
                 )
             )
         }
@@ -452,37 +440,13 @@ private fun AddMachineButton(viewModel: CollectionsViewModel) {
         OutlinedButton(
             onClick = { viewModel.onAddMachineEntry() },
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Primary),
-            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryAccent),
+            border = BorderStroke(1.dp, PrimaryAccent.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(12.dp),
             enabled = allEntriesFilled
         ) {
             Text("Añadir máquina")
         }
-    }
-}
-
-@Composable
-private fun GlobalExtraPaymentSection(viewModel: CollectionsViewModel) {
-    val collection by viewModel.collection.collectAsState()
-    
-    Section(title = "Ajustes del Bar") {
-        AppTextField(
-            label = "Pago extra global (€)",
-            value = if (collection.globalExtraPayment == 0.0) "" else collection.globalExtraPayment.toString(),
-            onValueChange = { viewModel.onGlobalExtraPaymentChanged(it.toDoubleOrNull() ?: 0.0) },
-            placeholder = "0.00",
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = LocalTextStyle.current.copy(fontSize = 24.sp, fontWeight = FontWeight.Bold),
-            trailingIcon = {
-                Text(
-                    "€",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPlaceholder
-                )
-            }
-        )
     }
 }
 
@@ -501,7 +465,7 @@ private fun DistributionBoxSection(entry: MachineCollectionEntry) {
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Distribución inicial", color = TextSecondaryDark, fontSize = 14.sp)
+        Text("Distribución inicial", color = TextSecondary, fontSize = 14.sp)
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             DistributionBox(
                 label = "Empresa (60%)",
@@ -520,8 +484,8 @@ private fun DistributionBoxSection(entry: MachineCollectionEntry) {
         LinearProgressIndicator(
             progress = { businessPercentage },
             modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
-            color = Primary.copy(alpha = 0.7f),
-            trackColor = Primary.copy(alpha = 0.2f)
+            color = PrimaryAccent.copy(alpha = 0.7f),
+            trackColor = PrimaryAccent.copy(alpha = 0.2f)
         )
     }
 }
@@ -541,25 +505,10 @@ private fun buildCollectionAmountsForEntry(
     )
 }
 
-
-@Composable
-private fun DistributionSection(collection: CollectionsState) { 
-    // This is no longer used directly as we have DistributionBoxSection per machine
-}
-
-@Composable
-fun ExtraPaymentSection(viewModel: CollectionsViewModel, index: Int) {
-    // This is no longer used per machine
-}
-
 @Composable
 fun TotalDistributionSection(collection: CollectionsState) {
-    val totalInitialBusinessAmount = collection.machineEntries.sumOf { it.collectionAmounts?.businessAmount ?: 0.0 }
-    val totalInitialBarAmount = collection.machineEntries.sumOf { it.collectionAmounts?.barAmount ?: 0.0 }
-    val globalExtraAmount = collection.globalExtraPayment
-
-    val totalBusinessAmount = totalInitialBusinessAmount + globalExtraAmount
-    val totalBarAmount = totalInitialBarAmount - globalExtraAmount
+    val totalBusinessAmount = collection.machineEntries.sumOf { it.collectionAmounts?.businessAmount ?: 0.0 }
+    val totalBarAmount = collection.machineEntries.sumOf { it.collectionAmounts?.barAmount ?: 0.0 }
 
     val total = totalBusinessAmount + totalBarAmount
     val businessPercentage = if (total > 0) (totalBusinessAmount / total).toFloat() else 0.6f
@@ -590,8 +539,8 @@ fun TotalDistributionSection(collection: CollectionsState) {
         LinearProgressIndicator(
             progress = { businessPercentage },
             modifier = Modifier.fillMaxWidth().height(8.dp).clip(CircleShape),
-            color = Primary.copy(alpha = 0.7f),
-            trackColor = Primary.copy(alpha = 0.2f)
+            color = PrimaryAccent.copy(alpha = 0.7f),
+            trackColor = PrimaryAccent.copy(alpha = 0.2f)
         )
     }
 }
@@ -644,11 +593,11 @@ private fun Section(title: String, content: @Composable ColumnScope.() -> Unit) 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(SurfaceDark, RoundedCornerShape(16.dp))
+            .background(Surface, RoundedCornerShape(16.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(text = title, color = TextPrimaryDark, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+        Text(text = title, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
         content()
     }
 }
@@ -674,7 +623,7 @@ private fun AppTextField(
         if (label != null) {
             Text(
                 text = label,
-                color = if (isError) Color.Red.copy(alpha = 0.8f) else TextSecondaryDark,
+                color = if (isError) Color.Red.copy(alpha = 0.8f) else TextSecondary,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
@@ -688,7 +637,7 @@ private fun AppTextField(
             singleLine = singleLine,
             enabled = enabled,
             isError = isError,
-            textStyle = textStyle.copy(color = TextPrimaryDark),
+            textStyle = textStyle.copy(color = TextPrimary),
             colors = OutlinedTextFieldDefaults.colors(
                 unfocusedContainerColor = containerColor,
                 focusedContainerColor = containerColor,
@@ -726,7 +675,7 @@ private fun <T> AppDropdown(
     Column {
         Text(
             text = label,
-            color = TextSecondaryDark,
+            color = TextSecondary,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -744,8 +693,8 @@ private fun <T> AppDropdown(
                     focusedContainerColor = InputBackground,
                     unfocusedBorderColor = Color.Transparent,
                     focusedBorderColor = Color.Transparent,
-                    unfocusedTextColor = TextPrimaryDark,
-                    focusedTextColor = TextPrimaryDark
+                    unfocusedTextColor = TextPrimary,
+                    focusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TextPlaceholder) },
@@ -754,11 +703,11 @@ private fun <T> AppDropdown(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(SurfaceDark)
+                modifier = Modifier.background(Surface)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(optionToString(option), color = TextPrimaryDark) },
+                        text = { Text(optionToString(option), color = TextPrimary) },
                         onClick = {
                             onOptionSelected(option)
                             expanded = false
@@ -800,7 +749,7 @@ private fun <T> SearchableAppDropdown(
     Column {
         Text(
             text = label,
-            color = TextSecondaryDark,
+            color = TextSecondary,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -834,8 +783,8 @@ private fun <T> SearchableAppDropdown(
                     focusedContainerColor = InputBackground,
                     unfocusedBorderColor = Color.Transparent,
                     focusedBorderColor = Color.Transparent,
-                    unfocusedTextColor = TextPrimaryDark,
-                    focusedTextColor = TextPrimaryDark
+                    unfocusedTextColor = TextPrimary,
+                    focusedTextColor = TextPrimary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 trailingIcon = { Icon(Icons.Default.ArrowDropDown, null, tint = TextPlaceholder) },
@@ -847,11 +796,11 @@ private fun <T> SearchableAppDropdown(
                     expanded = false
                     isSearching = false
                 },
-                modifier = Modifier.background(SurfaceDark)
+                modifier = Modifier.background(Surface)
             ) {
                 filteredOptions.forEach { option ->
                     DropdownMenuItem(
-                        text = { Text(optionToString(option), color = TextPrimaryDark) },
+                        text = { Text(optionToString(option), color = TextPrimary) },
                         onClick = {
                             onOptionSelected(option)
                             searchText = optionToString(option)
@@ -872,7 +821,7 @@ private fun ReadOnlyField(label: String, value: String, modifier: Modifier = Mod
     Column(modifier = modifier) {
         Text(
             text = label,
-            color = TextSecondaryDark,
+            color = TextSecondary,
             fontSize = 16.sp,
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -886,7 +835,7 @@ private fun ReadOnlyField(label: String, value: String, modifier: Modifier = Mod
         ) {
             Text(
                 text = value,
-                color = TextPrimaryDark,
+                color = TextPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -904,14 +853,14 @@ private fun DistributionBox(
     Column(
         modifier = modifier
             .background(
-                color = if (isPrimary) Primary.copy(alpha = 0.7f) else Primary.copy(alpha = 0.2f),
+                color = if (isPrimary) PrimaryAccent.copy(alpha = 0.7f) else PrimaryAccent.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(12.dp)
     ) {
-        Text(text = label, color = TextSecondaryDark, fontSize = 14.sp)
+        Text(text = label, color = TextSecondary, fontSize = 14.sp)
         Spacer(Modifier.height(4.dp))
-        Text(text = amount, color = TextPrimaryDark, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(text = amount, color = TextPrimary, fontSize = 24.sp, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -923,24 +872,24 @@ private fun TopBar() {
         title = {
             Text(
                 "Recaudaciones",
-                color = TextPrimaryDark,
+                color = TextPrimary,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
         },
         navigationIcon = {
             IconButton(onClick = { navigator.pop() }) {
-                Icon(Icons.Default.ArrowBack, "Volver", tint = TextPrimaryDark)
+                Icon(Icons.Default.ArrowBack, "Volver", tint = TextPrimary)
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundDark)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Background)
     )
 }
 
 @Composable
 private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
     BottomAppBar(
-        containerColor = BackgroundDark.copy(alpha = 0.8f),
+        containerColor = Background.copy(alpha = 0.8f),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Button(
@@ -948,7 +897,7 @@ private fun BottomBar(onSave: () -> Unit, enabled: Boolean) {
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Primary,
+                containerColor = PrimaryAccent,
                 contentColor = Color.Black
             ),
             enabled = enabled
@@ -982,14 +931,14 @@ private fun SegmentedToggle(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(if (isSelected) Primary else Color.Transparent)
+                    .background(if (isSelected) PrimaryAccent else Color.Transparent)
                     .clickable { onOptionSelected(index) }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = text,
-                    color = if (isSelected) Color.Black else TextSecondaryDark,
+                    color = if (isSelected) Color.Black else TextSecondary,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     fontSize = 14.sp
                 )

@@ -70,26 +70,13 @@ import kotlinx.coroutines.launch
 import org.darts.dartsmanagement.domain.bars.models.BarModel
 import org.darts.dartsmanagement.domain.locations.model.LocationModel
 import org.darts.dartsmanagement.domain.machines.model.MachineModel
-import org.darts.dartsmanagement.ui.machines.detail.RepairConfirmationDialog
-import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.core.parameter.parametersOf
-
-
-// --- Color Palette from BarScreen.kt ---
-private val BackgroundDark = Color(0xFF121212)
-private val SurfaceDark = Color(0xFF1E1E1E)
-private val Primary = Color(0xFF00BDA4)
-private val TextPrimaryDark = Color(0xFFE0E0E0)
-private val TextSecondaryDark = Color(0xFFB0B0B0)
-private val BorderDark = Color.White.copy(alpha = 0.1f)
-
-// New colors from HTML design
-private val CardBackground = Color(0xFF1a2e2c)
-private val AddButtonBackground = Color(0xFF2b4d49)
-private val DeleteIconColor = Color(0xFFf87171)
+import org.darts.dartsmanagement.ui.theme.*
+import org.darts.dartsmanagement.ui.bars.listing.BarsListingScreen
+import org.darts.dartsmanagement.ui.machines.detail.RepairConfirmationDialog
 
 class EditBarScreen(val initialBar: BarModel) : Screen {
     @Composable
@@ -150,7 +137,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = {
             TopBar(
                 title = "Editar Bar",
@@ -164,7 +151,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                 if (uiState.isSaving) {
                     LinearProgressIndicator(
                         modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.primary
+                        color = PrimaryAccent
                     )
                 }
                 BottomAppBar(
@@ -180,14 +167,14 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                             .fillMaxWidth()
                             .height(56.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Primary
+                            containerColor = PrimaryAccent
                         ),
                         shape = RoundedCornerShape(12.dp),
                         enabled = !uiState.isSaving
                     ) {
                         Text(
                             text = if (uiState.isSaving) "Guardando..." else "Guardar",
-                            color = BackgroundDark,
+                            color = Background,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -235,7 +222,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                 onDescriptionChange = { editBarViewModel.onEvent(EditBarEvent.OnDescriptionChanged(it)) }
             )
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Border)
 
             LocationSection(
                 uiState = uiState,
@@ -252,7 +239,7 @@ private fun EditBarScreenContent(initialBar: BarModel) {
                 }
             )
 
-            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+            HorizontalDivider(color = Border)
 
             // Assigned Machines List
             AssignedMachinesSection(
@@ -315,7 +302,7 @@ private fun LocationSection(
         Text(
             text = "Localización",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White,
+            color = TextPrimary,
             fontWeight = FontWeight.Bold
         )
         ExposedDropdownMenuBox(
@@ -342,11 +329,11 @@ private fun LocationSection(
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(Color(0xFF15181B))
+                modifier = Modifier.background(ElevatedSurface)
             ) {
                 locations.forEach { location ->
                     DropdownMenuItem(
-                        text = { Text(location.name ?: "", color = Color.White) },
+                        text = { Text(location.name ?: "", color = TextPrimary) },
                         onClick = {
                             location.id?.let { onLocationSelected(it) }
                             expanded = false
@@ -397,17 +384,17 @@ private fun LocationSection(
 
 @Composable
 private fun textFieldColors(): TextFieldColors = OutlinedTextFieldDefaults.colors(
-    focusedBorderColor = Color(0xFF00BFA6).copy(alpha = 0.5f),
-    unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-    focusedLabelColor = Color.White.copy(alpha = 0.8f),
-    unfocusedLabelColor = Color.White.copy(alpha = 0.8f),
-    focusedTextColor = Color.White,
-    unfocusedTextColor = Color.White,
-    focusedContainerColor = Color.White.copy(alpha = 0.1f),
-    unfocusedContainerColor = Color.White.copy(alpha = 0.1f),
-    cursorColor = Color(0xFF00BFA6),
-    focusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
-    unfocusedPlaceholderColor = Color.White.copy(alpha = 0.4f),
+    focusedBorderColor = PrimaryAccent.copy(alpha = 0.5f),
+    unfocusedBorderColor = Border.copy(alpha = 2f),
+    focusedLabelColor = TextSecondary,
+    unfocusedLabelColor = TextSecondary,
+    focusedTextColor = TextPrimary,
+    unfocusedTextColor = TextPrimary,
+    focusedContainerColor = Border.copy(alpha = 0.5f),
+    unfocusedContainerColor = Border.copy(alpha = 0.5f),
+    cursorColor = PrimaryAccent,
+    focusedPlaceholderColor = TextPlaceholder,
+    unfocusedPlaceholderColor = TextPlaceholder,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -416,7 +403,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onDeleteClick: () -> 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(BackgroundDark)
+            .background(Background)
             .padding(start = 8.dp, end = 8.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -424,12 +411,12 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onDeleteClick: () -> 
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Volver",
-                tint = TextPrimaryDark
+                tint = TextPrimary
             )
         }
         Text(
             text = title,
-            color = TextPrimaryDark,
+            color = TextPrimary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
@@ -440,7 +427,7 @@ private fun TopBar(title: String, onBackClick: () -> Unit, onDeleteClick: () -> 
             Icon(
                 imageVector = Icons.Default.Delete,
                 contentDescription = "Eliminar",
-                tint = Color.Red.copy(alpha = 0.7f)
+                tint = Error.copy(alpha = 0.7f)
             )
         }
     }

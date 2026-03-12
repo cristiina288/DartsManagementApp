@@ -73,6 +73,7 @@ import org.darts.dartsmanagement.ui.theme.ElevatedSurface
 import org.darts.dartsmanagement.ui.theme.PrimaryAccent
 import org.darts.dartsmanagement.ui.theme.TextPrimary
 import org.darts.dartsmanagement.ui.theme.TextSecondary
+import org.darts.dartsmanagement.ui.theme.Error
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -188,7 +189,7 @@ fun HistorialCollectionsScreenContent() {
                                             viewModel.onEvent(HistorialCollectionsEvent.DeleteCollection(collection.id))
                                             showDeleteConfirmation = null
                                         },
-                                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                        colors = ButtonDefaults.textButtonColors(contentColor = Error)
                                     ) {
                                         Text("Eliminar")
                                     }
@@ -224,11 +225,11 @@ fun HistorialCollectionsScreenContent() {
                 // TODO: Implement a better error display
                 Text(
                     text = uiState.error ?: "Unknown Error",
-                    color = MaterialTheme.colorScheme.error,
+                    color = Error,
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
-                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .background(Error.copy(alpha = 0.1f))
                         .padding(8.dp)
                 )
             }
@@ -386,7 +387,7 @@ fun CollectionAccordionItem(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Eliminar",
-                                tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
+                                tint = Error.copy(alpha = 0.7f)
                             )
                         }
                     }

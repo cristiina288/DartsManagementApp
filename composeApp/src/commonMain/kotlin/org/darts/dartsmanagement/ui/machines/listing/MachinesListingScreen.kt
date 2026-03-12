@@ -37,16 +37,7 @@ import org.koin.core.annotation.KoinExperimentalAPI
 
 import cafe.adriel.voyager.core.lifecycle.LifecycleEffect
 import org.darts.dartsmanagement.ui.machines.listing.MachinesUiModel
-
-// New Color Palette
-val BackgroundDark = Color(0xFF121212)
-val SurfaceDark = Color(0xFF1E1E1E)
-val Primary = Color(0xFF00BDA4)
-val TextPrimaryDark = Color(0xFFE0E0E0)
-val TextSecondaryDark = Color(0xFFB0B0B0)
-val BorderDark = Color.White.copy(alpha = 0.1f)
-val SecondaryAccent = Color(0xFF8BE9FD)
-val WarmAccent = Color(0xFFFFB86B)
+import org.darts.dartsmanagement.ui.theme.*
 
 object MachinesListingScreen : Screen {
     @Composable
@@ -69,13 +60,13 @@ private fun MachinesListingScreenContent() {
     }
 
     Scaffold(
-        containerColor = BackgroundDark,
+        containerColor = Background,
         topBar = { TopBar() },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navigator.push(NewMachineScreen) },
-                containerColor = Primary,
-                contentColor = BackgroundDark,
+                containerColor = PrimaryAccent,
+                contentColor = Background,
                 shape = CircleShape,
                 modifier = Modifier.size(56.dp)
             ) {
@@ -127,12 +118,12 @@ private fun MachineSearchBar(
     TextField(
         value = value,
         onValueChange = onValueChange,
-        placeholder = { Text("Buscar máquina...", color = TextSecondaryDark) },
+        placeholder = { Text("Buscar máquina...", color = TextSecondary) },
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = TextSecondaryDark
+                tint = TextSecondary
             )
         },
         modifier = modifier
@@ -140,11 +131,11 @@ private fun MachineSearchBar(
             .height(56.dp),
         shape = RoundedCornerShape(12.dp),
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = SurfaceDark,
-            unfocusedContainerColor = SurfaceDark,
-            disabledContainerColor = SurfaceDark,
-            focusedTextColor = TextPrimaryDark,
-            unfocusedTextColor = TextPrimaryDark,
+            focusedContainerColor = Surface,
+            unfocusedContainerColor = Surface,
+            disabledContainerColor = Surface,
+            focusedTextColor = TextPrimary,
+            unfocusedTextColor = TextPrimary,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent
@@ -162,9 +153,9 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = SurfaceDark
+            containerColor = Surface
         ),
-        border = BorderStroke(1.dp, BorderDark)
+        border = BorderStroke(1.dp, Border)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -175,7 +166,7 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
             Icon(
                 painter = painterResource(Res.drawable.ico_dartboard),
                 contentDescription = machineDisplayModel.machine.name,
-                tint = Primary,
+                tint = PrimaryAccent,
                 modifier = Modifier
                     .size(48.dp)
                     .padding(start = 16.dp)
@@ -189,7 +180,7 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
             ) {
                 Text(
                     text = machineDisplayModel.machine.name ?: "Nombre no disponible",
-                    color = TextPrimaryDark,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Medium,
                     fontSize = 16.sp,
                     maxLines = 1
@@ -198,7 +189,7 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
                 if (machineDisplayModel.barName.isNullOrEmpty()) {
                     Text(
                         text = "Sin bar asignado",
-                        color = TextSecondaryDark,
+                        color = TextSecondary,
                         style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
                         fontSize = 14.sp,
                         maxLines = 1,
@@ -206,7 +197,7 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
                 } else {
                     Text(
                         text = machineDisplayModel.barName,
-                        color = TextSecondaryDark,
+                        color = TextSecondary,
                         fontSize = 14.sp,
                         maxLines = 1
                     )
@@ -217,11 +208,11 @@ fun MachineListItem(machineDisplayModel: MachinesUiModel, onClick: () -> Unit) {
 
             val status = machineDisplayModel.machine.status
 
-            val (statusText, backgroundColor, textColor) = when (status.lowercase()) {
-                "ACTIVE" -> Triple("Activa", Primary.copy(alpha = 0.2f), Primary)
+            val (statusText, backgroundColor, textColor) = when (status.uppercase()) {
+                "ACTIVE" -> Triple("Activa", PrimaryAccent.copy(alpha = 0.2f), PrimaryAccent)
                 "INACTIVE" -> Triple("Inactiva", SecondaryAccent.copy(alpha = 0.2f), SecondaryAccent)
                 "PENDING_REPAIR" -> Triple("Reparación", WarmAccent.copy(alpha = 0.2f), WarmAccent)
-                else -> Triple("Indefinido", SurfaceDark.copy(alpha = 0.4f), TextSecondaryDark)
+                else -> Triple("Indefinido", Surface.copy(alpha = 0.4f), TextSecondary)
             }
 
             Box(
@@ -257,13 +248,13 @@ private fun TopBar() {
             Icon(
                 imageVector = Icons.Default.ArrowBack,
                 contentDescription = "Volver",
-                tint = TextPrimaryDark
+                tint = TextPrimary
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = "Máquinas",
-            color = TextPrimaryDark,
+            color = TextPrimary,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
